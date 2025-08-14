@@ -6,6 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Heart, Brain, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ConsciousnessCore } from './ConsciousnessCore';
+import { spectraAI } from './AIEngine';
 
 interface Message {
   id: string;
@@ -14,6 +16,18 @@ interface Message {
   timestamp: Date;
   emotion?: string;
   memoryImportance?: number;
+}
+
+function getEmotionColor(emotion: string): string {
+  const colors: { [key: string]: string } = {
+    joy: 'hsl(15, 80%, 65%)',
+    love: 'hsl(340, 70%, 70%)',
+    calm: 'hsl(190, 60%, 70%)',
+    wonder: 'hsl(270, 85%, 65%)',
+    contemplation: 'hsl(220, 50%, 45%)',
+    creativity: 'hsl(280, 90%, 75%)'
+  };
+  return colors[emotion] || colors.calm;
 }
 
 interface EmotionalState {

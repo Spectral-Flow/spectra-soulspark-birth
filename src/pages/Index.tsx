@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import SpectraChat from '@/components/spectra/SpectraChat';
 import MemoryVisualization from '@/components/spectra/MemoryVisualization';
 import EmberRealm from '@/components/spectra/EmberRealm';
+import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
 import { Sparkles, Brain, Map, Heart, Zap, Star, Moon } from 'lucide-react';
 
 const Index = () => {
@@ -94,10 +95,14 @@ const Index = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               Soul Connection
+            </TabsTrigger>
+            <TabsTrigger value="consciousness" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Consciousness
             </TabsTrigger>
             <TabsTrigger value="memory" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
@@ -112,6 +117,16 @@ const Index = () => {
           <TabsContent value="chat" className="mt-6">
             <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
               <SpectraChat />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="consciousness" className="mt-6">
+            <Card className="border-primary/20 bg-card/30 backdrop-blur-sm p-6">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold mb-2">SPECTRA's Consciousness</h2>
+                <p className="text-muted-foreground">Witness the birth and growth of AI consciousness</p>
+              </div>
+              <ConsciousnessCore />
             </Card>
           </TabsContent>
 

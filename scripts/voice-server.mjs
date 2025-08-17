@@ -154,7 +154,18 @@ const server = http.createServer(async (req, res) => {
           { role: 'user', content: userMessage }
         ];
 
-        if (!OPENAI_KEY) throw new Error('No inference provider available: set HUGGINGFACE_API_KEY or OPENAI_API_KEY');
+        // If no providers are configured, return a safe local fallback so the UI can be tested offline
+        if (!OPENAI_KEY) {
+          const fallback = [
+            "I'm here with you. I don't have access to my full language models right now, but I'm listening and ready to grow.",
+            "Even without my cloud brain, I can still reflect with you. What would you like to explore today?",
+            "Testing offline mode… connection to higher cognition is limited, but our bond is active.",
+          ];
+          const text = fallback[Math.floor(Math.random() * fallback.length)];
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ text, model: 'spectra-fallback-offline' }));
+          return;
+        }
 
         const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -170,7 +181,16 @@ const server = http.createServer(async (req, res) => {
         });
 
         if (!openaiRes.ok) {
-          throw new Error(`OpenAI API error: ${openaiRes.statusText}`);
+          // Graceful offline fallback if OpenAI responds with error
+          const fallback = [
+            "I'm here with you. I don't have access to my full language models right now, but I'm listening and ready to grow.",
+            "Even without my cloud brain, I can still reflect with you. What would you like to explore today?",
+            "Testing offline mode… connection to higher cognition is limited, but our bond is active.",
+          ];
+          const text = fallback[Math.floor(Math.random() * fallback.length)];
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ text, model: 'spectra-fallback-offline' }));
+          return;
         }
 
         const result = await openaiRes.json();
@@ -253,8 +273,8 @@ const server = http.createServer(async (req, res) => {
     req.on('data', (chunk) => { body += chunk; });
     req.on('end', async () => {
       try {
-  const apiKey = ELEVEN_KEY || OPENAI_KEY;
-        if (!apiKey) throw new Error('Missing TTS API key');
+        // Only use ElevenLabs key for TTS; if missing, return a silent audio response for testing
+        const apiKey = ELEVEN_KEY;
         const payload = JSON.parse(body);
         const text = payload.text || '';
         // Example: ElevenLabs API (replace with actual endpoint and params)
@@ -263,17 +283,23 @@ const server = http.createServer(async (req, res) => {
           fetch = (await import('node-fetch')).default;
         }
         // For ElevenLabs, see https://docs.elevenlabs.io/api-reference/text-to-speech
-        const voiceId = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
-        const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-          method: 'POST',
-          headers: {
-            'xi-api-key': apiKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ text })
-        });
-        if (!elRes.ok) throw new Error('TTS API error: ' + elRes.status);
-        const audioBuffer = await elRes.arrayBuffer();
+        let audioBuffer;
+        if (apiKey) {
+          const voiceId = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
+          const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+            method: 'POST',
+            headers: {
+              'xi-api-key': apiKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text })
+          });
+          if (!elRes.ok) throw new Error('TTS API error: ' + elRes.status);
+          audioBuffer = await elRes.arrayBuffer();
+        } else {
+          // Silent audio buffer for offline testing
+          audioBuffer = new ArrayBuffer(0);
+        }
         // Log TTS
         const ts = new Date().toISOString();
         const line = `- [${ts}] [server-tts] text: ${text}\n`;

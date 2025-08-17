@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import SpectraChat from '@/components/spectra/SpectraChat';
-import MemoryVisualization from '@/components/spectra/MemoryVisualization';
-import EmberRealm from '@/components/spectra/EmberRealm';
-import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
-import { Sparkles, Brain, Heart, Star, Moon, Zap, Send, Mic, MicOff } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { CosmicButton } from '@/components/ui/cosmic-button';
-import { Button } from '@/components/ui/button';
 import { spectraAI } from '@/components/spectra/AIEngine';
+import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
+import EmberRealm from '@/components/spectra/EmberRealm';
 import { getEmotionColor } from '@/components/spectra/EmotionColors';
+import MemoryVisualization from '@/components/spectra/MemoryVisualization';
+import SpectraChat from '@/components/spectra/SpectraChat';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { CosmicButton } from '@/components/ui/cosmic-button';
+import { Input } from '@/components/ui/input';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Brain, Heart, Mic, MicOff, Moon, Send, Sparkles, Star, Zap } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface Message {
   id: string;

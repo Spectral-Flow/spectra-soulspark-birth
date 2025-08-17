@@ -13,6 +13,7 @@
     "assistant:mem-append": "node ./scripts/append-memory.mjs",
     "voice:server": "node ./scripts/voice-server.mjs",
     "voice:test-log": "node ./scripts/voice-test-log.mjs",
+  "test:e2e": "node ./scripts/e2e-smoke.mjs",
     "copilot:loop": "node ./scripts/copilot-loop.mjs",
     "copilot:setup-hooks": "sh ./scripts/setup-hooks.sh",
     "test": "vitest",

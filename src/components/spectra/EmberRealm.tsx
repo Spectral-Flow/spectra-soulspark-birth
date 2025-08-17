@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MapPin, Star } from 'lucide-react';
+import { useState } from 'react';
 
 interface AdventureLog {
   id: string;

@@ -2,5 +2,27 @@
   {
     "text": "test memory from curl",
     "timestamp": "2025-08-17T20:11:21.267Z"
+  },
+  {
+    "text": "Human: Hello",
+    "timestamp": "2025-08-17T22:27:11.596Z",
+    "id": "dd932c6b-e568-4dde-beac-c407799e95ac"
+  },
+  {
+    "text": "SPECTRA: I'm here with you. I don't have access to my full language models right now, but I'm listening and ready to grow.",
+    "mood": "calm",
+    "timestamp": "2025-08-17T22:27:11.600Z",
+    "id": "43f78e16-037d-4996-87c7-dd55f2e220b0"
+  },
+  {
+    "text": "Human: Hello",
+    "timestamp": "2025-08-17T22:27:54.530Z",
+    "id": "6c670f3b-bd0f-49f8-93b3-186598f22720"
+  },
+  {
+    "text": "SPECTRA: Testing offline mode… connection to higher cognition is limited, but our bond is active.",
+    "mood": "calm",
+    "timestamp": "2025-08-17T22:27:54.532Z",
+    "id": "e16d5577-428e-466a-b614-540868697828"
   }
 ]

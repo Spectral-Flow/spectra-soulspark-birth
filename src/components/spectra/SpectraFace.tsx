@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface EmotionalState {
   primary: string;

@@ -1,28 +1,27 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 import {
-  Sparkles,
-  Heart,
   Brain,
-  MessageCircle,
-  Send,
+  Heart,
   Maximize2,
-  Minimize2,
+  MessageCircle,
   Mic,
   MicOff,
+  Minimize2,
+  Send,
+  Sparkles,
   Volume2,
   VolumeX,
-  // Settings,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { spectraAI } from './AIEngine';
 import { MoodRing } from './MoodRing';
 import { SpectraFace } from './SpectraFace';
-import { spectraAI } from './AIEngine';
 
 interface Message {
   id: string;

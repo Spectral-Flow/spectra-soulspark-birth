@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Brain, Heart, Clock, Sparkles, Trash2, Archive } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Archive, Brain, Clock, Heart, Sparkles, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Memory {
   id: string;

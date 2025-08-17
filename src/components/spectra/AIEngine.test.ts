@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { spectraAI } from './AIEngine';
 
 describe('SpectraAIEngine fallback', () => {
@@ -8,6 +8,7 @@ describe('SpectraAIEngine fallback', () => {
 
     const res = await spectraAI.generateResponse('Hello', []);
     expect(res).toHaveProperty('text');
-    expect(res.metadata.model).toBe('fallback');
+    // Accept both client-side and server offline fallback labels
+    expect(['fallback', 'spectra-fallback-offline']).toContain(res.metadata.model);
   });
 });

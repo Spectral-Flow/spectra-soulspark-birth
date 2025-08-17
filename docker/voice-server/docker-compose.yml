@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  voice-server:
+    build: .
+    image: spectra/voice-server:latest
+    restart: unless-stopped
+    ports:
+      - "49231:49231"
+    environment:
+      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY}
+      HF_MODEL: ${HF_MODEL}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_PORT: 49231
+    volumes:
+      - ../.assistant_memory:/app/.assistant_memory
+      - ../.spectra_memory:/app/.spectra_memory

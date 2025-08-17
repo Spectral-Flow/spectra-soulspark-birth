@@ -10,7 +10,7 @@ export const recommendedModels: Record<string, { id: string; task?: string }> = 
   gpt4o: { id: 'OpenAI/gpt-4o-mini', task: 'text-generation' },
   llama3_2: { id: 'meta-llama/Llama-3-2.0', task: 'text-generation' },
   llama3_1: { id: 'meta-llama/Llama-3-1.0', task: 'text-generation' },
-  flan: { id: 'google/flan-t5-small', task: 'text-generation' }
+  flan: { id: 'google/flan-t5-small', task: 'text-generation' },
 };
 
 export function resolveModelId(keyOrId: LLMKey): string {
@@ -25,11 +25,16 @@ export function resolveModelId(keyOrId: LLMKey): string {
 
 export function resolveTaskForModel(keyOrId: LLMKey, fallback: string): string {
   const key = String(keyOrId);
-  if (recommendedModels[key] && recommendedModels[key].task) return recommendedModels[key].task as string;
+  if (recommendedModels[key] && recommendedModels[key].task)
+    return recommendedModels[key].task as string;
   return fallback;
 }
 
-export async function createPipeline(task: string, modelKeyOrId: LLMKey, device: string | undefined): Promise<unknown> {
+export async function createPipeline(
+  task: string,
+  modelKeyOrId: LLMKey,
+  device: string | undefined
+): Promise<unknown> {
   const modelId = resolveModelId(modelKeyOrId);
   // Dynamically import transformers.pipeline to avoid top-level native bindings.
   const transformers = await import('@huggingface/transformers');
@@ -38,7 +43,7 @@ export async function createPipeline(task: string, modelKeyOrId: LLMKey, device:
     throw new Error('transformers.pipeline is not available');
   }
   // Call pipeline as unknown and return the result
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
   // @ts-ignore - runtime call to unknown pipeline
   return pipelineFn(task, modelId, { device: device || undefined });
 }

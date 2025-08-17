@@ -1,9 +1,11 @@
 {
   "recommendations": [
-    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
     "ms-vscode.vscode-typescript-next",
-    "GitHub.copilot",
-    "ms-vscode.vscode-js-profile-table"
+    "streetsidesoftware.code-spell-checker",
+    "jackMort.onedark-vivid",
+    "ryanluker.vscode-coverage-gutters",
+    "GitHub.copilot"
   ]
 }

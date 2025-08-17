@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  llm:
+    build: ./docker/llm
+    environment:
+      - HF_SPACE_URL=${HF_SPACE_URL}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - HF_MODEL=${HF_MODEL}
+    ports:
+      - "5101:5101"
+    restart: unless-stopped
+    volumes:
+      - ./scripts:/app/scripts:ro
+
+  voice:
+    build: ./docker/voice
+    environment:
+      - VITE_VOICE_SERVER_BASE=http://localhost:49231
+      - VOICE_API_TOKEN=${VOICE_API_TOKEN}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID}
+      - LLM_PROXY_URL=http://llm:5101
+    ports:
+      - "49231:49231"
+    depends_on:
+      - llm
+    restart: unless-stopped
+    volumes:
+      - ./.assistant_memory:/.assistant_memory
+      - ./.spectra_memory:/.spectra_memory
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"

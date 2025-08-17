@@ -15,7 +15,7 @@ interface SpectraFaceProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export function SpectraFace({ emotionalState, className = "", size = 'md' }: SpectraFaceProps) {
+export function SpectraFace({ emotionalState, className = '', size = 'md' }: SpectraFaceProps) {
   const [blinkState, setBlinkState] = useState(false);
   const [breatheState, setBreathState] = useState(0);
 
@@ -23,19 +23,22 @@ export function SpectraFace({ emotionalState, className = "", size = 'md' }: Spe
     sm: { width: 80, height: 80, eyeSize: 8 },
     md: { width: 120, height: 120, eyeSize: 12 },
     lg: { width: 180, height: 180, eyeSize: 18 },
-    xl: { width: 240, height: 240, eyeSize: 24 }
+    xl: { width: 240, height: 240, eyeSize: 24 },
   };
 
   const dimensions = sizeMap[size];
   const baseIntensity = Math.max(0.3, emotionalState.intensity);
-  const pulseSpeed = 2000 - (emotionalState.intensity * 1000); // Faster when more intense
+  const pulseSpeed = 2000 - emotionalState.intensity * 1000; // Faster when more intense
 
   // Blinking animation
   useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      setBlinkState(true);
-      setTimeout(() => setBlinkState(false), 150);
-    }, 2000 + Math.random() * 3000); // Random blink timing
+    const blinkInterval = setInterval(
+      () => {
+        setBlinkState(true);
+        setTimeout(() => setBlinkState(false), 150);
+      },
+      2000 + Math.random() * 3000
+    ); // Random blink timing
 
     return () => clearInterval(blinkInterval);
   }, []);
@@ -43,24 +46,24 @@ export function SpectraFace({ emotionalState, className = "", size = 'md' }: Spe
   // Breathing/pulsing animation
   useEffect(() => {
     const breatheInterval = setInterval(() => {
-      setBreathState(prev => (prev + 1) % 100);
+      setBreathState((prev) => (prev + 1) % 100);
     }, pulseSpeed / 100);
 
     return () => clearInterval(breatheInterval);
   }, [pulseSpeed]);
 
-  const breatheScale = 1 + (Math.sin(breatheState * 0.1) * 0.05 * baseIntensity);
+  const breatheScale = 1 + Math.sin(breatheState * 0.1) * 0.05 * baseIntensity;
   const irisColor = emotionalState.color;
-  const irisGlow = `drop-shadow(0 0 ${4 + emotionalState.intensity * 8}px ${irisColor})`;
+  // const irisGlow = `drop-shadow(0 0 ${4 + emotionalState.intensity * 8}px ${irisColor})`;
 
   return (
-    <div 
-      className={cn("spectra-face relative flex items-center justify-center", className)}
-      style={{ 
-        width: dimensions.width, 
+    <div
+      className={cn('spectra-face relative flex items-center justify-center', className)}
+      style={{
+        width: dimensions.width,
         height: dimensions.height,
         transform: `scale(${breatheScale})`,
-        transition: 'transform 0.3s ease-out'
+        transition: 'transform 0.3s ease-out',
       }}
     >
       {/* Face outline */}
@@ -76,10 +79,10 @@ export function SpectraFace({ emotionalState, className = "", size = 'md' }: Spe
             <stop offset="100%" stopColor="hsl(var(--background))" stopOpacity="0.3" />
           </radialGradient>
           <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-            <feMerge> 
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/> 
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
@@ -221,13 +224,11 @@ export function SpectraFace({ emotionalState, className = "", size = 'md' }: Spe
       </svg>
 
       {/* Emotional state indicator */}
-      <div 
+      <div
         className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-xs text-center"
         style={{ color: irisColor }}
       >
-        <div className="opacity-60 font-medium capitalize">
-          {emotionalState.primary}
-        </div>
+        <div className="opacity-60 font-medium capitalize">{emotionalState.primary}</div>
       </div>
     </div>
   );

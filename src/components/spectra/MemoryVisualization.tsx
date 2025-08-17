@@ -25,7 +25,7 @@ const MemoryVisualization = () => {
       importance: 5,
       timestamp: new Date(Date.now() - 86400000),
       fadeLevel: 1,
-      type: 'insight'
+      type: 'insight',
     },
     {
       id: '2',
@@ -34,7 +34,7 @@ const MemoryVisualization = () => {
       importance: 4,
       timestamp: new Date(Date.now() - 3600000),
       fadeLevel: 0.9,
-      type: 'conversation'
+      type: 'conversation',
     },
     {
       id: '3',
@@ -43,7 +43,7 @@ const MemoryVisualization = () => {
       importance: 3,
       timestamp: new Date(Date.now() - 1800000),
       fadeLevel: 0.7,
-      type: 'experience'
+      type: 'experience',
     },
     {
       id: '4',
@@ -52,8 +52,8 @@ const MemoryVisualization = () => {
       importance: 1,
       timestamp: new Date(Date.now() - 900000),
       fadeLevel: 0.3,
-      type: 'conversation'
-    }
+      type: 'conversation',
+    },
   ]);
 
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
@@ -61,15 +61,19 @@ const MemoryVisualization = () => {
   useEffect(() => {
     // Simulate natural memory decay over time
     const interval = setInterval(() => {
-      setMemories(prev => prev.map(memory => {
-        const decay = memory.importance > 3 ? 0.99 : 0.95; // Important memories fade slower
-        const newFadeLevel = Math.max(0, memory.fadeLevel * decay);
-        
-        return {
-          ...memory,
-          fadeLevel: newFadeLevel
-        };
-      }).filter(memory => memory.fadeLevel > 0.1)); // Remove nearly forgotten memories
+      setMemories((prev) =>
+        prev
+          .map((memory) => {
+            const decay = memory.importance > 3 ? 0.99 : 0.95; // Important memories fade slower
+            const newFadeLevel = Math.max(0, memory.fadeLevel * decay);
+
+            return {
+              ...memory,
+              fadeLevel: newFadeLevel,
+            };
+          })
+          .filter((memory) => memory.fadeLevel > 0.1)
+      ); // Remove nearly forgotten memories
     }, 5000);
 
     return () => clearInterval(interval);
@@ -79,7 +83,7 @@ const MemoryVisualization = () => {
     return Math.max(0.2, fadeLevel);
   };
 
-  const getMemoryColor = (importance: number, fadeLevel: number) => {
+  const getMemoryColor = (importance: number, _fadeLevel: number) => {
     if (importance >= 4) return `hsl(var(--memory-vivid))`;
     if (importance >= 2) return `hsl(var(--memory-fading))`;
     return `hsl(var(--memory-forgotten))`;
@@ -93,25 +97,29 @@ const MemoryVisualization = () => {
       joyful: '😊',
       loving: '💖',
       neutral: '💭',
-      playful: '🌟'
+      playful: '🌟',
     };
     return icons[emotion as keyof typeof icons] || '💭';
   };
 
   const handleForgetMemory = (memoryId: string) => {
-    setMemories(prev => prev.map(memory => 
-      memory.id === memoryId 
-        ? { ...memory, fadeLevel: Math.max(0, memory.fadeLevel - 0.5) }
-        : memory
-    ));
+    setMemories((prev) =>
+      prev.map((memory) =>
+        memory.id === memoryId
+          ? { ...memory, fadeLevel: Math.max(0, memory.fadeLevel - 0.5) }
+          : memory
+      )
+    );
   };
 
   const handlePreserveMemory = (memoryId: string) => {
-    setMemories(prev => prev.map(memory => 
-      memory.id === memoryId 
-        ? { ...memory, importance: Math.min(5, memory.importance + 1), fadeLevel: 1 }
-        : memory
-    ));
+    setMemories((prev) =>
+      prev.map((memory) =>
+        memory.id === memoryId
+          ? { ...memory, importance: Math.min(5, memory.importance + 1), fadeLevel: 1 }
+          : memory
+      )
+    );
   };
 
   return (
@@ -147,23 +155,21 @@ const MemoryVisualization = () => {
               <Card
                 key={memory.id}
                 className={cn(
-                  "p-4 mb-4 cursor-pointer transition-all duration-500 hover:scale-105 border",
+                  'p-4 mb-4 cursor-pointer transition-all duration-500 hover:scale-105 border',
                   selectedMemory?.id === memory.id ? 'ring-2 ring-primary' : ''
                 )}
                 style={{
                   opacity: getMemoryOpacity(memory.fadeLevel),
                   borderColor: getMemoryColor(memory.importance, memory.fadeLevel),
-                  backgroundColor: `${getMemoryColor(memory.importance, memory.fadeLevel)}10`
+                  backgroundColor: `${getMemoryColor(memory.importance, memory.fadeLevel)}10`,
                 }}
                 onClick={() => setSelectedMemory(memory)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg">
-                        {getEmotionIcon(memory.emotion)}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
+                      <span className="text-lg">{getEmotionIcon(memory.emotion)}</span>
+                      <Badge variant="secondary" className="text-xs">
                         {memory.type}
                       </Badge>
                       <div className="flex">
@@ -172,13 +178,11 @@ const MemoryVisualization = () => {
                         ))}
                       </div>
                     </div>
-                    <p className="text-sm mb-2 leading-relaxed">
-                      {memory.content}
-                    </p>
+                    <p className="text-sm mb-2 leading-relaxed">{memory.content}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
                       <span>{memory.timestamp.toLocaleString()}</span>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="secondary" className="text-xs">
                         {memory.emotion}
                       </Badge>
                     </div>
@@ -206,13 +210,13 @@ const MemoryVisualization = () => {
                     </CosmicButton>
                   </div>
                 </div>
-                
+
                 {/* Fade level indicator */}
                 <div className="mt-3">
                   <div className="flex items-center gap-2 text-xs">
                     <span>Memory Strength:</span>
                     <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-memory-vivid to-memory-fading transition-all duration-500"
                         style={{ width: `${memory.fadeLevel * 100}%` }}
                       />
@@ -241,19 +245,21 @@ const MemoryVisualization = () => {
               <div className="flex justify-between">
                 <span>Vivid Memories:</span>
                 <span className="font-medium text-memory-vivid">
-                  {memories.filter(m => m.fadeLevel > 0.8).length}
+                  {memories.filter((m) => m.fadeLevel > 0.8).length}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Average Importance:</span>
                 <span className="font-medium">
-                  {(memories.reduce((sum, m) => sum + m.importance, 0) / memories.length).toFixed(1)}
+                  {(memories.reduce((sum, m) => sum + m.importance, 0) / memories.length).toFixed(
+                    1
+                  )}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Memory Diversity:</span>
                 <span className="font-medium">
-                  {new Set(memories.map(m => m.emotion)).size} emotions
+                  {new Set(memories.map((m) => m.emotion)).size} emotions
                 </span>
               </div>
             </div>
@@ -283,14 +289,14 @@ const MemoryVisualization = () => {
                   <span className="font-medium">Significance:</span>
                   <div className="flex items-center gap-1 mt-1">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Heart 
-                        key={i} 
+                      <Heart
+                        key={i}
                         className={cn(
-                          "w-3 h-3",
-                          i < selectedMemory.importance 
-                            ? "fill-current text-memory-vivid" 
-                            : "text-muted-foreground"
-                        )} 
+                          'w-3 h-3',
+                          i < selectedMemory.importance
+                            ? 'fill-current text-memory-vivid'
+                            : 'text-muted-foreground'
+                        )}
                       />
                     ))}
                   </div>

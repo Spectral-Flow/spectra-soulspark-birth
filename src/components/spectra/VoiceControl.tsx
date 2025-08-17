@@ -4,7 +4,8 @@ import { spectraAI } from './AIEngine';
 // Voice Control UI using server-side STT/TTS.
 // Records audio, sends to /voice/transcribe, gets AI response, then sends to /voice/tts for playback.
 
-const VOICE_SERVER_BASE = (import.meta.env.VITE_VOICE_SERVER_BASE as string) || 'http://localhost:49231';
+const VOICE_SERVER_BASE =
+  (import.meta.env.VITE_VOICE_SERVER_BASE as string) || 'http://localhost:49231';
 
 export default function VoiceControl() {
   const [listening, setListening] = useState(false);
@@ -18,7 +19,7 @@ export default function VoiceControl() {
       await fetch(`${VOICE_SERVER_BASE}/voice/log`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'voice-interface', ...entry })
+        body: JSON.stringify({ source: 'voice-interface', ...entry }),
       });
     } catch (err) {
       console.warn('Voice log failed:', err);
@@ -30,7 +31,7 @@ export default function VoiceControl() {
       const response = await fetch(`${VOICE_SERVER_BASE}/voice/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text }),
       });
       if (!response.ok) throw new Error('TTS API request failed');
       const audioBlob = await response.blob();
@@ -44,22 +45,25 @@ export default function VoiceControl() {
     }
   }, []);
 
-  const handleTranscript = useCallback(async (transcript: string) => {
-    if (!transcript.trim()) {
+  const handleTranscript = useCallback(
+    async (transcript: string) => {
+      if (!transcript.trim()) {
+        setStatus('idle');
+        return;
+      }
+      setStatus('processing');
+      await appendLog({ title: 'STT', body: transcript });
+
+      const response = await spectraAI.generateResponse(transcript, []);
+      const responseText = response?.text ?? String(response || '');
+      await appendLog({ title: 'AI_RESPONSE', body: responseText });
+
+      setStatus('speaking');
+      await speakText(responseText);
       setStatus('idle');
-      return;
-    }
-    setStatus('processing');
-    await appendLog({ title: 'STT', body: transcript });
-
-    const response = await spectraAI.generateResponse(transcript, []);
-    const responseText = response?.text ?? String(response || '');
-    await appendLog({ title: 'AI_RESPONSE', body: responseText });
-
-    setStatus('speaking');
-    await speakText(responseText);
-    setStatus('idle');
-  }, [appendLog, speakText]);
+    },
+    [appendLog, speakText]
+  );
 
   const startRecognition = useCallback(async () => {
     try {
@@ -80,7 +84,7 @@ export default function VoiceControl() {
           formData.append('audio', audioBlob);
           const response = await fetch(`${VOICE_SERVER_BASE}/voice/transcribe`, {
             method: 'POST',
-            body: formData
+            body: formData,
           });
           if (!response.ok) throw new Error('Transcription request failed');
           const result = await response.json();

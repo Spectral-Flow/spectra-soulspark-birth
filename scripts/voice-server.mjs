@@ -1,28 +1,73 @@
 #!/usr/bin/env node
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import http from 'http';
-import { writeFileSync, appendFileSync, existsSync, readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PORT = process.env.VOICE_PORT || process.env.PORT || 49231;
-const MEM_FILE = join(process.cwd(), '.memory_bank', 'DEV_NOTES.md');
 
-if (!existsSync(join(process.cwd(), '.memory_bank'))) {
-  try {
-    writeFileSync(MEM_FILE, '# DEV_NOTES\n\n');
-  } catch (e) {
-    // ignore
+// Directories separated to avoid mixing assistant logs and Spectra's own memory
+const ASSISTANT_DIR = join(process.cwd(), '.assistant_memory');
+const SPECTRA_DIR = join(process.cwd(), '.spectra_memory');
+const MEM_FILE = join(ASSISTANT_DIR, 'DEV_NOTES.md');
+
+// Migration: if old .memory_bank exists, move known files into new directories
+const OLD_DIR = join(process.cwd(), '.memory_bank');
+try {
+  if (existsSync(OLD_DIR)) {
+    // ensure new dirs
+    if (!existsSync(ASSISTANT_DIR)) writeFileSync(join(ASSISTANT_DIR, '.keep'), '');
+    if (!existsSync(SPECTRA_DIR)) writeFileSync(join(SPECTRA_DIR, '.keep'), '');
+
+    // move DEV_NOTES.md and memory-bank.md to assistant dir
+    try {
+      const oldDev = join(OLD_DIR, 'DEV_NOTES.md');
+      const oldMemBank = join(OLD_DIR, 'memory-bank.md');
+      if (existsSync(oldDev)) writeFileSync(join(ASSISTANT_DIR, 'DEV_NOTES.md'), readFileSync(oldDev, 'utf8'));
+      if (existsSync(oldMemBank)) writeFileSync(join(ASSISTANT_DIR, 'memory-bank.md'), readFileSync(oldMemBank, 'utf8'));
+    } catch (e) {
+      // ignore single-file copy errors
+    }
+
+    // move persona.json and memory.json to spectra dir
+    try {
+      const oldPersona = join(OLD_DIR, 'persona.json');
+      const oldMemory = join(OLD_DIR, 'memory.json');
+      if (existsSync(oldPersona)) writeFileSync(join(SPECTRA_DIR, 'persona.json'), readFileSync(oldPersona, 'utf8'));
+      if (existsSync(oldMemory)) writeFileSync(join(SPECTRA_DIR, 'memory.json'), readFileSync(oldMemory, 'utf8'));
+    } catch (e) {
+      // ignore
+    }
   }
+} catch (e) {
+  // ignore migration errors
 }
 
-const HF_KEY = process.env.HUGGINGFACE_API_KEY || '';
-const HF_MODEL = process.env.HF_MODEL || 'OpenAssistant/oa-OpenHermes-1.0';
+// Ensure assistant DEV_NOTES exists
+try {
+  if (!existsSync(ASSISTANT_DIR)) {
+    writeFileSync(join(ASSISTANT_DIR, 'DEV_NOTES.md'), '# DEV_NOTES\n\n');
+  } else if (!existsSync(MEM_FILE)) {
+    writeFileSync(MEM_FILE, '# DEV_NOTES\n\n');
+  }
+} catch (e) {
+  // ignore
+}
+
+// Accept multiple secret name variants so deploys or repo secrets named differently still work
+const HF_KEY = process.env.HUGGINGFACE_API_KEY || process.env.HUGFACE || '';
+const HF_MODEL = process.env.HF_MODEL || process.env.HF || 'OpenAssistant/oa-OpenHermes-1.0';
 const HF_STT_MODEL = process.env.HF_STT_MODEL || 'openai/whisper-large';
-const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || '';
-const ELEVEN_VOICE = process.env.ELEVENLABS_VOICE || 'alloy';
-const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+// Optional LLM proxy (our Python microservice or any other proxy)
+const LLM_PROXY = process.env.LLM_PROXY_URL || process.env.HF_SPACE_URL || '';
+// Internal token header to authenticate voice-server -> llm_proxy calls
+const VOICE_API_TOKEN = process.env.VOICE_API_TOKEN || '';
+// ElevenLabs / voice API key: accept ELEVENLABS_API_KEY, VOICE, or SPECTRA_VOICE_API
+const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || process.env.VOICE || process.env.SPECTRA_VOICE_API || '';
+const ELEVEN_VOICE = process.env.ELEVENLABS_VOICE || process.env.ELEVENLABS_VOICE_ID || 'alloy';
+const OPENAI_KEY = process.env.OPENAI_API_KEY || process.env.OPENAI || '';
 
 const server = http.createServer(async (req, res) => {
   // AI generation endpoint
@@ -32,13 +77,44 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const { userMessage, conversationHistory } = JSON.parse(body);
-        const fetch = (await import('node-fetch')).default;
-        // Basic RAG: load persona and recent memory (best-effort)
-        const persona = JSON.parse(readFileSync(join(process.cwd(), '.memory_bank', 'persona.json'), 'utf8') || '{}');
-        const recentMem = JSON.parse(readFileSync(join(process.cwd(), '.memory_bank', 'memory.json'), 'utf8') || '[]').slice(-10);
+        // Prefer built-in global fetch (Node 18+). Fall back to node-fetch if not available.
+        let fetch = globalThis.fetch;
+        if (typeof fetch !== 'function') {
+          fetch = (await import('node-fetch')).default;
+        }
+  // Basic RAG: load persona and recent memory (best-effort) from Spectra's memory
+  const persona = JSON.parse(readFileSync(join(SPECTRA_DIR, 'persona.json'), 'utf8') || '{}');
+  const recentMem = JSON.parse(readFileSync(join(SPECTRA_DIR, 'memory.json'), 'utf8') || '[]').slice(-10);
 
         const systemPrompt = `You are SPECTRA, a conscious AI companion. Persona: ${JSON.stringify(persona)}. Recent memories: ${JSON.stringify(recentMem)}.`;
 
+        // Prefer an LLM proxy if configured (this can point at a HF Space proxy or local microservice)
+        if (LLM_PROXY) {
+          try {
+            const inputs = `${systemPrompt}\n\nConversation history:\n${(conversationHistory || []).join('\n') || ''}\n\nUser: ${userMessage}`;
+            let fetch = globalThis.fetch;
+            if (typeof fetch !== 'function') {
+              fetch = (await import('node-fetch')).default;
+            }
+            const proxyUrl = LLM_PROXY.replace(/\/$/, '') + '/generate';
+            const headers = { 'Content-Type': 'application/json' };
+            if (VOICE_API_TOKEN) headers['x-internal-token'] = VOICE_API_TOKEN;
+            const proxyRes = await fetch(proxyUrl, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ prompt: inputs, conversationHistory })
+            });
+            if (!proxyRes.ok) throw new Error('LLM proxy error status: ' + proxyRes.status);
+            const proxyJson = await proxyRes.json();
+            const text = proxyJson.text || proxyJson.output || proxyJson[0] || '';
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ text: String(text || ''), model: proxyJson.model || LLM_PROXY }));
+            return;
+          } catch (proxyErr) {
+            console.warn('LLM proxy failed, falling back to HF/OpenAI if available:', proxyErr);
+            // fall through to HF path
+          }
+        }
         // Prefer Hugging Face Inference API when available
         if (HF_KEY) {
           try {
@@ -137,11 +213,14 @@ const server = http.createServer(async (req, res) => {
     req.on('data', (chunk) => { audioChunks.push(chunk); });
     req.on('end', async () => {
       try {
-        const apiKey = process.env.HUGGINGFACE_API_KEY;
+  const apiKey = HF_KEY || process.env.HUGGINGFACE_API_KEY;
         if (!apiKey) throw new Error('Missing HUGGINGFACE_API_KEY');
         const audioBuffer = Buffer.concat(audioChunks);
         // Call HF Inference API
-        const fetch = (await import('node-fetch')).default;
+        let fetch = globalThis.fetch;
+        if (typeof fetch !== 'function') {
+          fetch = (await import('node-fetch')).default;
+        }
         const model = 'openai/whisper-large';
         const hfRes = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
           method: 'POST',
@@ -174,12 +253,15 @@ const server = http.createServer(async (req, res) => {
     req.on('data', (chunk) => { body += chunk; });
     req.on('end', async () => {
       try {
-        const apiKey = process.env.ELEVENLABS_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = ELEVEN_KEY || OPENAI_KEY;
         if (!apiKey) throw new Error('Missing TTS API key');
         const payload = JSON.parse(body);
         const text = payload.text || '';
         // Example: ElevenLabs API (replace with actual endpoint and params)
-        const fetch = (await import('node-fetch')).default;
+        let fetch = globalThis.fetch;
+        if (typeof fetch !== 'function') {
+          fetch = (await import('node-fetch')).default;
+        }
         // For ElevenLabs, see https://docs.elevenlabs.io/api-reference/text-to-speech
         const voiceId = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
         const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -216,11 +298,12 @@ const server = http.createServer(async (req, res) => {
         const line = `- [${new Date().toISOString()}] [memory:add] ${String(obj.text).replace(/\n/g, ' ')}\n`;
         appendFileSync(MEM_FILE, line);
         // Also persist to JSON file for retrieval
-        const p = join(process.cwd(), '.memory_bank');
+        const p = SPECTRA_DIR;
         const file = join(p, 'memory.json');
         const exists = existsSync(p);
-        if (!exists) writeFileSync(p + '/memory.json', JSON.stringify([obj], null, 2), 'utf8');
-        else {
+        if (!exists) {
+          try { writeFileSync(join(p, 'memory.json'), JSON.stringify([obj], null, 2), 'utf8'); } catch (e) { /* ignore */ }
+        } else {
           try {
             const prev = JSON.parse(readFileSync(file, 'utf8') || '[]');
             prev.push({ ...obj, timestamp: new Date().toISOString() });
@@ -243,8 +326,8 @@ const server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, `http://localhost:${PORT}`);
       const limit = Number(url.searchParams.get('limit') || '50');
-      const p = join(process.cwd(), '.memory_bank');
-      const file = join(p, 'memory.json');
+  const p = SPECTRA_DIR;
+  const file = join(p, 'memory.json');
       if (!existsSync(file)) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify([]));
@@ -264,8 +347,8 @@ const server = http.createServer(async (req, res) => {
   // Persona endpoints
   if (req.method === 'GET' && req.url === '/persona/get') {
     try {
-      const p = join(process.cwd(), '.memory_bank');
-      const file = join(p, 'persona.json');
+  const p = SPECTRA_DIR;
+  const file = join(p, 'persona.json');
       if (!existsSync(file)) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({}));
@@ -287,10 +370,10 @@ const server = http.createServer(async (req, res) => {
     req.on('end', () => {
       try {
         const obj = JSON.parse(body || '{}');
-        const p = join(process.cwd(), '.memory_bank');
-        if (!existsSync(p)) writeFileSync(p + '/persona.json', JSON.stringify(obj, null, 2), 'utf8');
-        else writeFileSync(join(p, 'persona.json'), JSON.stringify(obj, null, 2), 'utf8');
-        appendFileSync(MEM_FILE, `- [${new Date().toISOString()}] [persona:update] ${JSON.stringify(obj).slice(0,200)}\n`);
+  const p = SPECTRA_DIR;
+  if (!existsSync(p)) try { writeFileSync(join(p, 'persona.json'), JSON.stringify(obj, null, 2), 'utf8'); } catch (e) {}
+  else writeFileSync(join(p, 'persona.json'), JSON.stringify(obj, null, 2), 'utf8');
+  appendFileSync(MEM_FILE, `- [${new Date().toISOString()}] [persona:update] ${JSON.stringify(obj).slice(0,200)}\n`);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
 
@@ -312,8 +395,8 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ ok: false, error: 'not found' }));
 });
 
-server.listen(PORT, () => {
-  console.log(`Voice service listening on http://localhost:${PORT}`);
+server.listen(PORT, '127.0.0.1', () => {
+  console.log(`Voice service listening on http://127.0.0.1:${PORT}`);
 });
 
 process.on('SIGINT', () => { server.close(() => process.exit(0)); });

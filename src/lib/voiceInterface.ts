@@ -29,7 +29,7 @@ const logToServer = async (entry: LogEntry) => {
     await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(entry)
+      body: JSON.stringify(entry),
     });
   } catch (err) {
     console.warn('voice logging failed', err);
@@ -125,21 +125,44 @@ export class VoiceInterface {
         continue;
       }
 
-      await logToServer({ source: this.sttSource, userText, success: true, timestamp: new Date().toISOString() });
+      await logToServer({
+        source: this.sttSource,
+        userText,
+        success: true,
+        timestamp: new Date().toISOString(),
+      });
 
       // Ask Spectra for a response
       const history: string[] = []; // Optionally supply recent memory reads here
       const aiResp = await spectraAI.generateResponse(userText, history, null);
 
       const spectraText = aiResp.text;
-      await logToServer({ source: 'web-speech', userText, spectraText, success: true, timestamp: new Date().toISOString() });
+      await logToServer({
+        source: 'web-speech',
+        userText,
+        spectraText,
+        success: true,
+        timestamp: new Date().toISOString(),
+      });
 
       // Speak the response via SpeechSynthesis (browser TTS)
       try {
         await this.speak(spectraText);
-        await logToServer({ source: 'tts-browser', userText, spectraText, success: true, timestamp: new Date().toISOString() });
+        await logToServer({
+          source: 'tts-browser',
+          userText,
+          spectraText,
+          success: true,
+          timestamp: new Date().toISOString(),
+        });
       } catch (err) {
-        await logToServer({ source: 'tts-browser', userText, spectraText, success: false, timestamp: new Date().toISOString() });
+        await logToServer({
+          source: 'tts-browser',
+          userText,
+          spectraText,
+          success: false,
+          timestamp: new Date().toISOString(),
+        });
       }
 
       // Small pause before next listen so the TTS can finish

@@ -6,7 +6,7 @@ This repo includes a minimal voice service at `scripts/voice-server.mjs` which p
 - /voice/transcribe — server-side STT (posts raw audio, uses Hugging Face Whisper by default)
 - /voice/tts — server-side TTS (ElevenLabs by default)
 - /voice/log — simple logging endpoint
-- /memory/* and /persona/* — small persistence endpoints backed by `.memory_bank`
+- /memory/* and /persona/* — small persistence endpoints backed by `.spectra_memory` (Spectra's memories); assistant logs go to `.assistant_memory`.
 
 Env variables (see `.env.example`):
 
@@ -36,3 +36,24 @@ If you want, I can:
 - Add a systemd service or a simple Dockerfile for the voice server.
 - Wire up CI/PM2 scripts to run it 24/7.
 - Improve the frontend UI to select voices and models dynamically.
+Docker (quick deploy)
+
+Use the provided Dockerfile and docker-compose to run the voice server in a container.
+
+```bash
+# from repo root
+cd docker/voice-server
+docker compose up -d --build
+```
+
+Environment / GitHub Secrets mapping
+
+If you keep secrets in the GitHub repository (Actions secrets), map them to the following env vars when deploying:
+
+- HUGGINGFACE_API_KEY (or HUGFACE)
+- HF_MODEL
+- OPENAI_API_KEY (or OPENAI)
+- ELEVENLABS_API_KEY (or VOICE or SPECTRA_VOICE_API)
+- ELEVENLABS_VOICE_ID
+
+This repo already looks for alternate secret names like `VOICE`, `SPECTRA_VOICE_API`, `OPENAI`, and `HUGFACE` to be flexible with naming.

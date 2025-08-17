@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const MEMORY_PATH = path.resolve(process.cwd(), '.memory_bank', 'memory-bank.md');
+const MEMORY_PATH = path.resolve(process.cwd(), '.assistant_memory', 'memory-bank.md');
 
 function timestamp() {
   return new Date().toISOString().replace('T', ' ').replace('Z', '');
@@ -14,7 +14,7 @@ function formatEntry(text) {
 
 async function appendEntry(text) {
   try {
-    const data = await fs.readFile(MEMORY_PATH, 'utf8');
+  const data = await fs.readFile(MEMORY_PATH, 'utf8');
     const marker = '## RECENT_CHANGES';
     const idx = data.indexOf(marker);
     if (idx === -1) {

@@ -13,7 +13,7 @@ interface MoodRingProps {
   className?: string;
 }
 
-export function MoodRing({ emotionalState, className = "" }: MoodRingProps) {
+export function MoodRing({ emotionalState, className = '' }: MoodRingProps) {
   const [pulseClass, setPulseClass] = useState('');
 
   useEffect(() => {
@@ -38,24 +38,24 @@ export function MoodRing({ emotionalState, className = "" }: MoodRingProps) {
   const ringStyle = {
     background: emotionalState.gradient || sanitizeColorString(emotionalState.color),
     '--ring-color': sanitizeColorString(emotionalState.color),
-    animationDuration: `${3 - (emotionalState.intensity * 1.5)}s`
+    animationDuration: `${3 - emotionalState.intensity * 1.5}s`,
   } as React.CSSProperties;
 
   return (
-    <div 
+    <div
       className={`mood-ring ${pulseClass} ${className}`}
       style={ringStyle}
       title={`SPECTRA feels ${emotionalState.primary} (${Math.round(emotionalState.intensity * 100)}% intensity)`}
     >
       {/* Inner depth layer */}
       <div className="absolute inset-2 rounded-full bg-gradient-to-br from-black/20 to-transparent" />
-      
+
       {/* Emotional ripples */}
-      <div 
+      <div
         className="absolute inset-3 rounded-full border border-white/30 animate-pulse"
         style={{ animationDuration: `${2 + (1 - emotionalState.intensity)}s` }}
       />
-      
+
       {/* Center clarity point */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white/80 rounded-full animate-pulse" />
     </div>

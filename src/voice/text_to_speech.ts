@@ -1,3 +1,5 @@
+import { OpenAIVoiceService, createOpenAIVoiceFromEnv } from './openai_integration';
+
 /**
  * Text-to-Speech Module for Spectra
  * Handles voice output with Spectra's personality configuration
@@ -30,6 +32,7 @@ export class TextToSpeechEngine {
   private voiceEnabled: boolean = true;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
   private personality: SpectraVoicePersonality;
+  private openAIService: OpenAIVoiceService | null = null;
 
   constructor(config: TTSConfig = {}) {
     this.config = {
@@ -52,6 +55,12 @@ export class TextToSpeechEngine {
       voice: 'female',  // Preference for female voices
       emotion: 'calm'   // Default emotional state
     };
+
+    // Initialize OpenAI service if available
+    this.openAIService = createOpenAIVoiceFromEnv();
+    if (this.openAIService) {
+      console.log('✨ OpenAI TTS service initialized for Spectra');
+    }
 
     this.initializeVoices();
   }
@@ -118,8 +127,8 @@ export class TextToSpeechEngine {
     if (!this.voiceEnabled || !text.trim()) return;
 
     try {
-      if (this.config.useOpenAI && this.config.apiKey) {
-        await this.speakWithOpenAI(text);
+      if (this.config.useOpenAI && this.openAIService?.isAvailable()) {
+        await this.speakWithOpenAI(text, emotion);
       } else if (this.config.useElevenLabs && this.config.apiKey) {
         await this.speakWithElevenLabs(text);
       } else {
@@ -165,10 +174,19 @@ export class TextToSpeechEngine {
     });
   }
 
-  private async speakWithOpenAI(text: string): Promise<void> {
-    // TODO: Implement OpenAI TTS API integration
-    console.log('OpenAI TTS not yet implemented, falling back to Web Speech');
-    await this.speakWithWebSpeech(text);
+  private async speakWithOpenAI(text: string, emotion?: string): Promise<void> {
+    if (!this.openAIService?.isAvailable()) {
+      throw new Error('OpenAI service not available');
+    }
+
+    try {
+      const voiceSettings = this.openAIService.getSpectraVoiceSettings(emotion);
+      const audioBuffer = await this.openAIService.generateSpeech(text, voiceSettings);
+      await this.openAIService.playAudio(audioBuffer);
+    } catch (error) {
+      console.error('OpenAI TTS error:', error);
+      throw error;
+    }
   }
 
   private async speakWithElevenLabs(text: string): Promise<void> {

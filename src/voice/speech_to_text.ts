@@ -1,3 +1,5 @@
+import { OpenAIVoiceService, createOpenAIVoiceFromEnv } from './openai_integration';
+
 /**
  * Speech-to-Text Module for Spectra
  * Handles voice input using OpenAI Realtime API or Whisper fallback
@@ -29,6 +31,8 @@ export class SpeechToTextEngine {
   private onErrorCallback?: STTErrorCallback;
   private audioContext?: AudioContext;
   private mediaStream?: MediaStream;
+  private mediaRecorder?: MediaRecorder;
+  private openAIService: OpenAIVoiceService | null = null;
 
   constructor(config: STTConfig = {}) {
     this.config = {
@@ -38,6 +42,12 @@ export class SpeechToTextEngine {
       useRealtimeAPI: false,
       ...config
     };
+    
+    // Initialize OpenAI service if available
+    this.openAIService = createOpenAIVoiceFromEnv();
+    if (this.openAIService) {
+      console.log('✨ OpenAI STT service initialized for Spectra');
+    }
     
     this.initializeWebSpeechAPI();
   }
@@ -88,8 +98,8 @@ export class SpeechToTextEngine {
     if (this.isListening) return;
 
     try {
-      if (this.config.useRealtimeAPI && this.config.apiKey) {
-        await this.startRealtimeAPIListening();
+      if (this.config.useRealtimeAPI && this.openAIService?.isAvailable()) {
+        await this.startOpenAIListening();
       } else {
         await this.startWebSpeechListening();
       }
@@ -110,11 +120,49 @@ export class SpeechToTextEngine {
     this.recognition.start();
   }
 
-  private async startRealtimeAPIListening(): Promise<void> {
-    // TODO: Implement OpenAI Realtime API integration
-    // For now, fallback to Web Speech API
-    console.log('OpenAI Realtime API not yet implemented, falling back to Web Speech API');
-    await this.startWebSpeechListening();
+  private async startOpenAIListening(): Promise<void> {
+    if (!this.openAIService?.isAvailable()) {
+      throw new Error('OpenAI service not available');
+    }
+
+    try {
+      // Start recording for OpenAI Whisper
+      this.mediaRecorder = await this.openAIService.startRecording();
+      const audioChunks: Blob[] = [];
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        try {
+          const transcript = await this.openAIService!.transcribeAudio(audioBlob);
+          
+          if (this.onResultCallback && transcript.trim()) {
+            this.onResultCallback({
+              transcript: transcript.trim(),
+              confidence: 0.95, // OpenAI Whisper typically has high confidence
+              isFinal: true,
+              timestamp: new Date()
+            });
+          }
+        } catch (error) {
+          if (this.onErrorCallback) {
+            this.onErrorCallback(error as Error);
+          }
+        }
+      };
+
+      this.mediaRecorder.start();
+      console.log('🎤 Started OpenAI Whisper recording');
+    } catch (error) {
+      console.error('OpenAI recording error:', error);
+      throw error;
+    }
   }
 
   stopListening(): void {
@@ -122,6 +170,10 @@ export class SpeechToTextEngine {
     
     if (this.recognition) {
       this.recognition.stop();
+    }
+
+    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+      this.mediaRecorder.stop();
     }
 
     if (this.mediaStream) {

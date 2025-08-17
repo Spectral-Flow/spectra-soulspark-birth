@@ -286,13 +286,15 @@ export function createSpectraVoice(events?: VoiceEvents): VoiceManager {
     sttConfig: {
       language: 'en-US',
       continuous: false,
-      interimResults: true
+      interimResults: true,
+      useRealtimeAPI: false // Can be enabled if OpenAI API key is available
     },
     ttsConfig: {
       // Optimized for Spectra's personality
-      voice: 'alloy',
+      voice: 'nova', // OpenAI voice
       speed: 0.9,
-      pitch: 1.1
+      pitch: 1.1,
+      useOpenAI: true // Prefer OpenAI for higher quality
     }
   };
 

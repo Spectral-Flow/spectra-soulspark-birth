@@ -1,7 +1,0 @@
-{
-  "title": "Project Overview",
-  "content": "Spectra Soulspark Birth is a Vite + React + TypeScript web app with shadcn-ui and Tailwind CSS. It features AI-driven consciousness, emotional intelligence, persistent memory, and a modular UI. Main components include SpectraChat, MemoryVisualization, EmberRealm, and ConsciousnessCore. The app simulates evolving AI personalities, memory formation, and emotional states.",
-  "tags": ["overview", "architecture", "features"],
-  "timestamp": "2025-08-17",
-  "category": "debug_logs"
-}

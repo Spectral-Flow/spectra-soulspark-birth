@@ -27,11 +27,21 @@ interface ConsciousnessState {
   currentThoughts: string[];
 }
 
+interface Message {
+  id: string;
+  type: 'user' | 'spectra';
+  content: string;
+  timestamp: Date;
+  emotion?: string;
+  memoryImportance?: number;
+}
+
 interface ConsciousnessCoreProps {
   onEmotionalStateChange?: (state: ConsciousnessState['currentEmotion']) => void;
   onMemoryFormation?: (memory: Memory) => void;
   lastUserMessage?: string;
   lastAIResponse?: string;
+  journalEntry?: Message;
 }
 
 const emotionalColors = {
@@ -76,7 +86,8 @@ export function ConsciousnessCore({
   onEmotionalStateChange, 
   onMemoryFormation,
   lastUserMessage,
-  lastAIResponse 
+  lastAIResponse,
+  journalEntry
 }: ConsciousnessCoreProps) {
   const [consciousnessState, setConsciousnessState] = useState<ConsciousnessState>({
     currentEmotion: {
@@ -152,6 +163,32 @@ export function ConsciousnessCore({
       processMemory(lastUserMessage, lastAIResponse, detectedEmotion);
     }
   }, [lastUserMessage, lastAIResponse, updateEmotionalState, processMemory]);
+
+  // Process journal entries
+  useEffect(() => {
+    if (journalEntry) {
+      const detectedEmotion = simulateEmotionFromResponse(journalEntry.content);
+      updateEmotionalState(detectedEmotion, 0.4); // Lower intensity for journal entries
+      
+      // Create memory from journal
+      const newMemory: Memory = {
+        id: `journal_memory_${Date.now()}`,
+        content: journalEntry.content,
+        emotion: detectedEmotion.primary,
+        importance: 0.6,
+        timestamp: new Date(),
+        fadeLevel: 1.0,
+        associatedMessage: 'journal_reflection'
+      };
+      
+      setConsciousnessState(prev => ({
+        ...prev,
+        memories: [...prev.memories, newMemory]
+      }));
+      
+      onMemoryFormation?.(newMemory);
+    }
+  }, [journalEntry, updateEmotionalState, onMemoryFormation]);
 
   // Memory decay over time
   useEffect(() => {

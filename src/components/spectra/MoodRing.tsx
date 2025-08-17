@@ -27,9 +27,18 @@ export function MoodRing({ emotionalState, className = "" }: MoodRingProps) {
     }
   }, [emotionalState.intensity]);
 
+  const sanitizeColorString = (color: string): string => {
+    // Only allow HSL values and CSS variables
+    if (color.includes('hsl(') || color.includes('var(--')) {
+      return color;
+    }
+    return 'hsl(var(--primary))'; // Safe fallback
+  };
+
   const ringStyle = {
-    background: emotionalState.gradient || `hsl(${emotionalState.color})`,
-    '--ring-color': emotionalState.color,
+    background: emotionalState.gradient || sanitizeColorString(emotionalState.color),
+    '--ring-color': sanitizeColorString(emotionalState.color),
+    animationDuration: `${3 - (emotionalState.intensity * 1.5)}s`
   } as React.CSSProperties;
 
   return (

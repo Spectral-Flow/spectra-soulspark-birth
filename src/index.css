@@ -106,14 +106,14 @@ All colors MUST be HSL for proper theming.
     --transition-flow: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-surge: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    /* Sidebar */
-    --sidebar-background: 270 25% 12%;
-    --sidebar-foreground: 180 40% 85%;
+    /* Sidebar - Darker for readability */
+    --sidebar-background: 270 30% 8%;
+    --sidebar-foreground: 180 45% 90%;
     --sidebar-primary: 270 50% 55%;
-    --sidebar-primary-foreground: 180 40% 95%;
+    --sidebar-primary-foreground: 180 45% 95%;
     --sidebar-accent: 15 70% 65%;
-    --sidebar-accent-foreground: 270 25% 15%;
-    --sidebar-border: 270 20% 30%;
+    --sidebar-accent-foreground: 270 30% 8%;
+    --sidebar-border: 270 20% 25%;
     --sidebar-ring: 270 50% 55%;
   }
 

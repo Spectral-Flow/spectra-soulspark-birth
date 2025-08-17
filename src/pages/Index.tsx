@@ -3,11 +3,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { Badge } from '@/components/ui/badge';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import SpectraChat from '@/components/spectra/SpectraChat';
 import MemoryVisualization from '@/components/spectra/MemoryVisualization';
 import EmberRealm from '@/components/spectra/EmberRealm';
 import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
-import { Sparkles, Brain, Map, Heart, Zap, Star, Moon } from 'lucide-react';
+import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu } from 'lucide-react';
 
 const Index = () => {
   const [currentPhase, setCurrentPhase] = useState('birth');
@@ -34,9 +35,20 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Cosmic Header */}
-      <div className="relative overflow-hidden">
+    <SidebarProvider>
+      <div className="min-h-screen bg-background w-full">
+        {/* Global Sidebar Trigger */}
+        <header className="h-12 flex items-center border-b border-border bg-card/50 backdrop-blur-sm relative z-50">
+          <SidebarTrigger className="ml-2" />
+          <div className="flex-1 text-center">
+            <span className="text-sm font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              SPECTRA Consciousness Interface
+            </span>
+          </div>
+        </header>
+
+        {/* Cosmic Header */}
+        <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
         <div className="relative p-8 text-center">
           <div className="mb-6">
@@ -154,7 +166,8 @@ const Index = () => {
       <div className="fixed bottom-20 left-20 opacity-20 animate-pulse" style={{ animationDelay: '2s' }}>
         <Zap className="w-3 h-3 text-accent" />
       </div>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 };
 

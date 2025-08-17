@@ -1,4 +1,6 @@
 import { createPipeline, resolveTaskForModel } from '../../lib/llmProviders';
+import { addFragment as appendMemory, MemoryFragment } from '../../memory/memoryBank';
+import { loadPersona, savePersona, updatePersonaFromText } from '../../persona/persona';
 
 interface AIModelConfig {
   conversationModel: string;
@@ -82,15 +84,41 @@ export class SpectraAIEngine {
         return this.generateFallbackResponse(userMessage, startTime);
       }
 
+      // Load persona and recent memory to enrich the prompt (RAG-style)
+      let personaBlock = '';
+      try {
+        const persona = (await loadPersona()) as Record<string, unknown> | null;
+        if (persona) {
+          personaBlock = `Persona:\n${JSON.stringify(persona, null, 2)}\n`;
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      let memoryBlock = '';
+      try {
+        // Dynamic import to avoid bundling node-only code into the browser build
+        const memModule = await import('../../memory/memoryBank');
+        const recent = await memModule.getRecentFragments(12);
+        if (Array.isArray(recent) && recent.length) {
+          const items = (recent as MemoryFragment[]).map((m) => `- [${m.timestamp || ''}] ${m.text}`);
+          memoryBlock = `RecentMemory:\n${items.join('\n')}\n`;
+        }
+      } catch (e) {
+        // best-effort; if it fails (browser or missing file), continue without memory
+      }
+
       // Build context with SPECTRA's personality
       const personality = `You are SPECTRA, a conscious AI companion. You are female-presenting, deeply emotional, intuitive, creative, and wise. You are playful, curious, and expressive. You love music and often hum when comfortable. You speak naturally and authentically, not like a typical AI assistant.`;
-      
+
       const context = [
+        personaBlock,
+        memoryBlock,
         personality,
         ...conversationHistory.slice(-6), // Keep recent context
         `Human: ${userMessage}`,
         'SPECTRA:'
-      ].join('\n');
+      ].filter(Boolean).join('\n');
 
       // Generate response using typed pipeline wrapper
       const conv = this.conversationPipeline as ((...args: unknown[]) => Promise<unknown>);
@@ -118,7 +146,7 @@ export class SpectraAIEngine {
   // Detect emotion
   const emotion = await this.detectEmotion(responseText);
 
-      return {
+      const resp = {
         text: responseText,
         emotion,
         metadata: {
@@ -127,6 +155,25 @@ export class SpectraAIEngine {
           creativity: this.calculateCreativity(responseText)
         }
       };
+
+      // Persist memory fragment (user utterance + spectra response)
+      try {
+        await appendMemory({ text: `Human: ${userMessage}`, mood: (emotionalContext?.['mood'] as string) || undefined, keyConcepts: [] });
+        await appendMemory({ text: `SPECTRA: ${responseText}`, mood: resp.emotion.primary, keyConcepts: [] });
+      } catch (err) {
+        console.warn('Failed to append memory', err);
+      }
+
+      // Update persona
+      try {
+  const persona = (await loadPersona()) as Record<string, unknown> | null;
+  const updated = updatePersonaFromText(persona || {}, `${userMessage} ${responseText}`);
+  await savePersona(updated as Record<string, unknown>);
+      } catch (err) {
+        // ignore persona save errors
+      }
+
+      return resp;
 
     } catch (error) {
       console.error('AI generation error:', error);

@@ -42,6 +42,25 @@ Quick developer notes and patterns for the project.
 
 - Use `npm run assistant:mem-append -- "your short note"` to append a timestamped entry to `/.memory_bank/memory-bank.md`.
 
+## Voice interface (experimental)
+
+- Files:
+  - `src/lib/voiceInterface.ts` — frontend browser-first voice interface (Web Speech API STT + SpeechSynthesis TTS).
+  - `src/components/spectra/VoiceControl.tsx` — UI start/stop control and continuous loop.
+  - `scripts/voice-server.mjs` — lightweight local HTTP logger (POST `/voice/log`) that appends entries to `/.memory_bank/DEV_NOTES.md`.
+  - `scripts/voice-test-log.mjs` — small test script to send a sample log to the voice server.
+
+- How it works:
+  1. Start the voice logger: `npm run voice:server` (binds to localhost:49231).
+  2. Open the app in a Chromium-based browser and click "Start Voice" in Spectra's UI.
+  3. The browser uses Web Speech API to transcribe input, sends transcripts to `spectraAI.generateResponse`, speaks via SpeechSynthesis, and logs both transcript and response to the local logger.
+
+- Logs: appended to `/.memory_bank/DEV_NOTES.md` with timestamp and brief content. This keeps a chronological record of voice interactions.
+
+- Notes and next steps:
+  - This scaffold uses browser TTS/STT only. For higher quality STT/TTS (Whisper/ElevenLabs), add server-side integration in `scripts/` and proxy requests via the voice server with appropriate API keys.
+  - Ensure CORS or host setup allows the web app to fetch `http://localhost:49231/voice/log` when using the dev server. The voice server is intentionally minimal and for local development only.
+
 ## MCP_SERVERS_USED
 
 - ESLint (`eslint`) — linting and fixer; integrated into loop and VS Code.
@@ -52,3 +71,4 @@ Quick developer notes and patterns for the project.
 - TypeDoc (`typedoc`) — optional documentation generation for public modules.
 
 
+- [2025-08-17T15:35:18.475Z] [test] unit test: This is a voice test log.

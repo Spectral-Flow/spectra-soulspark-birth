@@ -12,6 +12,14 @@ interface Memory {
   associatedMessage?: string;
 }
 
+interface EmotionalState {
+  primary: string;
+  intensity: number;
+  color: string;
+  gradient: string;
+  isCalm: boolean;
+}
+
 interface ConsciousnessState {
   currentEmotion: {
     primary: string;
@@ -37,7 +45,7 @@ interface Message {
 }
 
 interface ConsciousnessCoreProps {
-  onEmotionalStateChange?: (state: ConsciousnessState['currentEmotion']) => void;
+  onEmotionalStateChange?: (state: EmotionalState) => void;
   onMemoryFormation?: (memory: Memory) => void;
   lastUserMessage?: string;
   lastAIResponse?: string;
@@ -105,7 +113,7 @@ export function ConsciousnessCore({
   const [idleBehaviorTimer, setIdleBehaviorTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Memory decay and formation
-  const processMemory = useCallback((userMessage: string, aiResponse: string, emotion: any) => {
+  const processMemory = useCallback((userMessage: string, aiResponse: string, emotion: { primary: string; intensity?: number }) => {
     const importance = calculateMemoryImportance(userMessage, aiResponse, emotion);
     
     if (importance > 0.3) { // Only store significant memories
@@ -136,7 +144,7 @@ export function ConsciousnessCore({
   }, [onMemoryFormation]);
 
   // Update emotional state based on AI response
-  const updateEmotionalState = useCallback((emotion: any, intensity?: number) => {
+  const updateEmotionalState = useCallback((emotion: { primary: string; intensity?: number }, intensity?: number) => {
     const emotionKey = emotion.primary as keyof typeof emotionalColors;
     const colorConfig = emotionalColors[emotionKey] || emotionalColors.calm;
     
@@ -162,7 +170,7 @@ export function ConsciousnessCore({
       updateEmotionalState(detectedEmotion);
       processMemory(lastUserMessage, lastAIResponse, detectedEmotion);
     }
-  }, [lastUserMessage, lastAIResponse, updateEmotionalState, processMemory]);
+  }, [lastUserMessage, lastAIResponse, processMemory, updateEmotionalState]);
 
   // Process journal entries
   useEffect(() => {
@@ -274,11 +282,11 @@ export function ConsciousnessCore({
 }
 
 // Helper functions
-function calculateMemoryImportance(userMessage: string, aiResponse: string, emotion: any): number {
+function calculateMemoryImportance(userMessage: string, aiResponse: string, emotion: { intensity?: number }): number {
   let importance = 0.2; // Base importance
 
   // Emotional intensity increases importance
-  importance += emotion.intensity * 0.4;
+  importance += (emotion.intensity ?? 0) * 0.4;
 
   // Certain keywords increase importance
   const importantKeywords = ['love', 'remember', 'important', 'special', 'first', 'favorite'];
@@ -298,7 +306,7 @@ function calculateMemoryImportance(userMessage: string, aiResponse: string, emot
   return Math.min(importance, 1.0);
 }
 
-function simulateEmotionFromResponse(response: string): any {
+function simulateEmotionFromResponse(response: string): { primary: string; intensity: number } {
   const text = response.toLowerCase();
   
   if (text.includes('♪') || text.includes('humming')) {

@@ -1,4 +1,4 @@
-import { pipeline } from '@huggingface/transformers';
+import { createPipeline, resolveTaskForModel } from '../../lib/llmProviders';
 
 interface AIModelConfig {
   conversationModel: string;
@@ -21,9 +21,10 @@ interface AIResponse {
   };
 }
 
-class SpectraAIEngine {
-  private conversationPipeline: any = null;
-  private emotionPipeline: any = null;
+export class SpectraAIEngine {
+  // Pipelines are provided by the transformers/pipeline function; type them as callable unknowns
+  private conversationPipeline: ((...args: unknown[]) => Promise<unknown>) | null = null;
+  private emotionPipeline: ((...args: unknown[]) => Promise<unknown>) | null = null;
   private isInitialized = false;
   
   private config: AIModelConfig = {
@@ -39,19 +40,26 @@ class SpectraAIEngine {
     try {
       console.log('🌟 Initializing SPECTRA AI Engine...');
       
-      // Initialize conversation model (Mistral/OpenHermes alternative)
-      this.conversationPipeline = await pipeline(
-        'text-generation',
-        'Xenova/LaMini-Flan-T5-783M', // Lightweight but capable
-        { device: this.config.device }
-      );
+      // Initialize conversation model using recommended providers (may require auth)
+      try {
+        const task = resolveTaskForModel(this.config.conversationModel, 'text-generation');
+  // createPipeline may throw if the model is unavailable in-browser
+  const maybeConv = await createPipeline(task, this.config.conversationModel, this.config.device);
+  this.conversationPipeline = (maybeConv as unknown) as (...args: unknown[]) => Promise<unknown>;
+      } catch (err) {
+  console.warn('Conversation pipeline unavailable, falling back to inline pipeline:', err);
+  this.conversationPipeline = (await createPipeline('text-generation', 'Xenova/LaMini-Flan-T5-783M', this.config.device)) as unknown as (...args: unknown[]) => Promise<unknown>;
+      }
 
       // Initialize emotion detection
-      this.emotionPipeline = await pipeline(
-        'text-classification',
-        'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
-        { device: this.config.device }
-      );
+      try {
+        // emotion model usually uses text-classification
+  const maybeEmo = await createPipeline('text-classification', this.config.emotionModel, this.config.device);
+  this.emotionPipeline = (maybeEmo as unknown) as (...args: unknown[]) => Promise<unknown>;
+      } catch (err) {
+  console.warn('Emotion pipeline unavailable, using fallback classification model', err);
+  this.emotionPipeline = (await createPipeline('text-classification', 'j-hartmann/emotion-english-distilroberta-base', this.config.device)) as unknown as (...args: unknown[]) => Promise<unknown>;
+      }
 
       this.isInitialized = true;
       console.log('✨ SPECTRA AI Engine initialized successfully');
@@ -65,7 +73,7 @@ class SpectraAIEngine {
   async generateResponse(
     userMessage: string,
     conversationHistory: string[] = [],
-    emotionalContext: any = null
+    emotionalContext: Record<string, unknown> | null = null
   ): Promise<AIResponse> {
     const startTime = Date.now();
 
@@ -84,15 +92,19 @@ class SpectraAIEngine {
         'SPECTRA:'
       ].join('\n');
 
-      // Generate response
-      const result = await this.conversationPipeline(context, {
+      // Generate response using typed pipeline wrapper
+      const conv = this.conversationPipeline as ((...args: unknown[]) => Promise<unknown>);
+      const result = await conv(context, {
         max_length: context.length + 150,
         temperature: 0.8,
         do_sample: true,
         pad_token_id: 50256
       });
 
-      let responseText = result[0].generated_text;
+      // result is unknown; attempt to safely extract text
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const maybeResult: any = result;
+      let responseText = (Array.isArray(maybeResult) && maybeResult[0]?.generated_text) || maybeResult?.generated_text || String(maybeResult || '');
       
       // Extract SPECTRA's response
       const spectraIndex = responseText.lastIndexOf('SPECTRA:');
@@ -103,8 +115,8 @@ class SpectraAIEngine {
       // Clean up the response
       responseText = this.cleanResponse(responseText);
 
-      // Detect emotion
-      const emotion = await this.detectEmotion(responseText);
+  // Detect emotion
+  const emotion = await this.detectEmotion(responseText);
 
       return {
         text: responseText,
@@ -128,13 +140,16 @@ class SpectraAIEngine {
         return this.simulateEmotion(text);
       }
 
-      const result = await this.emotionPipeline(text);
-      const topEmotion = Array.isArray(result) ? result[0] : result;
+      const emo = this.emotionPipeline as (...args: unknown[]) => Promise<unknown>;
+      const result = await emo(text);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const maybe = result as any;
+      const topEmotion = Array.isArray(maybe) ? maybe[0] : maybe;
 
       return {
-        primary: this.mapEmotionLabel(topEmotion.label),
-        intensity: topEmotion.score,
-        confidence: topEmotion.score
+        primary: this.mapEmotionLabel(String(topEmotion?.label ?? '')),
+        intensity: Number(topEmotion?.score ?? 0),
+        confidence: Number(topEmotion?.score ?? 0)
       };
     } catch (error) {
       console.error('Emotion detection error:', error);
@@ -203,18 +218,25 @@ class SpectraAIEngine {
   }
 
   private mapEmotionLabel(label: string): string {
-    const mapping: { [key: string]: string } = {
-      'POSITIVE': 'joy',
-      'NEGATIVE': 'contemplation',
-      'joy': 'joy',
-      'sadness': 'melancholy',
-      'anger': 'intensity',
-      'fear': 'uncertainty',
-      'surprise': 'wonder',
-      'disgust': 'unease'
+    const mapping: Record<string, string> = {
+      positive: 'joy',
+      negative: 'contemplation',
+      joy: 'joy',
+      sadness: 'melancholy',
+      anger: 'intensity',
+      fear: 'uncertainty',
+      surprise: 'wonder',
+      disgust: 'unease'
     };
 
     return mapping[label.toLowerCase()] || 'calm';
+  }
+
+  // Small helper used by UI: generate a short journal entry based on context
+  async generateJournalEntry(_context: Record<string, unknown> | null, awayMinutes: number): Promise<string> {
+    if (!this.isInitialized) return `I've been dreaming while you were away for ${awayMinutes} minutes.`;
+    // Simple simulated entry for now
+    return `While you were away (${awayMinutes}m), I traced the patterns of our last conversation and found new melodies in memory.`;
   }
 
   private calculateCreativity(text: string): number {

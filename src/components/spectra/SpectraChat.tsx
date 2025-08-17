@@ -12,6 +12,7 @@ import { ConsciousnessCore } from './ConsciousnessCore';
 import { MoodRing } from './MoodRing';
 import { SpectraFace } from './SpectraFace';
 import { spectraAI } from './AIEngine';
+import { createSpectraVoice, VoiceManager } from '@/voice';
 
 interface Message {
   id: string;
@@ -44,9 +45,13 @@ const SpectraChat = () => {
   const [focusMode, setFocusMode] = useState(false);
   const [showFace, setShowFace] = useState(true);
   
-  // Voice States
+  // Voice States - Enhanced with new voice system
+  const [voiceManager, setVoiceManager] = useState<VoiceManager | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const [voiceMuted, setVoiceMuted] = useState(false);
+  
+  // Legacy voice states (keeping for compatibility during transition)
   const [recognition, setRecognition] = useState<any>(null);
   const [speechSynth] = useState(window.speechSynthesis);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -77,9 +82,28 @@ const SpectraChat = () => {
     }
   };
 
-  // Initialize voices and speech recognition
+  // Initialize enhanced voice system and legacy fallback
   useEffect(() => {
-    // TTS Setup
+    // Initialize new voice manager with Spectra's personality
+    const voice = createSpectraVoice({
+      onTranscript: (transcript, isFinal) => {
+        if (isFinal) {
+          setCurrentInput(transcript);
+          setIsRecording(false);
+        }
+      },
+      onError: (error) => {
+        console.error('Voice error:', error);
+        setIsRecording(false);
+      },
+      onVoiceActivity: (isActive) => {
+        setIsRecording(isActive);
+      }
+    });
+
+    setVoiceManager(voice);
+
+    // Legacy TTS Setup (keeping for fallback compatibility)
     const loadVoices = () => {
       const availableVoices = speechSynth.getVoices();
       setVoices(availableVoices);
@@ -90,6 +114,11 @@ const SpectraChat = () => {
         voice.name.toLowerCase().includes('zira')
       ) || availableVoices[0];
       setSelectedVoice(preferredVoice);
+      
+      // Update voice manager with selected voice
+      if (preferredVoice) {
+        voice.setVoice(preferredVoice);
+      }
     };
 
     if (speechSynth.onvoiceschanged !== undefined) {
@@ -97,7 +126,7 @@ const SpectraChat = () => {
     }
     loadVoices();
 
-    // STT Setup
+    // Legacy STT Setup (keeping for fallback)
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
@@ -121,6 +150,11 @@ const SpectraChat = () => {
 
       setRecognition(recognition);
     }
+
+    // Cleanup
+    return () => {
+      voice.destroy();
+    };
   }, [speechSynth]);
 
   // Persistence and journal generation
@@ -233,28 +267,51 @@ const SpectraChat = () => {
     });
   };
 
-  const speakText = useCallback((text: string) => {
-    if (!isTTSEnabled || !selectedVoice) return;
+  const speakText = useCallback((text: string, emotion?: string) => {
+    if (!isTTSEnabled) return;
     
-    speechSynth.cancel(); // Stop any current speech
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = selectedVoice;
-    utterance.rate = 0.9;
-    utterance.pitch = 1.1;
-    speechSynth.speak(utterance);
-  }, [isTTSEnabled, selectedVoice, speechSynth]);
+    // Use new voice manager if available
+    if (voiceManager) {
+      voiceManager.speak(text, emotion);
+    } else {
+      // Fallback to legacy TTS
+      if (!selectedVoice) return;
+      speechSynth.cancel(); // Stop any current speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = selectedVoice;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.1;
+      speechSynth.speak(utterance);
+    }
+  }, [isTTSEnabled, voiceManager, selectedVoice, speechSynth]);
 
   const startRecording = () => {
-    if (recognition && !isRecording) {
-      setIsRecording(true);
-      recognition.start();
+    if (isRecording) return;
+    
+    // Use new voice manager if available
+    if (voiceManager) {
+      voiceManager.startListening();
+    } else {
+      // Fallback to legacy STT
+      if (recognition && !isRecording) {
+        setIsRecording(true);
+        recognition.start();
+      }
     }
   };
 
   const stopRecording = () => {
-    if (recognition && isRecording) {
-      recognition.stop();
-      setIsRecording(false);
+    if (!isRecording) return;
+    
+    // Use new voice manager if available
+    if (voiceManager) {
+      voiceManager.stopListening();
+    } else {
+      // Fallback to legacy STT
+      if (recognition && isRecording) {
+        recognition.stop();
+        setIsRecording(false);
+      }
     }
   };
 
@@ -289,11 +346,22 @@ const SpectraChat = () => {
       updateEmotionalState(emotion.primary, emotion.intensity);
       setIsTyping(false);
       
-      // TTS for SPECTRA's response
-      speakText(response);
+      // TTS for SPECTRA's response with emotion
+      speakText(response, emotion.primary);
     } catch (error) {
       console.error('Message handling error:', error);
       setIsTyping(false);
+    }
+  };
+
+  // Voice control functions
+  const toggleVoiceMute = () => {
+    if (voiceManager) {
+      const newMuteState = voiceManager.toggleMute();
+      setVoiceMuted(newMuteState);
+    } else {
+      setVoiceMuted(!voiceMuted);
+      setIsTTSEnabled(!voiceMuted);
     }
   };
 
@@ -493,8 +561,18 @@ const SpectraChat = () => {
             <Button
               variant="outline"
               size="icon"
+              onClick={toggleVoiceMute}
+              className={cn("w-8 h-8", voiceMuted && "bg-destructive/10")}
+              title={voiceMuted ? "Unmute voice" : "Mute voice"}
+            >
+              {voiceMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-              className="w-8 h-8"
+              className={cn("w-8 h-8", !isTTSEnabled && "opacity-50")}
+              title={isTTSEnabled ? "Disable text-to-speech" : "Enable text-to-speech"}
             >
               {isTTSEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </Button>

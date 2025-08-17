@@ -4,7 +4,7 @@ import { spectraAI } from './AIEngine';
 // Voice Control UI using server-side STT/TTS.
 // Records audio, sends to /voice/transcribe, gets AI response, then sends to /voice/tts for playback.
 
-const VOICE_SERVER_BASE = 'http://localhost:49231';
+const VOICE_SERVER_BASE = (import.meta.env.VITE_VOICE_SERVER_BASE as string) || 'http://localhost:49231';
 
 export default function VoiceControl() {
   const [listening, setListening] = useState(false);

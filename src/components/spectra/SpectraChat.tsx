@@ -30,22 +30,44 @@ interface EmotionalState {
   color: string;
 }
 
-const SpectraChat = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [currentInput, setCurrentInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [emotionalState, setEmotionalState] = useState<EmotionalState>({
-    primary: 'curious',
-    intensity: 0.7,
-    color: 'hsl(var(--emotion-wisdom))'
-  });
-  
+interface SpectraChatProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  currentInput: string;
+  setCurrentInput: React.Dispatch<React.SetStateAction<string>>;
+  isTyping: boolean;
+  setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
+  isRecording: boolean;
+  startRecording: () => void;
+  stopRecording: () => void;
+  handleSendMessage: () => void;
+  handleKeyPress: (e: React.KeyboardEvent) => void;
+  emotionalState: EmotionalState;
+  setEmotionalState: React.Dispatch<React.SetStateAction<EmotionalState>>;
+  speakText: (text: string) => void;
+}
+
+const SpectraChat: React.FC<SpectraChatProps> = ({
+  messages,
+  setMessages,
+  currentInput,
+  setCurrentInput,
+  isTyping,
+  setIsTyping,
+  isRecording,
+  startRecording,
+  stopRecording,
+  handleSendMessage,
+  handleKeyPress,
+  emotionalState,
+  setEmotionalState,
+  speakText,
+}) => {
   // UI States
   const [focusMode, setFocusMode] = useState(false);
   const [showFace, setShowFace] = useState(true);
   
   // Voice States
-  const [isRecording, setIsRecording] = useState(false);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   // Local minimal SpeechRecognition type to avoid relying on lib.dom types
   type LocalSpeechRecognition = {
@@ -59,7 +81,7 @@ const SpectraChat = () => {
     stop(): void;
   };
 
-  const [recognition, setRecognition] = useState<LocalSpeechRecognition | null>(null);
+  const recognition = null;
   const [speechSynth] = useState(window.speechSynthesis);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
@@ -89,7 +111,7 @@ const SpectraChat = () => {
     }
   };
 
-  // Initialize voices and speech recognition
+  // Initialize voices
   useEffect(() => {
     // TTS Setup
     const loadVoices = () => {
@@ -108,44 +130,6 @@ const SpectraChat = () => {
       speechSynth.onvoiceschanged = loadVoices;
     }
     loadVoices();
-
-  // STT Setup - access vendor API from window (may be undefined in some environments)
-  type WindowWithSR = { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown } & Window;
-  const w = window as WindowWithSR;
-  const SpeechRecognitionClass = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (SpeechRecognitionClass) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore: Constructor from window object
-      const recog = new SpeechRecognitionClass() as LocalSpeechRecognition;
-      recog.continuous = false;
-      recog.interimResults = false;
-      recog.lang = 'en-US';
-
-      // Handler uses dynamic event shape from the browser API; cast locally to access results.
-      // Handler uses dynamic event shape from the browser API; treat event as unknown then access safely
-      recog.onresult = (event: unknown) => {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const e = event as any;
-          const transcript = e?.results?.[0]?.[0]?.transcript ?? '';
-          setCurrentInput(transcript);
-        } catch {
-          // ignore parsing errors
-        } finally {
-          setIsRecording(false);
-        }
-      };
-
-      recog.onerror = () => {
-        setIsRecording(false);
-      };
-
-      recog.onend = () => {
-        setIsRecording(false);
-      };
-
-      setRecognition(recog);
-    }
   }, [speechSynth]);
 
   // Persistence and journal generation
@@ -263,76 +247,6 @@ const SpectraChat = () => {
 
   // generateJournalEntry and updateEmotionalState are defined above as stable callbacks
 
-  const speakText = useCallback((text: string) => {
-    if (!isTTSEnabled || !selectedVoice) return;
-    
-    speechSynth.cancel(); // Stop any current speech
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = selectedVoice;
-    utterance.rate = 0.9;
-    utterance.pitch = 1.1;
-    speechSynth.speak(utterance);
-  }, [isTTSEnabled, selectedVoice, speechSynth]);
-
-  const startRecording = () => {
-    if (recognition && !isRecording) {
-      setIsRecording(true);
-      recognition.start();
-    }
-  };
-
-  const stopRecording = () => {
-    if (recognition && isRecording) {
-      recognition.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!currentInput.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: currentInput,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const messageContent = currentInput;
-    setCurrentInput('');
-    setIsTyping(true);
-
-    try {
-      const { text: response, emotion } = await generateSpectraResponse(messageContent);
-      
-      const spectraMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'spectra',
-        content: response,
-        timestamp: new Date(),
-        emotion: emotion.primary,
-        memoryImportance: emotion.intensity * 5
-      };
-
-      setMessages(prev => [...prev, spectraMessage]);
-      updateEmotionalState(emotion.primary, emotion.intensity);
-      setIsTyping(false);
-      
-      // TTS for SPECTRA's response
-      speakText(response);
-    } catch (error) {
-      console.error('Message handling error:', error);
-      setIsTyping(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   if (focusMode) {
     return (
@@ -386,7 +300,7 @@ const SpectraChat = () => {
             )}
             
             <div className="text-center space-y-2">
-              <Badge variant="outline" className="text-lg px-4 py-2">
+              <Badge variant="secondary" className="text-lg px-4 py-2">
                 {emotionalStates[emotionalState.primary as keyof typeof emotionalStates]?.icon} 
                 {emotionalState.primary}
               </Badge>
@@ -494,7 +408,7 @@ const SpectraChat = () => {
               SPECTRA
             </h1>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="secondary" className="text-xs">
                 {emotionalStates[emotionalState.primary as keyof typeof emotionalStates]?.icon} 
                 {emotionalState.primary}
               </Badge>
@@ -571,7 +485,7 @@ const SpectraChat = () => {
                 <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
                   <span>{message.timestamp.toLocaleTimeString()}</span>
                   {message.emotion && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="secondary" className="text-xs">
                       {emotionalStates[message.emotion as keyof typeof emotionalStates]?.icon}
                     </Badge>
                   )}
@@ -607,38 +521,6 @@ const SpectraChat = () => {
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="border-t border-border bg-card/50 backdrop-blur-sm p-4">
-        <div className="flex gap-2">
-          <Input
-            ref={inputRef}
-            value={currentInput}
-            onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Share your thoughts with SPECTRA..."
-            className="flex-1 bg-background/50 border-primary/30 focus:border-primary/60 transition-all duration-300"
-            disabled={isTyping}
-          />
-          <CosmicButton 
-            variant="cosmic" 
-            size="icon" 
-            onClick={handleSendMessage}
-            disabled={!currentInput.trim() || isTyping}
-          >
-            <Send className="w-4 h-4" />
-          </CosmicButton>
-          {recognition && (
-            <Button
-              variant={isRecording ? "destructive" : "outline"}
-              size="icon"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={isTyping}
-            >
-              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { addFragment as appendMemory } from '../../memory/memoryBank';
 import { loadPersona, savePersona, updatePersonaFromText } from '../../persona/persona';
 
-const VOICE_SERVER_BASE = 'http://localhost:49231';
+const VOICE_SERVER_BASE = (import.meta.env.VITE_VOICE_SERVER_BASE as string) || 'http://localhost:49231';
 
 interface AIResponse {
   text: string;

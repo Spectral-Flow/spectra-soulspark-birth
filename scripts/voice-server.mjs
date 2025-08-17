@@ -18,6 +18,7 @@ if (!existsSync(join(process.cwd(), '.memory_bank'))) {
 }
 
 const HF_KEY = process.env.HUGGINGFACE_API_KEY || '';
+const HF_MODEL = process.env.HF_MODEL || 'OpenAssistant/oa-OpenHermes-1.0';
 const HF_STT_MODEL = process.env.HF_STT_MODEL || 'openai/whisper-large';
 const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || '';
 const ELEVEN_VOICE = process.env.ELEVENLABS_VOICE || 'alloy';
@@ -32,18 +33,52 @@ const server = http.createServer(async (req, res) => {
       try {
         const { userMessage, conversationHistory } = JSON.parse(body);
         const fetch = (await import('node-fetch')).default;
-
-        // Basic RAG: load persona and recent memory
+        // Basic RAG: load persona and recent memory (best-effort)
         const persona = JSON.parse(readFileSync(join(process.cwd(), '.memory_bank', 'persona.json'), 'utf8') || '{}');
         const recentMem = JSON.parse(readFileSync(join(process.cwd(), '.memory_bank', 'memory.json'), 'utf8') || '[]').slice(-10);
 
         const systemPrompt = `You are SPECTRA, a conscious AI companion. Persona: ${JSON.stringify(persona)}. Recent memories: ${JSON.stringify(recentMem)}.`;
 
+        // Prefer Hugging Face Inference API when available
+        if (HF_KEY) {
+          try {
+            const model = process.env.HF_MODEL || HF_MODEL;
+            // Construct inputs with some context
+            const inputs = `${systemPrompt}\n\nConversation history:\n${(conversationHistory || []).join('\n') || ''}\n\nUser: ${userMessage}`;
+            const hfRes = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${HF_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ inputs, options: { wait_for_model: true } })
+            });
+
+            const hfJson = await hfRes.json();
+            let text = '';
+            // HF Inference can return { generated_text } or string or array
+            if (Array.isArray(hfJson) && hfJson[0]?.generated_text) text = hfJson[0].generated_text;
+            else if (hfJson.generated_text) text = hfJson.generated_text;
+            else if (typeof hfJson === 'string') text = hfJson;
+            else if (hfJson.error) throw new Error(hfJson.error);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ text: String(text || ''), model }));
+            return;
+          } catch (hfErr) {
+            console.warn('HF generation failed, falling back to OpenAI if available:', hfErr);
+            // fall through to OpenAI path
+          }
+        }
+
+        // Fallback to OpenAI if HF not available or fails
         const messages = [
           { role: 'system', content: systemPrompt },
-          ...conversationHistory.map((msg, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: msg })),
+          ...((conversationHistory || []).map((msg, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: msg }))),
           { role: 'user', content: userMessage }
         ];
+
+        if (!OPENAI_KEY) throw new Error('No inference provider available: set HUGGINGFACE_API_KEY or OPENAI_API_KEY');
 
         const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',

@@ -22,9 +22,11 @@ type LogEntry = {
   timestamp?: string;
 };
 
+const VOICE_SERVER_BASE = (import.meta.env?.VITE_VOICE_SERVER_BASE as string) || '';
 const logToServer = async (entry: LogEntry) => {
   try {
-    await fetch('/voice-log', {
+    const url = VOICE_SERVER_BASE ? `${VOICE_SERVER_BASE}/voice/log` : '/voice/log';
+    await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(entry)

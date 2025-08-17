@@ -42,3 +42,13 @@ Quick developer notes and patterns for the project.
 
 - Use `npm run assistant:mem-append -- "your short note"` to append a timestamped entry to `/.memory_bank/memory-bank.md`.
 
+## MCP_SERVERS_USED
+
+- ESLint (`eslint`) — linting and fixer; integrated into loop and VS Code.
+- Prettier (`prettier`) — code formatting, integrated with editor and lint-staged.
+- TypeScript language server (`typescript` / `tsserver`) — IDE type info and autocompletion.
+- Vitest (`vitest`) — unit test runner used by the loop.
+- Husky (`husky`) + lint-staged (`lint-staged`) — git hooks and staged-file linters/formatters.
+- TypeDoc (`typedoc`) — optional documentation generation for public modules.
+
+

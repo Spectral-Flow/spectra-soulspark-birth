@@ -37,7 +37,6 @@ const logToServer = async (entry: LogEntry) => {
 export class VoiceInterface {
   private recognition: SpeechRecognition | null = null;
   private active = false;
-  private continuous = true;
   private sttSource: 'web-speech' | 'manual' = 'web-speech';
 
   constructor() {
@@ -94,12 +93,12 @@ export class VoiceInterface {
       };
 
       const cleanup = () => {
-        r.removeEventListener('result', onResult);
-        r.removeEventListener('error', onError);
+        r.removeEventListener('result', onResult as EventListener);
+        r.removeEventListener('error', onError as EventListener);
       };
 
-      r.addEventListener('result', onResult);
-      r.addEventListener('error', onError);
+      r.addEventListener('result', onResult as EventListener);
+      r.addEventListener('error', onError as EventListener);
       try {
         r.start();
       } catch (err) {

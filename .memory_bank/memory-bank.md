@@ -21,6 +21,8 @@ This file is maintained by the development assistant (Copilot) to store short-te
 - Use sections: `RECENT_CHANGES`, `KNOWN_ISSUES`, `NEXT_STEPS`, `ENVIRONMENT`.
 
 ## RECENT_CHANGES
+- 2025-08-17 18:52:23.582: copilot-loop: Completed lint, typecheck, and tests successfully.
+- 2025-08-17 18:51:40.876: copilot-loop: completed (changes committed locally; push manually).
 - 2025-08-17 18:51:40.407: copilot-loop: Completed lint, typecheck, and tests successfully.
 - 2025-08-17 18:48:20.270: copilot-loop: lint failed
 - 2025-08-17 15:32:47.742: Scaffolded voice interface: added src/components/spectra/VoiceControl.tsx and scripts/voice-server.mjs; uses Web Speech API for STT/TTS and a local /voice/log endpoint to persist logs to .memory_bank/DEV_NOTES.md.

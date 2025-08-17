@@ -1,3 +1,45 @@
+## Copilot Development Loop
+
+This document contains the standing instructions for the automated Copilot development loop implemented in this repository.
+
+Overview
+- Purpose: Automate a Plan → Act → Debug → Test → Update Memory → Commit cycle and make it re-triggerable from the editor and after commits.
+- Do not push automatically; commits are local by design to avoid accidental remote pushes.
+
+Main components
+- `scripts/copilot-loop.mjs` — orchestrates the loop: lint --fix, typecheck, tests, append to `/.memory_bank/memory-bank.md`, and commit changes locally.
+- `scripts/append-memory.mjs` — appends timestamped entries under `## RECENT_CHANGES` in `/.memory_bank/memory-bank.md`.
+- `.vscode/tasks.json` — includes a `copilot-dev-loop` task that runs `npm run copilot:loop`.
+- `hooks/copilot-post-commit.sh` — post-commit git hook that runs the loop after commits. Use `scripts/setup-hooks.sh` to install hooks into `.git/hooks`.
+
+How it works (standing instructions)
+1. Plan — the loop runs `git status --porcelain` to see workspace changes.
+2. Act — it runs `npm run lint -- --fix` to auto-fix issues where possible.
+3. Debug — it runs `npx tsc --noEmit` to typecheck.
+4. Test — it runs `npm test` (Vitest) to run unit tests.
+5. Update Memory Bank — it appends a short entry about the run into `/.memory_bank/memory-bank.md`.
+6. Commit — it stages and commits any changes created by the loop; pushing is left manual.
+
+How to run manually
+- From the terminal:
+```bash
+npm run copilot:loop
+```
+
+How to enable automatic post-commit runs
+1. Make sure this repo is a git repository.
+2. Run the hook installer:
+```bash
+sh ./scripts/setup-hooks.sh
+```
+This copies `hooks/*` into `.git/hooks` and makes them executable.
+
+Notes and safety
+- The loop intentionally avoids auto-pushing to remote.
+- If you want CI integration, add a GitHub Actions workflow that runs `npm run copilot:loop` on PRs.
+
+Contact
+- This file is maintained by the development assistant (Copilot). Changes to the loop should update this document.
 # Copilot Development Loop
 
 This file describes the automated development loop the assistant (Copilot) uses to keep the repository healthy.

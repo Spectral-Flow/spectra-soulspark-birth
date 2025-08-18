@@ -29,7 +29,24 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 import { sheetVariants } from './_variants';
+// import { sheetVariants } from './_variants';
 
+// Minimal replacement for sheetVariants
+function sheetVariants({ side }: { side?: string }) {
+  // Return class names based on side; adjust as needed for your design
+  switch (side) {
+    case 'left':
+      return 'fixed top-0 left-0 h-full w-80 bg-background shadow-lg';
+    case 'right':
+      return 'fixed top-0 right-0 h-full w-80 bg-background shadow-lg';
+    case 'top':
+      return 'fixed top-0 left-0 w-full h-80 bg-background shadow-lg';
+    case 'bottom':
+      return 'fixed bottom-0 left-0 w-full h-80 bg-background shadow-lg';
+    default:
+      return 'fixed top-0 right-0 h-full w-80 bg-background shadow-lg';
+  }
+}
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}

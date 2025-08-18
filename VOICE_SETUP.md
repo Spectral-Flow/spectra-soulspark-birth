@@ -8,8 +8,20 @@ npm install openai
 ```
 
 ### 2. Environment Configuration (Optional)
-For premium voice features, set your OpenAI API key:
+For premium voice features, you can set either OpenAI or ElevenLabs API keys:
 
+#### ElevenLabs (Recommended for Spectra Voice)
+```bash
+# .env file
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+```
+
+Or set it globally:
+```bash
+export ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+```
+
+#### OpenAI (Alternative)
 ```bash
 # .env file
 OPENAI_API_KEY=your_openai_api_key_here
@@ -50,7 +62,13 @@ voice.speak("Hello! I can now speak with enhanced quality.", "joyful");
 - Voice mute/unmute controls
 - Graceful pacing and feminine voice selection
 
-### 🚀 Premium Features (With OpenAI API Key)
+### 🚀 Premium Features (With ElevenLabs API Key)
+- High-quality ElevenLabs TTS with "Spectra" voice model
+- Emotional voice modulation with advanced settings
+- Professional audio quality
+- Automatic voice selection and fallback
+
+### 🎵 Premium Features (With OpenAI API Key)
 - Studio-quality OpenAI TTS with "Nova" voice
 - High-accuracy OpenAI Whisper speech recognition
 - Enhanced emotional expression

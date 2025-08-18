@@ -1,4 +1,5 @@
 import { OpenAIVoiceService, createOpenAIVoiceFromEnv } from './openai_integration';
+import { ElevenLabsVoiceService, createElevenLabsVoiceFromEnv } from './elevenlabs_integration';
 
 /**
  * Text-to-Speech Module for Spectra
@@ -33,6 +34,7 @@ export class TextToSpeechEngine {
   private currentUtterance: SpeechSynthesisUtterance | null = null;
   private personality: SpectraVoicePersonality;
   private openAIService: OpenAIVoiceService | null = null;
+  private elevenLabsService: ElevenLabsVoiceService | null = null;
 
   constructor(config: TTSConfig = {}) {
     this.config = {
@@ -60,6 +62,18 @@ export class TextToSpeechEngine {
     this.openAIService = createOpenAIVoiceFromEnv();
     if (this.openAIService) {
       console.log('✨ OpenAI TTS service initialized for Spectra');
+    }
+
+    // Initialize ElevenLabs service if available
+    this.elevenLabsService = createElevenLabsVoiceFromEnv();
+    if (this.elevenLabsService) {
+      console.log('✨ ElevenLabs TTS service initialized for Spectra');
+      // Enable ElevenLabs by default if service is available
+      this.config.useElevenLabs = true;
+      // Initialize asynchronously to find Spectra voice
+      this.elevenLabsService.initialize().catch(error => {
+        console.error('Failed to initialize ElevenLabs Spectra voice:', error);
+      });
     }
 
     this.initializeVoices();
@@ -129,8 +143,8 @@ export class TextToSpeechEngine {
     try {
       if (this.config.useOpenAI && this.openAIService?.isAvailable()) {
         await this.speakWithOpenAI(text, emotion);
-      } else if (this.config.useElevenLabs && this.config.apiKey) {
-        await this.speakWithElevenLabs(text);
+      } else if (this.config.useElevenLabs && this.elevenLabsService?.isAvailable()) {
+        await this.speakWithElevenLabs(text, emotion);
       } else {
         await this.speakWithWebSpeech(text, emotion);
       }
@@ -189,10 +203,20 @@ export class TextToSpeechEngine {
     }
   }
 
-  private async speakWithElevenLabs(text: string): Promise<void> {
-    // TODO: Implement ElevenLabs API integration for high-quality voice
-    console.log('ElevenLabs TTS not yet implemented, falling back to Web Speech');
-    await this.speakWithWebSpeech(text);
+  private async speakWithElevenLabs(text: string, emotion?: string): Promise<void> {
+    if (!this.elevenLabsService?.isAvailable()) {
+      throw new Error('ElevenLabs service not available');
+    }
+
+    try {
+      const voiceSettings = this.elevenLabsService.getSpectraVoiceSettings(emotion);
+      const audioBuffer = await this.elevenLabsService.generateSpeech(text, voiceSettings);
+      await this.elevenLabsService.playAudio(audioBuffer);
+      console.log('✨ Spectra spoke using ElevenLabs TTS');
+    } catch (error) {
+      console.error('ElevenLabs TTS error:', error);
+      throw error;
+    }
   }
 
   private getEmotionalRate(emotion?: string): number {

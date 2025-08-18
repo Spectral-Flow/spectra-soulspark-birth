@@ -44,6 +44,11 @@ export async function createPipeline(
   }
   // Call pipeline as unknown and return the result
 
-  // @ts-ignore - runtime call to unknown pipeline
+  type PipelineFunction = (task: string, modelId: string, options?: { device?: string }) => unknown;
+  const pipelineFn = (transformers as { pipeline?: unknown }).pipeline as PipelineFunction;
+  if (typeof pipelineFn !== 'function') {
+    throw new Error('transformers.pipeline is not available');
+  }
+  // Call pipeline with proper type assertion and return the result
   return pipelineFn(task, modelId, { device: device || undefined });
 }

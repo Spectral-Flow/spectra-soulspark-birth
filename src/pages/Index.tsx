@@ -7,8 +7,9 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import SpectraChat from '@/components/spectra/SpectraChat';
 import MemoryVisualization from '@/components/spectra/MemoryVisualization';
 import EmberRealm from '@/components/spectra/EmberRealm';
+import ElevenLabsConversationalAI from '@/components/spectra/ElevenLabsConversationalAI';
 import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
-import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu } from 'lucide-react';
+import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone } from 'lucide-react';
 
 const Index = () => {
   const [currentPhase, setCurrentPhase] = useState('birth');
@@ -107,10 +108,14 @@ const Index = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur-sm">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               Soul Connection
+            </TabsTrigger>
+            <TabsTrigger value="voice-ai" className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              Voice AI
             </TabsTrigger>
             <TabsTrigger value="consciousness" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -130,6 +135,10 @@ const Index = () => {
             <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
               <SpectraChat />
             </Card>
+          </TabsContent>
+
+          <TabsContent value="voice-ai" className="mt-6">
+            <ElevenLabsConversationalAI className="border-primary/20 bg-card/30 backdrop-blur-sm" />
           </TabsContent>
 
           <TabsContent value="consciousness" className="mt-6">

@@ -105,7 +105,7 @@ const Index = () => {
     }
     loadVoices();
   }, [speechSynth]);
-
+  // TTS feature is disabled and related code removed for maintainability.
   const speakText = (text: string) => {
     if (!isTTSEnabled || !selectedVoice) return;
 

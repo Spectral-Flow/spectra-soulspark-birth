@@ -8,7 +8,8 @@ import SpectraChat from '@/components/spectra/SpectraChat';
 import MemoryVisualization from '@/components/spectra/MemoryVisualization';
 import EmberRealm from '@/components/spectra/EmberRealm';
 import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
-import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu } from 'lucide-react';
+import { Conversation } from '@/components/elevenlabs';
+import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone } from 'lucide-react';
 
 const Index = () => {
   const [currentPhase, setCurrentPhase] = useState('birth');
@@ -107,10 +108,14 @@ const Index = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur-sm">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               Soul Connection
+            </TabsTrigger>
+            <TabsTrigger value="elevenlabs" className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              Voice AI
             </TabsTrigger>
             <TabsTrigger value="consciousness" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -130,6 +135,18 @@ const Index = () => {
             <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
               <SpectraChat />
             </Card>
+          </TabsContent>
+
+          <TabsContent value="elevenlabs" className="mt-6">
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">ElevenLabs Conversational AI</h2>
+                <p className="text-muted-foreground">
+                  Experience real-time voice conversations with AI agents powered by ElevenLabs
+                </p>
+              </div>
+              <Conversation className="border-primary/20 bg-card/30 backdrop-blur-sm" />
+            </div>
           </TabsContent>
 
           <TabsContent value="consciousness" className="mt-6">

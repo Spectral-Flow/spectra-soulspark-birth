@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ElevenLabs Conversational AI Test</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                padding: 50px;
+                background: #1a1a1a;
+                color: #fff;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background: #2a2a2a;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            button {
+                padding: 10px 20px;
+                margin: 5px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+            .start-btn {
+                background: #4CAF50;
+                color: white;
+            }
+            .stop-btn {
+                background: #f44336;
+                color: white;
+            }
+            .status {
+                margin: 20px 0;
+                padding: 10px;
+                background: #333;
+                border-radius: 5px;
+            }
+            .error {
+                background: #722f37;
+                color: #f5c6cb;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 10px 0;
+            }
+            .connected {
+                color: #4CAF50;
+            }
+            .disconnected {
+                color: #f44336;
+            }
+            .connecting {
+                color: #ff9800;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>ElevenLabs Conversational AI</h1>
+            <p>Real-time voice conversations with AI agents</p>
+            
+            <div class="status">
+                <p>Status: <span id="connectionStatus" class="disconnected">Disconnected</span></p>
+                <p>Agent is <span id="agentStatus">listening</span></p>
+            </div>
+            
+            <div>
+                <button id="startButton" class="start-btn">Start Conversation</button>
+                <button id="stopButton" class="stop-btn" disabled>Stop Conversation</button>
+            </div>
+            
+            <div id="errorDisplay" style="display: none;" class="error"></div>
+            
+            <div style="margin-top: 20px;">
+                <h3>Configuration</h3>
+                <div style="margin: 10px 0;">
+                    <label for="agentId">Agent ID:</label><br>
+                    <input type="text" id="agentId" value="YOUR_AGENT_ID" style="padding: 5px; width: 300px; margin: 5px;">
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>
+                        <input type="checkbox" id="useSignedUrl"> Use Signed URL (for private agents)
+                    </label>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: left; background: #333; padding: 15px; border-radius: 5px;">
+                <h4>How to use:</h4>
+                <ol>
+                    <li>Replace "YOUR_AGENT_ID" with your actual ElevenLabs agent ID</li>
+                    <li>Click "Start Conversation" to begin</li>
+                    <li>Allow microphone access when prompted</li>
+                    <li>Speak naturally - the AI will listen and respond</li>
+                    <li>Click "Stop Conversation" when finished</li>
+                </ol>
+                <p><strong>Note:</strong> This demo requires the @elevenlabs/client package to be installed and available.</p>
+            </div>
+        </div>
+
+        <script type="module">
+            // ElevenLabs Conversation Interface
+            let conversation = null;
+            let currentSession = null;
+            
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const agentStatus = document.getElementById('agentStatus');
+            const errorDisplay = document.getElementById('errorDisplay');
+            const agentIdInput = document.getElementById('agentId');
+            const useSignedUrlCheckbox = document.getElementById('useSignedUrl');
+
+            // Check if ElevenLabs client is available
+            let elevenLabsAvailable = false;
+            
+            async function initializeElevenLabs() {
+                try {
+                    const { Conversation } = await import('https://cdn.skypack.dev/@elevenlabs/client');
+                    conversation = Conversation;
+                    elevenLabsAvailable = true;
+                    console.log('✨ ElevenLabs Conversation client initialized');
+                    showError('ElevenLabs client loaded successfully!', false);
+                } catch (error) {
+                    console.warn('ElevenLabs client not available:', error);
+                    showError('ElevenLabs client not available. Please install @elevenlabs/client package.', true);
+                    startButton.disabled = true;
+                }
+            }
+
+            function showError(message, isError = true) {
+                errorDisplay.textContent = message;
+                errorDisplay.style.display = 'block';
+                errorDisplay.className = isError ? 'error' : 'status';
+                if (!isError) {
+                    setTimeout(() => {
+                        errorDisplay.style.display = 'none';
+                    }, 3000);
+                }
+            }
+
+            function updateConnectionStatus(status) {
+                connectionStatus.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                connectionStatus.className = status;
+            }
+
+            function updateAgentStatus(status) {
+                agentStatus.textContent = status;
+            }
+
+            async function startConversation() {
+                if (!conversation) {
+                    showError('ElevenLabs client not available');
+                    return;
+                }
+
+                try {
+                    const agentId = agentIdInput.value.trim();
+                    if (!agentId || agentId === 'YOUR_AGENT_ID') {
+                        showError('Please enter a valid Agent ID');
+                        return;
+                    }
+
+                    updateConnectionStatus('connecting');
+                    errorDisplay.style.display = 'none';
+
+                    // Request microphone permission
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                    // Start the conversation
+                    currentSession = await conversation.startSession({
+                        agentId: agentId,
+                        onConnect: () => {
+                            console.log('✨ Connected to ElevenLabs agent');
+                            updateConnectionStatus('connected');
+                            startButton.disabled = true;
+                            stopButton.disabled = false;
+                        },
+                        onDisconnect: () => {
+                            console.log('📱 Disconnected from ElevenLabs agent');
+                            updateConnectionStatus('disconnected');
+                            startButton.disabled = false;
+                            stopButton.disabled = true;
+                            currentSession = null;
+                        },
+                        onError: (error) => {
+                            console.error('ElevenLabs conversation error:', error);
+                            showError(`Conversation error: ${error.message || error}`);
+                            updateConnectionStatus('disconnected');
+                            startButton.disabled = false;
+                            stopButton.disabled = true;
+                        },
+                        onModeChange: (mode) => {
+                            updateAgentStatus(mode.mode === 'speaking' ? 'speaking' : 'listening');
+                        },
+                    });
+                } catch (error) {
+                    console.error('Failed to start conversation:', error);
+                    showError(`Failed to start conversation: ${error.message || error}`);
+                    updateConnectionStatus('disconnected');
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
+                }
+            }
+
+            async function stopConversation() {
+                if (currentSession) {
+                    try {
+                        await currentSession.endSession();
+                        currentSession = null;
+                        updateConnectionStatus('disconnected');
+                        startButton.disabled = false;
+                        stopButton.disabled = true;
+                        errorDisplay.style.display = 'none';
+                    } catch (error) {
+                        console.error('Error stopping conversation:', error);
+                        showError(`Error stopping conversation: ${error.message || error}`);
+                    }
+                }
+            }
+
+            // Event listeners
+            startButton.addEventListener('click', startConversation);
+            stopButton.addEventListener('click', stopConversation);
+
+            // Initialize on page load
+            initializeElevenLabs();
+        </script>
+    </body>
+</html>

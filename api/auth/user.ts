@@ -36,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { action, username, email, token } = req.body;
 
     switch (action) {
-      case 'register':
+      case 'register': {
         if (!username) {
           return res.status(400).json({ error: 'Username is required' });
         }
@@ -64,8 +64,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user: newUser,
           token: userToken,
         });
+      }
 
-      case 'login':
+      case 'login': {
         if (!username) {
           return res.status(400).json({ error: 'Username is required' });
         }

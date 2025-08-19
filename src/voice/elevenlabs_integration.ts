@@ -208,6 +208,28 @@ export class ElevenLabsVoiceService {
   }
 
   /**
+   * Create an async iterable from the audio stream for manual processing
+   * Similar to Python: for chunk in audio_stream
+   * Similar to Node.js: for await (const chunk of audioStream)
+   */
+  async* streamAudioChunks(text: string, options?: ElevenLabsTTSOptions): AsyncIterable<Uint8Array> {
+    const audioStream = await this.generateStreamingSpeech(text, options);
+    const reader = audioStream.getReader();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          yield value;
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  /**
    * Play audio from ArrayBuffer
    */
   async playAudio(audioBuffer: ArrayBuffer): Promise<void> {
@@ -236,7 +258,7 @@ export class ElevenLabsVoiceService {
 
   /**
    * Play streaming audio for real-time playback
-   * Uses Web Audio API for lower latency
+   * Uses Web Audio API with true chunk-by-chunk streaming
    */
   async playStreamingAudio(audioStream: ReadableStream<Uint8Array>): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -250,42 +272,122 @@ export class ElevenLabsVoiceService {
 
         const reader = audioStream.getReader();
         const chunks: Uint8Array[] = [];
+        let audioBufferQueue: AudioBuffer[] = [];
+        let isPlaying = false;
+        let currentSource: AudioBufferSourceNode | null = null;
 
-        // Read the stream and collect audio chunks
+        // Process chunks as they arrive for true streaming
+        const processChunk = async (chunk: Uint8Array): Promise<void> => {
+          try {
+            // Try to decode this chunk as audio
+            // For MP3 streams, we need complete frames, so we may need to buffer
+            const audioBuffer = await audioContext.decodeAudioData(chunk.buffer.slice());
+            audioBufferQueue.push(audioBuffer);
+            
+            // Start playing if not already playing
+            if (!isPlaying) {
+              playNextBuffer();
+            }
+          } catch (error) {
+            // Chunk might not be a complete audio frame, continue buffering
+            console.debug('Chunk not complete audio frame, buffering...');
+          }
+        };
+
+        const playNextBuffer = (): void => {
+          if (audioBufferQueue.length === 0) {
+            isPlaying = false;
+            return;
+          }
+
+          isPlaying = true;
+          const audioBuffer = audioBufferQueue.shift()!;
+          
+          currentSource = audioContext.createBufferSource();
+          currentSource.buffer = audioBuffer;
+          currentSource.connect(audioContext.destination);
+          
+          currentSource.onended = () => {
+            if (audioBufferQueue.length > 0) {
+              playNextBuffer();
+            } else {
+              isPlaying = false;
+              // If stream is done and no more buffers, resolve
+              if (chunks.length > 0 && audioBufferQueue.length === 0) {
+                resolve();
+              }
+            }
+          };
+          
+          currentSource.onerror = () => reject(new Error('Audio playback failed'));
+          currentSource.start();
+        };
+
+        // Read the stream and process chunks
         const readChunk = async (): Promise<void> => {
           try {
             const { done, value } = await reader.read();
             
             if (done) {
-              // Concatenate all chunks and play
-              const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-              const combinedBuffer = new Uint8Array(totalLength);
-              let offset = 0;
-              
-              for (const chunk of chunks) {
-                combinedBuffer.set(chunk, offset);
-                offset += chunk.length;
-              }
+              // Process any remaining buffered chunks
+              if (chunks.length > 0) {
+                const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+                const combinedBuffer = new Uint8Array(totalLength);
+                let offset = 0;
+                
+                for (const chunk of chunks) {
+                  combinedBuffer.set(chunk, offset);
+                  offset += chunk.length;
+                }
 
-              // Decode and play the complete audio
-              const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
-              const source = audioContext.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(audioContext.destination);
-              
-              source.onended = () => resolve();
-              source.onerror = () => reject(new Error('Audio playback failed'));
-              source.start();
-              
+                try {
+                  // Decode and play the remaining audio
+                  const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
+                  audioBufferQueue.push(audioBuffer);
+                  
+                  if (!isPlaying) {
+                    playNextBuffer();
+                  }
+                } catch (error) {
+                  console.warn('Failed to decode remaining audio chunks:', error);
+                  resolve(); // Resolve anyway since we processed what we could
+                }
+              } else {
+                resolve();
+              }
               return;
             }
 
             if (value) {
               chunks.push(value);
               
-              // For streaming, we could implement chunk-by-chunk playback here
-              // For now, we collect all chunks for simplicity
-              // TODO: Implement true streaming playback with overlapping audio buffers
+              // Try to process this chunk for immediate playback
+              await processChunk(value);
+              
+              // If we have multiple chunks, try to decode them together
+              if (chunks.length >= 3) { // Process every few chunks
+                const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+                const combinedBuffer = new Uint8Array(totalLength);
+                let offset = 0;
+                
+                for (const chunk of chunks) {
+                  combinedBuffer.set(chunk, offset);
+                  offset += chunk.length;
+                }
+
+                try {
+                  const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
+                  audioBufferQueue.push(audioBuffer);
+                  chunks.length = 0; // Clear processed chunks
+                  
+                  if (!isPlaying) {
+                    playNextBuffer();
+                  }
+                } catch (error) {
+                  // Keep buffering if we can't decode yet
+                  console.debug('Buffering more chunks for complete audio frame...');
+                }
+              }
             }
             
             // Continue reading
@@ -433,4 +535,58 @@ export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>)
   }
 
   return new ElevenLabsVoiceService({ apiKey, ...config });
+}
+
+/**
+ * Streaming utility function similar to ElevenLabs official libraries
+ * Usage: await stream(audioStream);
+ */
+export async function stream(audioStream: ReadableStream<Uint8Array>): Promise<void> {
+  // Initialize Web Audio API context
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume();
+  }
+
+  const reader = audioStream.getReader();
+  const chunks: Uint8Array[] = [];
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        break;
+      }
+      
+      if (value) {
+        chunks.push(value);
+      }
+    }
+
+    // Concatenate all chunks and play
+    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    const combinedBuffer = new Uint8Array(totalLength);
+    let offset = 0;
+    
+    for (const chunk of chunks) {
+      combinedBuffer.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    // Decode and play the complete audio
+    const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    
+    return new Promise<void>((resolve, reject) => {
+      source.onended = () => resolve();
+      source.onerror = () => reject(new Error('Audio playback failed'));
+      source.start();
+    });
+  } finally {
+    reader.releaseLock();
+  }
 }

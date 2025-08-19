@@ -8,7 +8,7 @@ export { TextToSpeechEngine, createTextToSpeech } from './text_to_speech';
 
 export { OpenAIVoiceService, createOpenAIVoiceService, createOpenAIVoiceFromEnv } from './openai_integration';
 
-export { ElevenLabsVoiceService, createElevenLabsVoiceService, createElevenLabsVoiceFromEnv } from './elevenlabs_integration';
+export { ElevenLabsVoiceService, createElevenLabsVoiceService, createElevenLabsVoiceFromEnv, stream } from './elevenlabs_integration';
 
 export { SpectraVoiceBridge, createSpectraVoiceBridge } from './spectra_voice_bridge';
 
@@ -21,3 +21,8 @@ export type { VoiceConfig, VoiceEvents } from './voice_manager';
 // Simple test export
 
 export { testSpectraVoice } from './test';
+
+// Streaming examples and tests
+
+export { runStreamingExamples } from './streaming-examples';
+export { testStreaming, testStreamingInBrowser } from './streaming-test';

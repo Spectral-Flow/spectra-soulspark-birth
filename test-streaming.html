@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs Streaming Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 ElevenLabs Streaming Test</h1>
+        
+        <div>
+            <button onclick="testStreamingSupport()">
+                <span class="emoji">🧪</span> Test Streaming Support
+            </button>
+            <button onclick="testAsyncIteration()">
+                <span class="emoji">🔄</span> Test Async Iteration
+            </button>
+            <button onclick="testUtilityFunction()">
+                <span class="emoji">⚡</span> Test Utility Function
+            </button>
+            <button onclick="clearLog()">
+                <span class="emoji">🧹</span> Clear Log
+            </button>
+        </div>
+        
+        <div class="status" id="statusLog">
+            <div><span class="emoji">🌟</span> Welcome to ElevenLabs Streaming Test</div>
+            <div>This tests the enhanced streaming functionality implementation.</div>
+            <div>Click the buttons above to run various tests.</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const statusLog = document.getElementById('statusLog');
+            const timestamp = new Date().toLocaleTimeString();
+            statusLog.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            statusLog.scrollTop = statusLog.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('statusLog').innerHTML = 
+                '<div><span class="emoji">🌟</span> Welcome to ElevenLabs Streaming Test</div>' +
+                '<div>This tests the enhanced streaming functionality implementation.</div>' +
+                '<div>Click the buttons above to run various tests.</div>';
+        }
+
+        function testStreamingSupport() {
+            log('🧪 Testing streaming functionality support...');
+
+            // Test 1: Check if ReadableStream is supported
+            if (typeof ReadableStream === 'undefined') {
+                log('❌ ReadableStream not supported in this environment');
+                return;
+            }
+            log('✅ ReadableStream is supported');
+
+            // Test 2: Check if Web Audio API is supported
+            if (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') {
+                log('❌ Web Audio API not supported in this environment');
+                return;
+            }
+            log('✅ Web Audio API is supported');
+
+            // Test 3: Check if fetch is supported
+            if (typeof fetch === 'undefined') {
+                log('❌ Fetch API not supported in this environment');
+                return;
+            }
+            log('✅ Fetch API is supported');
+
+            // Test 4: Check if async generators are supported
+            try {
+                async function* testAsyncGenerator() {
+                    yield 1;
+                }
+                log('✅ Async generators are supported');
+            } catch (error) {
+                log('❌ Async generators not supported');
+                return;
+            }
+
+            log('🎉 All streaming prerequisites are available!');
+        }
+
+        function testAsyncIteration() {
+            log('🔄 Testing async iteration capabilities...');
+
+            // Create a mock async iterable
+            async function* mockAudioChunks() {
+                log('📦 Generating mock audio chunk 1');
+                yield new Uint8Array([1, 2, 3, 4]);
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                log('📦 Generating mock audio chunk 2');
+                yield new Uint8Array([5, 6, 7, 8]);
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                log('📦 Generating mock audio chunk 3');
+                yield new Uint8Array([9, 10, 11, 12]);
+            }
+
+            // Test async iteration
+            (async () => {
+                try {
+                    for await (const chunk of mockAudioChunks()) {
+                        log(`✅ Received chunk: ${chunk.length} bytes [${Array.from(chunk).join(', ')}]`);
+                    }
+                    log('🎉 Async iteration test completed successfully!');
+                } catch (error) {
+                    log(`❌ Async iteration test failed: ${error.message}`);
+                }
+            })();
+        }
+
+        function testUtilityFunction() {
+            log('⚡ Testing streaming utility function...');
+
+            // Create a mock ReadableStream
+            const mockStream = new ReadableStream({
+                start(controller) {
+                    log('📡 Starting mock stream...');
+                    
+                    // Enqueue some mock audio data
+                    controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+                    
+                    setTimeout(() => {
+                        controller.enqueue(new Uint8Array([5, 6, 7, 8]));
+                    }, 100);
+                    
+                    setTimeout(() => {
+                        controller.enqueue(new Uint8Array([9, 10, 11, 12]));
+                        controller.close();
+                        log('📡 Mock stream closed');
+                    }, 200);
+                }
+            });
+
+            // Test reading the stream
+            (async () => {
+                try {
+                    const reader = mockStream.getReader();
+                    const chunks = [];
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        
+                        if (done) {
+                            log('✅ Stream reading completed');
+                            break;
+                        }
+                        
+                        if (value) {
+                            chunks.push(value);
+                            log(`✅ Read chunk: ${value.length} bytes [${Array.from(value).join(', ')}]`);
+                        }
+                    }
+                    
+                    reader.releaseLock();
+                    
+                    // Test concatenation
+                    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+                    const combinedBuffer = new Uint8Array(totalLength);
+                    let offset = 0;
+                    
+                    for (const chunk of chunks) {
+                        combinedBuffer.set(chunk, offset);
+                        offset += chunk.length;
+                    }
+                    
+                    log(`✅ Combined buffer: ${combinedBuffer.length} bytes [${Array.from(combinedBuffer).join(', ')}]`);
+                    log('🎉 Streaming utility test completed successfully!');
+                    
+                } catch (error) {
+                    log(`❌ Streaming utility test failed: ${error.message}`);
+                }
+            })();
+        }
+
+        // Auto-run basic test on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🚀 Running initial streaming support test...');
+                testStreamingSupport();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

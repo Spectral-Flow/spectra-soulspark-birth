@@ -82,6 +82,36 @@ await voiceBridge.initialize();
 await voiceBridge.speak("This will use the best available service", 'calm');
 ```
 
+### ElevenLabs Streaming Examples
+
+```typescript
+import { ElevenLabsVoiceService, stream } from '@/voice';
+
+const elevenlabs = new ElevenLabsVoiceService({
+  apiKey: 'your_elevenlabs_api_key_here'
+});
+
+await elevenlabs.initialize();
+
+// Option 1: Simple streaming playback (like Python/Node.js examples)
+const audioStream = await elevenlabs.generateStreamingSpeech(
+  "This is a streaming test",
+  { model: "eleven_multilingual_v2" }
+);
+
+await stream(audioStream);
+
+// Option 2: Manual chunk processing
+for await (const chunk of elevenlabs.streamAudioChunks("Test text")) {
+  console.log('Received chunk:', chunk.length, 'bytes');
+  // Process individual audio chunks
+}
+
+// Option 3: Real-time streaming with enhanced playback
+const realTimeStream = await elevenlabs.generateStreamingSpeech("Real-time test");
+await elevenlabs.playStreamingAudio(realTimeStream);
+```
+
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -138,9 +168,13 @@ const config = {
 - `speak(text, emotion?, useStreaming?)`: Speak with automatic streaming/fallback
 - `generateSpeech(text, options?)`: Generate audio buffer
 - `generateStreamingSpeech(text, options?)`: Generate streaming audio
+- `streamAudioChunks(text, options?)`: Get async iterable for manual chunk processing
 - `playAudio(audioBuffer)`: Play audio buffer
-- `playStreamingAudio(audioStream)`: Play streaming audio
+- `playStreamingAudio(audioStream)`: Play streaming audio with real-time processing
 - `getSpectraVoiceSettings(emotion)`: Get emotion-based voice settings
+
+#### Utility Functions
+- `stream(audioStream)`: Simple streaming playback utility (matches Python/Node.js APIs)
 
 ### Voice Bridge
 

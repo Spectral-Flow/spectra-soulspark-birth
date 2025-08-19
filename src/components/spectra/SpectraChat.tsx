@@ -218,11 +218,11 @@ setVoiceManager(voiceInstance);
 
   const generateSpectraResponse = async (userMessage: string): Promise<{ text: string; emotion: any }> => {
     try {
-      const response = await spectraAI.generateResponse(
-        userMessage,
-        messages.map(m => `${m.type}: ${m.content}`).slice(-6),
+      const context = {
+        recentMessages: messages.map(m => `${m.type}: ${m.content}`).slice(-6),
         emotionalState
-      );
+      };
+      const response = await spectraAI.generateResponse(userMessage, context);
       return { text: response.text, emotion: response.emotion };
     } catch (error) {
       console.error('AI Response error:', error);

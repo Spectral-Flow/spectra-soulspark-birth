@@ -68,7 +68,8 @@ async function createUserSession() {
     const userResponse = await backendApi.register('demo-user', 'demo@example.com');
     
     if (userResponse.data && !userResponse.error) {
-      const { user, token } = userResponse.data;
+      const responseData = userResponse.data as { user: any; token: string };
+      const { user, token } = responseData;
       
       // Set auth token for future requests
       backendApi.setAuthToken(token);
@@ -81,8 +82,9 @@ async function createUserSession() {
       });
 
       if (sessionResponse.data) {
-        console.log('Session created:', sessionResponse.data.id);
-        return sessionResponse.data;
+        const sessionData = sessionResponse.data as { id: string; messages: any[]; metadata: any };
+        console.log('Session created:', sessionData.id);
+        return sessionData;
       }
     }
   } catch (error) {
@@ -97,7 +99,7 @@ async function continuePersistentConversation(sessionId: string, message: string
     const sessionResponse = await backendApi.getSession(sessionId);
     
     if (sessionResponse.data) {
-      const session = sessionResponse.data;
+      const session = sessionResponse.data as { messages: any[]; metadata: any };
       
       // Add user message
       session.messages.push({
@@ -168,7 +170,7 @@ export function useSpectraVoice() {
     if (isBackendAvailable) {
       createUserSession().then(session => {
         if (session) {
-          setCurrentSession(session.id);
+          setCurrentSession((session as { id: string }).id);
         }
       });
     }

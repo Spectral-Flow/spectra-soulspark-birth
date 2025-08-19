@@ -76,7 +76,7 @@ export class EnhancedVoiceBridge {
           const response = await backendApi.elevenLabsTTS(text, voiceId, options);
           if (response.data && !response.error) {
             return {
-              audio: response.data,
+              audio: response.data as ArrayBuffer | Blob,
               service: 'backend-elevenlabs',
             };
           }
@@ -91,7 +91,7 @@ export class EnhancedVoiceBridge {
           const response = await backendApi.openAITTS(text, voice);
           if (response.data && !response.error) {
             return {
-              audio: response.data,
+              audio: response.data as ArrayBuffer | Blob,
               service: 'backend-openai',
             };
           }
@@ -158,7 +158,7 @@ export class EnhancedVoiceBridge {
       try {
         const response = await backendApi.elevenLabsVoices();
         if (response.data && !response.error) {
-          return response.data.voices || [];
+          return (response.data as { voices?: any[] }).voices || [];
         }
       } catch (error) {
         console.warn('Backend voices API failed:', error);

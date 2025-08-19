@@ -260,6 +260,7 @@ export class ElevenLabsVoiceService {
    * Play streaming audio for real-time playback
    * Uses Web Audio API with true chunk-by-chunk streaming
    */
+  // eslint-disable-next-line no-async-promise-executor
   async playStreamingAudio(audioStream: ReadableStream<Uint8Array>): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
@@ -272,7 +273,7 @@ export class ElevenLabsVoiceService {
 
         const reader = audioStream.getReader();
         const chunks: Uint8Array[] = [];
-        let audioBufferQueue: AudioBuffer[] = [];
+        const audioBufferQueue: AudioBuffer[] = [];
         let isPlaying = false;
         let currentSource: AudioBufferSourceNode | null = null;
 
@@ -319,7 +320,7 @@ export class ElevenLabsVoiceService {
             }
           };
           
-          currentSource.onerror = () => reject(new Error('Audio playback failed'));
+          // AudioBufferSourceNode doesn't have onerror, handle errors in the try/catch
           currentSource.start();
         };
 

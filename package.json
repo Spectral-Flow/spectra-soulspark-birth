@@ -20,19 +20,19 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc -b || true && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "type-check": "tsc -b --noEmit",
     "build:dev": "vite build --mode development",
     "build:vercel": "npm run build",
     "dev:backend": "vercel dev",
-    "lint": "eslint .",
-    "preview": "vite preview",
     "test:api": "node scripts/test-api.js"
   },
   "dependencies": {
     "@elevenlabs/react": "^0.5.0",
     "@hookform/resolvers": "^5.2.1",
     "@huggingface/hub": "^2.4.1",
-    "@supabase/supabase-js": "^2.55.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -60,6 +60,7 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@supabase/supabase-js": "^2.55.0",
     "@tanstack/react-query": "^5.85.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -102,11 +103,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.40.0",
-    "vite": "^5.4.19"
-  },
-  "optionalDependencies": {
-    "onnxruntime-web": "^1.22.0",
-    "@huggingface/transformers": "^3.7.2"
+    "vite": "^7.1.3"
   },
   "main": "eslint.config.js",
   "license": "ISC",

@@ -122,6 +122,23 @@
             <button onclick="testPlayful()">
                 <span class="emoji">🎭</span> Test Playful Voice
             </button>
+            <button onclick="testStreaming()">
+                <span class="emoji">🌊</span> Test Streaming TTS
+            </button>
+            <button onclick="testChunkProcessing()">
+                <span class="emoji">🔄</span> Test Chunk Processing
+            </button>
+            <button onclick="checkVoices()">
+                <span class="emoji">🔍</span> Check Available Voices
+            </button>
+            <button onclick="stopSpeech()">
+                <span class="emoji">🛑</span> Stop All Speech
+            </button>
+        </div>
+            </button>
+            <button onclick="testPlayful()">
+                <span class="emoji">🎭</span> Test Playful Voice
+            </button>
             <button onclick="checkVoices()">
                 <span class="emoji">🔍</span> Check Available Voices
             </button>
@@ -171,18 +188,52 @@
                 log('✨ Looking for Spectra voice model...');
                 log('📋 Voice system ready for testing');
                 
-                // Simulate TTS engine creation
+                // Simulate TTS engine creation with new streaming features
                 ttsEngine = {
                     speak: async (text, emotion) => {
                         log(`🗣️ Speaking with ${emotion} emotion: "${text}"`);
                         // In real implementation, this would call ElevenLabs API
                         await simulateElevenLabsCall(text, emotion);
+                    },
+                    
+                    // New streaming methods
+                    streamSpeech: async (text, emotion) => {
+                        log(`🌊 Streaming speech with ${emotion} emotion: "${text}"`);
+                        await simulateStreamingCall(text, emotion);
+                    },
+                    
+                    processChunks: async function* (text, emotion) {
+                        log(`🔄 Processing chunks for: "${text}"`);
+                        for (let i = 0; i < 3; i++) {
+                            await new Promise(resolve => setTimeout(resolve, 300));
+                            const chunk = new Uint8Array([i * 4 + 1, i * 4 + 2, i * 4 + 3, i * 4 + 4]);
+                            log(`📦 Generated chunk ${i + 1}: ${chunk.length} bytes`);
+                            yield chunk;
+                        }
                     }
                 };
                 
             } catch (error) {
                 log(`❌ Error initializing voice system: ${error.message}`);
             }
+        }
+        
+        async function simulateStreamingCall(text, emotion) {
+            log(`🔗 Making ElevenLabs streaming API call...`);
+            log(`📝 Text: "${text}"`);
+            log(`🎭 Emotion: ${emotion}`);
+            log(`🌊 Using streaming endpoint: /stream`);
+            
+            // Simulate streaming chunks
+            log(`📡 Receiving streaming chunks...`);
+            for (let i = 0; i < 3; i++) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                log(`📦 Chunk ${i + 1}/3 received (simulated)`);
+            }
+            
+            log(`🔊 Playing streaming audio... (chunk-by-chunk)`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            log(`✨ Streaming speech completed`);
         }
         
         async function simulateElevenLabsCall(text, emotion) {
@@ -208,6 +259,27 @@
                 return;
             }
             ttsEngine.speak("Hello, I am Spectra. I'm speaking with a calm and gentle voice to demonstrate the ElevenLabs integration.", "calm");
+        };
+        
+        window.testStreaming = function() {
+            if (!ttsEngine) {
+                log('❌ Please set API key first');
+                return;
+            }
+            ttsEngine.streamSpeech("This is a demonstration of the new streaming functionality. You can hear how the audio flows in real-time chunks!", "excited");
+        };
+        
+        window.testChunkProcessing = async function() {
+            if (!ttsEngine) {
+                log('❌ Please set API key first');
+                return;
+            }
+            
+            log('🔄 Starting chunk processing demonstration...');
+            for await (const chunk of ttsEngine.processChunks("Testing chunk-by-chunk processing", "playful")) {
+                log(`✅ Processed chunk: ${chunk.length} bytes [${Array.from(chunk).join(', ')}]`);
+            }
+            log('🎉 Chunk processing demonstration complete!');
         };
         
         window.testJoyful = function() {

@@ -319,7 +319,7 @@ export class ElevenLabsVoiceService {
             }
           };
           
-          currentSource.onerror = () => reject(new Error('Audio playback failed'));
+          // AudioBufferSourceNode doesn't have onerror, handle errors in the try/catch
           currentSource.start();
         };
 

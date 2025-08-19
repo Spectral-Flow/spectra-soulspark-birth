@@ -159,7 +159,7 @@ class DatabaseService {
       const { data, error } = await query;
       if (error || !data) return [];
 
-      return data.map((item: any) => ({
+      return data.map((item: { id: string; session_key: string; user_id: string; messages: unknown; metadata: unknown; created_at: string; updated_at: string }) => ({
         id: item.id,
         sessionKey: item.session_key,
         userId: item.user_id,
@@ -204,11 +204,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json(sessions);
         }
 
-      case 'POST':
+      case 'POST': {
         const newSession = await db.createSession(req.body);
         return res.status(201).json(newSession);
+      }
 
-      case 'PUT':
+      case 'PUT': {
         if (!sessionId) {
           return res.status(400).json({ error: 'Session ID required' });
         }
@@ -217,8 +218,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(404).json({ error: 'Session not found' });
         }
         return res.status(200).json(updatedSession);
+      }
 
-      case 'DELETE':
+      case 'DELETE': {
         if (!sessionId) {
           return res.status(400).json({ error: 'Session ID required' });
         }
@@ -228,6 +230,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         } else {
           return res.status(404).json({ error: 'Session not found' });
         }
+      }
 
       default:
         return res.status(405).json({ error: 'Method not allowed' });

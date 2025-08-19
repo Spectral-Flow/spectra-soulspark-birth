@@ -20,10 +20,10 @@ export function SimpleConversation({ agentId = '' }: SimpleConversationProps) {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Start the conversation with your agent
+      // Start the conversation with your agent  
       await conversation.startSession({
-        agentId: agentId || 'YOUR_AGENT_ID', // Replace with your agent ID
-        user_id: 'YOUR_CUSTOMER_USER_ID' // Optional field for tracking your end user IDs
+        conversationToken: 'demo-token', // Replace with actual conversation token from backend
+        userId: 'YOUR_CUSTOMER_USER_ID' // Optional field for tracking your end user IDs
       });
 
     } catch (error) {

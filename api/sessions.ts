@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json(Array.from(sessions.values()));
         }
 
-      case 'POST':
+      case 'POST': {
         // Create new session
         const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const newSession: ConversationSession = {
@@ -65,8 +65,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
         sessions.set(newSessionId, newSession);
         return res.status(201).json(newSession);
+      }
 
-      case 'PUT':
+      case 'PUT': {
         // Update session
         if (!sessionId) {
           return res.status(400).json({ error: 'Session ID required' });
@@ -84,8 +85,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
         sessions.set(sessionId as string, updatedSession);
         return res.status(200).json(updatedSession);
+      }
 
-      case 'DELETE':
+      case 'DELETE': {
         // Delete session
         if (!sessionId) {
           return res.status(400).json({ error: 'Session ID required' });
@@ -95,6 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         } else {
           return res.status(404).json({ error: 'Session not found' });
         }
+      }
 
       default:
         return res.status(405).json({ error: 'Method not allowed' });

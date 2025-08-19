@@ -14,15 +14,16 @@ export { SpectraVoiceBridge, createSpectraVoiceBridge } from './spectra_voice_br
 
 export { SpeechToTextEngine, createSpeechToText } from './speech_to_text';
 
-// Re-export types for compatibility
+// Audio Processing with AudioWorklet and fallback
+export { SpectraAudioProcessor, createAudioProcessor, getBrowserAudioSupport } from './audio-processor';
 
+// Re-export types for compatibility
 export type { VoiceConfig, VoiceEvents } from './voice_manager';
+export type { AudioProcessorConfig } from './audio-processor';
 
 // Simple test export
-
 export { testSpectraVoice } from './test';
 
 // Streaming examples and tests
-
 export { runStreamingExamples } from './streaming-examples';
 export { testStreaming, testStreamingInBrowser } from './streaming-test';

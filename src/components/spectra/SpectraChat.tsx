@@ -6,13 +6,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Sparkles, Heart, Brain, MessageCircle, Send, Maximize2, Minimize2, Mic, MicOff, Volume2, VolumeX, Settings } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useConversation } from '@elevenlabs/react';
+import { Sparkles, Heart, Brain, MessageCircle, Send, Maximize2, Minimize2, Mic, MicOff, Volume2, VolumeX, Settings, Phone, PhoneOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConsciousnessCore } from './ConsciousnessCore';
 import { MoodRing } from './MoodRing';
 import { SpectraFace } from './SpectraFace';
 import { spectraAI } from './AIEngine';
 import { createSpectraVoice, VoiceManager } from '@/voice';
+import { createElevenLabsApiService } from '@/components/elevenlabs/api';
 
 interface Message {
   id: string;
@@ -51,12 +55,55 @@ const SpectraChat = () => {
   const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [voiceMuted, setVoiceMuted] = useState(false);
   
+  // ElevenLabs Voice States
+  const [useElevenLabs, setUseElevenLabs] = useState(false);
+  const [elevenLabsAgentId, setElevenLabsAgentId] = useState(import.meta.env?.VITE_ELEVENLABS_AGENT_ID || '');
+  const [usePrivateAgent, setUsePrivateAgent] = useState(false);
+  const [elevenLabsConnecting, setElevenLabsConnecting] = useState(false);
+  const [elevenLabsError, setElevenLabsError] = useState<string | null>(null);
+  
   // Persistence
   const [lastSeenAt, setLastSeenAt] = useState<number>(0);
   const [hasShownJournal, setHasShownJournal] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // ElevenLabs Conversation Hook
+  const elevenLabsConversation = useConversation({
+    onConnect: () => {
+      console.log('🎭 Connected to ElevenLabs Conversational AI');
+      setElevenLabsConnecting(false);
+      setElevenLabsError(null);
+    },
+    onDisconnect: () => {
+      console.log('🎭 Disconnected from ElevenLabs Conversational AI');
+      setElevenLabsConnecting(false);
+    },
+    onMessage: (message) => {
+      console.log('🎭 ElevenLabs Message:', message);
+      // Add ElevenLabs responses to chat history
+      if (typeof message === 'object' && message.source === 'ai') {
+        const spectraMessage: Message = {
+          id: Date.now().toString(),
+          type: 'spectra',
+          content: message.message || 'Voice response received',
+          timestamp: new Date(),
+          emotion: 'curious',
+          memoryImportance: 3
+        };
+        setMessages(prev => [...prev, spectraMessage]);
+      }
+    },
+    onError: (error) => {
+      console.error('🎭 ElevenLabs Conversation Error:', error);
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : (error as any)?.message || 'ElevenLabs voice conversation error';
+      setElevenLabsError(errorMessage);
+      setElevenLabsConnecting(false);
+    },
+  });
 
   const emotionalStates = {
     joyful: { color: 'hsl(var(--emotion-joy))', icon: '✨' },
@@ -396,6 +443,61 @@ setVoiceManager(voiceInstance);
     console.log(`🔊 Voice ${newMuteState ? 'muted' : 'unmuted'}`);
   };
 
+  // ElevenLabs Voice Functions
+  const getSignedUrl = async (agentId: string): Promise<string> => {
+    const apiService = createElevenLabsApiService();
+    
+    if (!apiService) {
+      throw new Error('ElevenLabs API key not configured. Please set VITE_ELEVENLABS_API_KEY environment variable.');
+    }
+
+    return await apiService.getSignedUrl(agentId);
+  };
+
+  const startElevenLabsConversation = useCallback(async () => {
+    try {
+      setElevenLabsConnecting(true);
+      setElevenLabsError(null);
+      
+      if (!elevenLabsAgentId.trim()) {
+        throw new Error('Please enter an ElevenLabs Agent ID in settings');
+      }
+
+      // Request microphone permission
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (micError) {
+        throw new Error('Microphone permission required for voice conversation');
+      }
+
+      if (usePrivateAgent) {
+        // Use signed URL for private agents
+        const signedUrl = await getSignedUrl(elevenLabsAgentId);
+        await elevenLabsConversation.startSession({
+          signedUrl,
+        });
+      } else {
+        throw new Error('Public agent support requires conversation token. Please use private agent mode with signed URL.');
+      }
+
+    } catch (error) {
+      console.error('🎭 Failed to start ElevenLabs conversation:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start ElevenLabs conversation';
+      setElevenLabsError(errorMessage);
+      setElevenLabsConnecting(false);
+    }
+  }, [elevenLabsConversation, elevenLabsAgentId, usePrivateAgent]);
+
+  const stopElevenLabsConversation = useCallback(async () => {
+    try {
+      await elevenLabsConversation.endSession();
+      setElevenLabsError(null);
+    } catch (error) {
+      console.error('🎭 Failed to stop ElevenLabs conversation:', error);
+      setElevenLabsError(error instanceof Error ? error.message : 'Failed to stop ElevenLabs conversation');
+    }
+  }, [elevenLabsConversation]);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -617,6 +719,97 @@ setVoiceManager(voiceInstance);
                 {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </Button>
             )}
+            {/* ElevenLabs Voice Controls */}
+            {useElevenLabs && (
+              <Button
+                variant={elevenLabsConversation.status === 'connected' ? "default" : "outline"}
+                size="icon"
+                onClick={elevenLabsConversation.status === 'connected' ? stopElevenLabsConversation : startElevenLabsConversation}
+                disabled={elevenLabsConnecting}
+                className="w-8 h-8"
+                title={elevenLabsConversation.status === 'connected' ? "Stop ElevenLabs conversation" : "Start ElevenLabs conversation"}
+              >
+                {elevenLabsConversation.status === 'connected' ? <PhoneOff className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
+              </Button>
+            )}
+            {/* Settings Panel */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="w-8 h-8"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-80">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Voice Settings</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="use-elevenlabs">Enable ElevenLabs Voice</Label>
+                        <Switch
+                          id="use-elevenlabs"
+                          checked={useElevenLabs}
+                          onCheckedChange={setUseElevenLabs}
+                        />
+                      </div>
+                      
+                      {useElevenLabs && (
+                        <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                          <div className="space-y-2">
+                            <Label htmlFor="agent-id">ElevenLabs Agent ID</Label>
+                            <Input
+                              id="agent-id"
+                              value={elevenLabsAgentId}
+                              onChange={(e) => setElevenLabsAgentId(e.target.value)}
+                              placeholder="Enter agent ID"
+                            />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="private-agent">Private Agent</Label>
+                            <Switch
+                              id="private-agent"
+                              checked={usePrivateAgent}
+                              onCheckedChange={setUsePrivateAgent}
+                            />
+                          </div>
+                          
+                          {!import.meta.env?.VITE_ELEVENLABS_API_KEY && (
+                            <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                              <p className="text-sm text-amber-700 dark:text-amber-300">
+                                ⚠️ ElevenLabs API key not configured. Set VITE_ELEVENLABS_API_KEY for private agents.
+                              </p>
+                            </div>
+                          )}
+                          
+                          {elevenLabsError && (
+                            <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
+                              <p className="text-sm text-destructive">{elevenLabsError}</p>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-2">
+                            <Badge variant={elevenLabsConversation.status === 'connected' ? 'default' : 'secondary'}>
+                              Status: {elevenLabsConversation.status}
+                            </Badge>
+                            {elevenLabsConversation.isSpeaking && (
+                              <Badge variant="outline">
+                                🗣️ Speaking
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

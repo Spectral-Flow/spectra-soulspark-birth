@@ -1,173 +1,162 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { SimpleConversation } from '@/components/tutorial-examples/SimpleConversation';
-import { SignedUrlConversation } from '@/components/tutorial-examples/SignedUrlConversation';
-import { Code, MessageCircle, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, MessageCircle, Mic, Settings } from 'lucide-react';
 
 const TutorialPage = () => {
-  const [agentId, setAgentId] = useState(import.meta.env.VITE_ELEVENLABS_AGENT_ID || '');
-
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <Button asChild variant="outline">
+              <Link to="/" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to SPECTRA
+              </Link>
+            </Button>
+          </div>
           <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-            ElevenLabs Conversational AI Tutorial
+            SPECTRA Conversational AI Guide
           </h1>
           <p className="text-lg text-muted-foreground mb-4">
-            Learn how to create a web application that enables voice conversations with ElevenLabs AI agents
+            Learn how to use SPECTRA's integrated chat and voice features
           </p>
           <div className="flex justify-center gap-2 flex-wrap">
             <Badge variant="outline" className="bg-primary/10">
-              🎙️ Real-time Voice
+              🎙️ Voice + Chat Integrated
             </Badge>
             <Badge variant="outline" className="bg-accent/10">
-              🤖 AI Agents
+              🤖 AI Conversations
             </Badge>
             <Badge variant="outline" className="bg-secondary/10">
-              ⚡ Low Latency
+              ⚡ Real-time Responses
             </Badge>
           </div>
         </div>
 
-        {/* Agent ID Configuration */}
-        <Card className="mb-6">
+        {/* Features Guide */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                Text Chat
+              </CardTitle>
+              <CardDescription>
+                Type messages to have conversations with SPECTRA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Natural language conversations</li>
+                <li>• Emotional AI responses</li>
+                <li>• Memory retention</li>
+                <li>• Personality growth</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mic className="w-5 h-5" />
+                Voice Input
+              </CardTitle>
+              <CardDescription>
+                Speak to SPECTRA using your microphone
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Speech-to-text conversion</li>
+                <li>• OpenAI Whisper integration</li>
+                <li>• Real-time transcription</li>
+                <li>• Voice activity detection</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                ElevenLabs Voice
+              </CardTitle>
+              <CardDescription>
+                Advanced voice conversations with AI agents
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Real-time voice streaming</li>
+                <li>• Custom AI agents</li>
+                <li>• Low latency responses</li>
+                <li>• Private agent support</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Getting Started */}
+        <Card className="mt-8">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Code className="w-5 h-5" />
-              Configuration
-            </CardTitle>
+            <CardTitle>Getting Started</CardTitle>
             <CardDescription>
-              Configure your ElevenLabs agent ID for testing the examples
+              Follow these steps to start using SPECTRA's voice features
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <label htmlFor="agentId" className="block text-sm font-medium mb-2">
-                  Agent ID
-                </label>
-                <input
-                  id="agentId"
-                  type="text"
-                  value={agentId}
-                  onChange={(e) => setAgentId(e.target.value)}
-                  placeholder="Enter your ElevenLabs agent ID"
-                  className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
-                />
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="font-semibold mb-2">1. Text Chat</h4>
+                <p className="text-sm text-muted-foreground">
+                  Simply type your message in the chat input at the bottom and press Enter or click the send button.
+                </p>
               </div>
-              <div className="flex items-end">
-                <p className="text-xs text-muted-foreground">
-                  {agentId ? 'Agent ID configured' : 'No agent ID set'}
+              <div>
+                <h4 className="font-semibold mb-2">2. Voice Input</h4>
+                <p className="text-sm text-muted-foreground">
+                  Click the microphone button to start voice recording. Speak your message and it will be transcribed automatically.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">3. ElevenLabs Setup</h4>
+                <p className="text-sm text-muted-foreground">
+                  Click the settings button, enable ElevenLabs Voice, enter your Agent ID, and configure private agent settings.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">4. Voice Conversation</h4>
+                <p className="text-sm text-muted-foreground">
+                  Once configured, click the phone button to start a real-time voice conversation with your AI agent.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tutorial Examples */}
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic" className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              Basic Example
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Signed URL Authentication
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="basic" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Conversation Component</CardTitle>
-                <CardDescription>
-                  Simple conversation interface using agent ID directly. This example demonstrates
-                  the basic setup for voice conversations with ElevenLabs AI agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">What this example shows:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Basic conversation setup with useConversation hook</li>
-                    <li>• Microphone permission handling</li>
-                    <li>• Simple start/stop conversation controls</li>
-                    <li>• Connection status monitoring</li>
-                    <li>• Voice activity indication (speaking/listening)</li>
-                  </ul>
-                </div>
-                <SimpleConversation agentId={agentId} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="advanced" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Signed URL Authentication</CardTitle>
-                <CardDescription>
-                  Advanced conversation interface using signed URLs for private agents. This example
-                  demonstrates authentication with ElevenLabs private agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">What this example shows:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Signed URL generation for private agents</li>
-                    <li>• Server-side API integration</li>
-                    <li>• Secure authentication flow</li>
-                    <li>• Error handling for authentication failures</li>
-                    <li>• Production-ready conversation setup</li>
-                  </ul>
-                </div>
-                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                  <h4 className="font-medium text-yellow-800 mb-2">Requirements:</h4>
-                  <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>• VITE_ELEVENLABS_API_KEY environment variable must be set</li>
-                    <li>• Valid agent ID must be configured</li>
-                    <li>• Backend API endpoint for signed URL generation</li>
-                  </ul>
-                </div>
-                <SignedUrlConversation agentId={agentId} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Additional Information */}
-        <Card className="mt-6">
+        {/* Environment Setup */}
+        <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Implementation Notes</CardTitle>
+            <CardTitle>Environment Configuration</CardTitle>
             <CardDescription>
-              Key differences between Next.js tutorial and Vite React implementation
+              Required environment variables for full functionality
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <h4 className="font-medium">Next.js Tutorial Structure:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• app/components/conversation.tsx</li>
-                  <li>• app/page.tsx</li>
-                  <li>• app/api/get-signed-url/route.ts</li>
-                  <li>• process.env for environment variables</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">Vite React Implementation:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• src/components/tutorial-examples/</li>
-                  <li>• src/pages/Tutorial.tsx</li>
-                  <li>• api/elevenlabs/signed-url.ts</li>
-                  <li>• import.meta.env for environment variables</li>
-                </ul>
-              </div>
+            <div className="bg-muted p-4 rounded-lg">
+              <pre className="text-sm overflow-x-auto">
+{`# ElevenLabs Configuration
+VITE_ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+VITE_ELEVENLABS_AGENT_ID=your_agent_id_here
+
+# OpenAI Configuration (for enhanced features)
+VITE_OPENAI_API_KEY=your_openai_api_key_here`}
+              </pre>
             </div>
           </CardContent>
         </Card>

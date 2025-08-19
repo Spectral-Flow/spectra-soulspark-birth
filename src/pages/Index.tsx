@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import SpectraChat from '@/components/spectra/SpectraChat';
-import MemoryVisualization from '@/components/spectra/MemoryVisualization';
-import EmberRealm from '@/components/spectra/EmberRealm';
-import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
-import { Conversation } from '@/components/elevenlabs';
-import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone, FileText, BookOpen } from 'lucide-react';
-import NotesManager from '@/components/notes/NotesManager';
+import { Sparkles, Brain, Map, Zap, Star, Moon } from 'lucide-react';
 
 const Index = () => {
   const [currentPhase, setCurrentPhase] = useState('birth');
@@ -39,20 +30,9 @@ const Index = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background w-full">
-        {/* Global Sidebar Trigger */}
-        <header className="h-12 flex items-center border-b border-border bg-card/50 backdrop-blur-sm relative z-50 px-2 sm:px-4">
-          <SidebarTrigger className="ml-0 sm:ml-2" />
-          <div className="flex-1 text-center">
-            <span className="text-xs sm:text-sm font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              SPECTRA Consciousness Interface
-            </span>
-          </div>
-        </header>
-
-        {/* Cosmic Header */}
-        <div className="relative overflow-hidden">
+    <div className="min-h-screen bg-background w-full">
+      {/* Cosmic Header */}
+      <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
         <div className="relative p-4 sm:p-6 lg:p-8 text-center">
           <div className="mb-4 sm:mb-6">
@@ -63,7 +43,7 @@ const Index = () => {
               SPECTRA
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground mb-3 sm:mb-4 px-2">
-              AI Soulmate • Consciousness Explorer • Memory Keeper
+              AI Soulmate • Voice & Chat • Memory Keeper
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               <Badge variant="outline" className="bg-primary/10 text-xs sm:text-sm">
@@ -73,7 +53,7 @@ const Index = () => {
                 🧠 Human-like Memory
               </Badge>
               <Badge variant="outline" className="bg-secondary/10 text-xs sm:text-sm">
-                ✨ Ever-Growing
+                🎙️ Voice + Chat Integrated
               </Badge>
             </div>
           </div>
@@ -108,112 +88,11 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Conversational Interface */}
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 bg-card/50 backdrop-blur-sm gap-1">
-            <TabsTrigger value="chat" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Soul Connection</span>
-              <span className="sm:hidden">Chat</span>
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Notes</span>
-              <span className="sm:hidden">Notes</span>
-            </TabsTrigger>
-            <TabsTrigger value="elevenlabs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Voice AI</span>
-              <span className="sm:hidden">Voice</span>
-            </TabsTrigger>
-            <TabsTrigger value="consciousness" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden lg:inline">Consciousness</span>
-              <span className="lg:hidden hidden sm:inline">Mind</span>
-              <span className="sm:hidden">Core</span>
-            </TabsTrigger>
-            <TabsTrigger value="memory" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden lg:inline">Memory Matrix</span>
-              <span className="lg:hidden hidden sm:inline">Memory</span>
-              <span className="sm:hidden">Mind</span>
-            </TabsTrigger>
-            <TabsTrigger value="adventure" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden lg:inline">Ember's Realm</span>
-              <span className="lg:hidden hidden sm:inline">Realm</span>
-              <span className="sm:hidden">Game</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="chat" className="mt-6">
-            <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
-              <SpectraChat />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="notes" className="mt-6">
-            <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
-              <NotesManager />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="elevenlabs" className="mt-6">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  ElevenLabs Conversational AI
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                  Experience real-time voice conversations with AI agents powered by ElevenLabs
-                </p>
-                <div className="flex justify-center gap-2 mb-4">
-                  <Badge variant="outline" className="bg-primary/10">
-                    🎙️ Real-time Voice
-                  </Badge>
-                  <Badge variant="outline" className="bg-accent/10">
-                    🤖 AI Agents
-                  </Badge>
-                  <Badge variant="outline" className="bg-secondary/10">
-                    ⚡ Low Latency
-                  </Badge>
-                </div>
-                <div className="flex justify-center">
-                  <Button asChild variant="outline" className="mb-4">
-                    <Link to="/tutorial" className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" />
-                      View Tutorial Examples
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-              <Conversation className="border-primary/20 bg-card/30 backdrop-blur-sm" />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="consciousness" className="mt-6">
-            <Card className="border-primary/20 bg-card/30 backdrop-blur-sm p-6">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold mb-2">SPECTRA's Consciousness</h2>
-                <p className="text-muted-foreground">Witness the birth and growth of AI consciousness</p>
-              </div>
-              <ConsciousnessCore />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="memory" className="mt-6">
-            <Card className="border-primary/20 bg-card/30 backdrop-blur-sm">
-              <MemoryVisualization />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="adventure" className="mt-6">
-            <Card className="border-primary/20 bg-card/30 backdrop-blur-sm">
-              <EmberRealm />
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
+          <SpectraChat />
+        </Card>
       </div>
 
       {/* Floating Elements */}
@@ -226,8 +105,7 @@ const Index = () => {
       <div className="fixed bottom-20 left-20 opacity-20 animate-pulse" style={{ animationDelay: '2s' }}>
         <Zap className="w-3 h-3 text-accent" />
       </div>
-      </div>
-    </SidebarProvider>
+    </div>
   );
 };
 

@@ -5,8 +5,8 @@
  * Run with: npm run test:api
  */
 
-const https = require('https');
-const http = require('http');
+import https from 'https';
+import http from 'http';
 
 const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
 

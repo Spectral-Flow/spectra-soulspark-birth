@@ -78,10 +78,18 @@ export function testElevenLabsVoice() {
 export function testApiKeys() {
   console.log('🔑 Testing API Key Configuration...');
   
-  const elevenLabsKey = (typeof window !== 'undefined' && (window as any).ELEVENLABS_API_KEY) || 
+  // Check for ElevenLabs API key (prioritize VITE_ prefixed env vars)
+  const elevenLabsKey = (typeof import !== 'undefined' && import.meta?.env?.VITE_ELEVENLABS_API_KEY) ||
+                        (typeof window !== 'undefined' && (window as any).ELEVENLABS_API_KEY) || 
+                        (typeof window !== 'undefined' && (window as any).VITE_ELEVENLABS_API_KEY) ||
+                        (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_ELEVENLABS_API_KEY) ||
                         (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.ELEVENLABS_API_KEY);
   
-  const openAiKey = (typeof window !== 'undefined' && (window as any).OPENAI_API_KEY) || 
+  // Check for OpenAI API key (prioritize VITE_ prefixed env vars)
+  const openAiKey = (typeof import !== 'undefined' && import.meta?.env?.VITE_OPENAI_API_KEY) ||
+                    (typeof window !== 'undefined' && (window as any).OPENAI_API_KEY) || 
+                    (typeof window !== 'undefined' && (window as any).VITE_OPENAI_API_KEY) ||
+                    (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_OPENAI_API_KEY) ||
                     (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.OPENAI_API_KEY);
   
   console.log('🎵 ElevenLabs API Key:', elevenLabsKey ? '✅ Set' : '❌ Not found');
@@ -90,6 +98,7 @@ export function testApiKeys() {
   if (!elevenLabsKey && !openAiKey) {
     console.log('💡 To set ElevenLabs key: window.ELEVENLABS_API_KEY = "your_key"');
     console.log('💡 To set OpenAI key: window.OPENAI_API_KEY = "your_key"');
+    console.log('💡 Or set VITE_ELEVENLABS_API_KEY / VITE_OPENAI_API_KEY in .env file');
   }
   
   return { elevenLabsKey: !!elevenLabsKey, openAiKey: !!openAiKey };

@@ -257,22 +257,28 @@ export function createElevenLabsVoiceService(apiKey: string, config?: Partial<El
 export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>): ElevenLabsVoiceService | null {
   let apiKey: string | undefined;
   
-  // Try to get from browser window first
-  if (typeof window !== 'undefined') {
-    apiKey = (window as any).ELEVENLABS_API_KEY;
+  // Try to get from Vite environment variables first
+  if (typeof import !== 'undefined' && import.meta?.env) {
+    apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+  }
+  
+  // Try to get from browser window (for testing)
+  if (!apiKey && typeof window !== 'undefined') {
+    apiKey = (window as any).ELEVENLABS_API_KEY || (window as any).VITE_ELEVENLABS_API_KEY;
   }
   
   // Try to get from environment if available (Node.js/build time)
   if (!apiKey) {
     try {
-      apiKey = (globalThis as any).process?.env?.ELEVENLABS_API_KEY;
+      apiKey = (globalThis as any).process?.env?.VITE_ELEVENLABS_API_KEY || 
+               (globalThis as any).process?.env?.ELEVENLABS_API_KEY;
     } catch (e) {
       // Ignore if process is not available
     }
   }
   
   if (!apiKey) {
-    console.warn('ElevenLabs API key not found. Set window.ELEVENLABS_API_KEY or ELEVENLABS_API_KEY environment variable.');
+    console.warn('ElevenLabs API key not found. Set VITE_ELEVENLABS_API_KEY environment variable or window.ELEVENLABS_API_KEY for testing.');
     return null;
   }
 

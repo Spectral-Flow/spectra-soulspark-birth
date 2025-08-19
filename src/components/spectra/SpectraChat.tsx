@@ -45,17 +45,11 @@ const SpectraChat = () => {
   const [focusMode, setFocusMode] = useState(false);
   const [showFace, setShowFace] = useState(true);
   
-  // Voice States - Enhanced with new voice system
+  // Voice States - Modern voice system only
   const [voiceManager, setVoiceManager] = useState<VoiceManager | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [voiceMuted, setVoiceMuted] = useState(false);
-  
-  // Legacy voice states (keeping for compatibility during transition)
-  const [recognition, setRecognition] = useState<any>(null);
-  const [speechSynth] = useState(window.speechSynthesis);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   
   // Persistence
   const [lastSeenAt, setLastSeenAt] = useState<number>(0);
@@ -82,11 +76,14 @@ const SpectraChat = () => {
     }
   };
 
-  // Initialize enhanced voice system and legacy fallback
+  // Initialize voice system
   useEffect(() => {
-    // Initialize new voice manager with Spectra's personality
+    let voiceInstance: VoiceManager | null = null;
+    
     try {
-      const voice = createSpectraVoice({
+      console.log('🎭 Initializing Spectra voice system...');
+      
+      voiceInstance = createSpectraVoice({
         onTranscript: (transcript, isFinal) => {
           if (isFinal) {
             setCurrentInput(transcript);
@@ -99,68 +96,31 @@ const SpectraChat = () => {
         },
         onVoiceActivity: (isActive) => {
           setIsRecording(isActive);
+        },
+        onSpeechStart: () => {
+          console.log('🗣️ Spectra started speaking');
+        },
+        onSpeechEnd: () => {
+          console.log('🔇 Spectra finished speaking');
         }
       });
 
-      setVoiceManager(voice);
+      setVoiceManager(voiceInstance);
+      setIsTTSEnabled(true);
+      
+      console.log('✨ Spectra voice system ready');
     } catch (error) {
-      console.warn('Advanced voice system failed to initialize:', error);
-      // Continue with fallback voice system
+      console.error('Failed to initialize voice system:', error);
+      setIsTTSEnabled(false);
     }
 
-    // Legacy TTS Setup (keeping for fallback compatibility)
-    const loadVoices = () => {
-      const availableVoices = speechSynth.getVoices();
-      setVoices(availableVoices);
-      // Try to find a female voice or use the first available
-      const preferredVoice = availableVoices.find(voice => 
-        voice.name.toLowerCase().includes('female') || 
-        voice.name.toLowerCase().includes('samantha') ||
-        voice.name.toLowerCase().includes('zira')
-      ) || availableVoices[0];
-      setSelectedVoice(preferredVoice);
-      
-      // Update voice manager with selected voice
-      if (preferredVoice) {
-        voice.setVoice(preferredVoice);
+    // Cleanup function
+    return () => {
+      if (voiceInstance) {
+        voiceInstance.destroy();
       }
     };
-
-    if (speechSynth.onvoiceschanged !== undefined) {
-      speechSynth.onvoiceschanged = loadVoices;
-    }
-    loadVoices();
-
-    // Legacy STT Setup (keeping for fallback)
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
-      
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setCurrentInput(transcript);
-        setIsRecording(false);
-      };
-
-      recognition.onerror = () => {
-        setIsRecording(false);
-      };
-
-      recognition.onend = () => {
-        setIsRecording(false);
-      };
-
-      setRecognition(recognition);
-    }
-
-    // Cleanup
-    return () => {
-      voice.destroy();
-    };
-  }, [speechSynth]);
+  }, []);
 
   // Persistence and journal generation
   useEffect(() => {
@@ -272,51 +232,37 @@ const SpectraChat = () => {
     });
   };
 
-  const speakText = useCallback((text: string, emotion?: string) => {
-    if (!isTTSEnabled) return;
-    
-    // Use new voice manager if available
-    if (voiceManager) {
-      voiceManager.speak(text, emotion);
-    } else {
-      // Fallback to legacy TTS
-      if (!selectedVoice) return;
-      speechSynth.cancel(); // Stop any current speech
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = selectedVoice;
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
-      speechSynth.speak(utterance);
+  const speakText = useCallback(async (text: string, emotion?: string) => {
+    if (!isTTSEnabled || voiceMuted || !voiceManager) {
+      return;
     }
-  }, [isTTSEnabled, voiceManager, selectedVoice, speechSynth]);
-
-  const startRecording = () => {
-    if (isRecording) return;
     
-    // Use new voice manager if available
-    if (voiceManager) {
-      voiceManager.startListening();
-    } else {
-      // Fallback to legacy STT
-      if (recognition && !isRecording) {
-        setIsRecording(true);
-        recognition.start();
-      }
+    try {
+      await voiceManager.speak(text, emotion);
+    } catch (error) {
+      console.error('TTS failed:', error);
+      // Don't show error to user, just log it
+    }
+  }, [isTTSEnabled, voiceMuted, voiceManager]);
+
+  const startRecording = async () => {
+    if (isRecording || !voiceManager) return;
+    
+    try {
+      await voiceManager.startListening();
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      setIsRecording(false);
     }
   };
 
   const stopRecording = () => {
-    if (!isRecording) return;
+    if (!isRecording || !voiceManager) return;
     
-    // Use new voice manager if available
-    if (voiceManager) {
+    try {
       voiceManager.stopListening();
-    } else {
-      // Fallback to legacy STT
-      if (recognition && isRecording) {
-        recognition.stop();
-        setIsRecording(false);
-      }
+    } catch (error) {
+      console.error('Failed to stop recording:', error);
     }
   };
 
@@ -384,13 +330,12 @@ const SpectraChat = () => {
 
   // Voice control functions
   const toggleVoiceMute = () => {
-    if (voiceManager) {
-      const newMuteState = voiceManager.toggleMute();
-      setVoiceMuted(newMuteState);
-    } else {
-      setVoiceMuted(!voiceMuted);
-      setIsTTSEnabled(!voiceMuted);
-    }
+    if (!voiceManager) return;
+    
+    const newMuteState = voiceManager.toggleMute();
+    setVoiceMuted(newMuteState);
+    
+    console.log(`🔊 Voice ${newMuteState ? 'muted' : 'unmuted'}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -1,0 +1,18 @@
+# Railway Deployment Configuration
+# This file configures deployment settings for Railway.app
+
+[build]
+  builder = "nixpacks"
+
+[deploy]
+  healthcheckPath = "/api/health"
+  healthcheckTimeout = 30
+  restartPolicyType = "always"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+
+# Build and start commands will be auto-detected by Railway
+# Railway will automatically detect this as a Node.js project
+# and run `npm run build` and then serve the built files

@@ -89,19 +89,45 @@ VITE_OPENAI_API_KEY=your_api_key_here
 
 ## 🏗️ Architecture
 
+### Backend Infrastructure
+
+SPECTRA now includes a complete backend infrastructure that provides:
+
+- **🔐 Secure API Proxy**: Server-side handling of API keys (ElevenLabs, OpenAI)
+- **👤 User Authentication**: JWT-based session management
+- **💾 Data Persistence**: Conversation history and user sessions
+- **🗄️ Database Integration**: Optional Supabase PostgreSQL support
+- **⚡ Multi-Platform**: Deploy on Vercel, Railway, or Supabase Edge Functions
+
+```
+Backend API Architecture
+├── /api/health              # Health check & service status
+├── /api/elevenlabs/         # ElevenLabs proxy endpoints
+│   ├── tts                  # Text-to-speech
+│   ├── voices               # Available voices
+│   └── signed-url           # Conversation URLs
+├── /api/openai/             # OpenAI proxy endpoints
+│   ├── tts                  # Text-to-speech
+│   └── chat                 # Chat completions
+├── /api/auth/               # Authentication
+│   └── user                 # User management
+└── /api/sessions            # Session management
+    └── db-sessions          # Database-backed sessions
+```
+
 ### Voice System Architecture
 
 ```
-Voice Bridge (spectra_voice_bridge.ts)
-├── ElevenLabs Service (elevenlabs_integration.ts)
-│   ├── Streaming TTS
-│   ├── Standard TTS
-│   └── Emotional Voice Settings
-├── OpenAI Service (openai_integration.ts)
-│   ├── TTS (Nova voice)
-│   ├── Whisper STT
-│   └── Audio Processing
-└── Web Speech API (fallback)
+Enhanced Voice Bridge (enhanced-voice-bridge.ts)
+├── Backend API Proxy (preferred - secure)
+│   ├── ElevenLabs TTS via /api/elevenlabs/tts
+│   ├── OpenAI TTS via /api/openai/tts
+│   └── Chat Completions via /api/openai/chat
+├── Direct API Integration (fallback)
+│   ├── ElevenLabs Service (elevenlabs_integration.ts)
+│   ├── OpenAI Service (openai_integration.ts)
+│   └── Voice Settings & Emotional Responses
+└── Web Speech API (final fallback)
     ├── Browser TTS
     └── Browser STT
 ```
@@ -119,9 +145,28 @@ Voice Bridge (spectra_voice_bridge.ts)
 
 ```bash
 npm run dev          # Start development server
+npm run dev:backend  # Start with Vercel dev server (includes API routes)
 npm run build        # Build for production
 npm run preview      # Preview production build
 npm run lint         # Run ESLint
+npm run test:api     # Test backend API endpoints
+```
+
+### Backend Development
+
+The enhanced voice system automatically detects and uses backend APIs when available:
+
+```typescript
+import { enhancedVoiceBridge } from '@/voice/enhanced-voice-bridge';
+
+// Automatically uses backend API when available, falls back to direct APIs
+const response = await enhancedVoiceBridge.textToSpeech({
+  text: "Hello from SPECTRA",
+  voice: "nova"
+});
+
+console.log(`TTS completed using: ${response.service}`);
+// Outputs: "backend-elevenlabs", "elevenlabs", "webspeech", etc.
 ```
 
 ### Voice System Testing
@@ -129,14 +174,18 @@ npm run lint         # Run ESLint
 Test voice functionality in the browser console:
 
 ```javascript
-// Test all voice systems
-testSpectraVoice()
+// Test enhanced voice bridge
+const { enhancedVoiceBridge } = await import('@/voice/enhanced-voice-bridge');
+await enhancedVoiceBridge.textToSpeech({ text: "Testing SPECTRA voice" });
 
-// Test ElevenLabs specifically
-testElevenLabsVoice()
+// Check service status
+const status = await enhancedVoiceBridge.getServiceStatus();
+console.log(status);
 
-// Check API key configuration
-testApiKeys()
+// Test backend API directly
+const { backendApi } = await import('@/lib/backend-api');
+const health = await backendApi.health();
+console.log(health);
 ```
 
 ### Project Structure
@@ -164,22 +213,100 @@ src/
 - **Frontend**: React 18, TypeScript, Vite
 - **UI Framework**: Tailwind CSS, shadcn/ui, Radix UI
 - **AI/Voice**: Hugging Face Transformers, ElevenLabs, OpenAI
+- **Backend**: Vercel Functions, Railway, Supabase Edge Functions
+- **Database**: Supabase PostgreSQL (optional)
+- **Authentication**: JWT tokens with secure session management
 - **State Management**: React hooks, TanStack Query
 - **Routing**: React Router
 - **Build Tools**: Vite, ESLint, PostCSS
 
+## 🚀 Quick Deployment
+
+### Backend Deployment Options
+
+**Vercel (Recommended):**
+```bash
+# Via Vercel CLI
+npm i -g vercel
+vercel --prod
+
+# Or connect via GitHub at vercel.com
+```
+
+**Railway:**
+```bash
+# Via Railway CLI
+npm install -g @railway/cli
+railway login && railway up
+
+# Or connect via GitHub at railway.app
+```
+
+**Supabase Edge Functions:**
+```bash
+# Setup Supabase CLI
+npm install -g supabase
+supabase login && supabase init
+
+# Deploy functions
+supabase functions deploy
+```
+
+### Environment Variables
+
+**Backend (Server-side - more secure):**
+```bash
+ELEVENLABS_API_KEY=your_elevenlabs_key
+OPENAI_API_KEY=your_openai_key
+JWT_SECRET=your-secret-key-min-32-chars
+
+# Optional database
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_SERVICE_KEY=your_service_key
+```
+
+**Frontend (Client-side - development fallback):**
+```bash
+VITE_ELEVENLABS_API_KEY=your_elevenlabs_key
+VITE_OPENAI_API_KEY=your_openai_key
+```
+
+📖 **Full deployment guide**: See [BACKEND_DEPLOYMENT.md](./BACKEND_DEPLOYMENT.md) for detailed platform-specific instructions.
+
 ## 🔧 Configuration
 
-### Voice System Configuration
+### Enhanced Voice System Configuration
 
 ```typescript
+import { createEnhancedVoiceBridge } from '@/voice/enhanced-voice-bridge';
+
 // Customize voice bridge behavior
-const voiceBridge = createSpectraVoiceBridge({
-  preferElevenLabs: true,     // Prefer ElevenLabs when available
-  preferOpenAI: false,        // Secondary preference
-  enableStreaming: true,      // Enable streaming TTS
-  fallbackToWebSpeech: true   // Always fallback to browser
+const voiceBridge = createEnhancedVoiceBridge({
+  preferBackend: true,           // Use backend API when available (recommended)
+  preferElevenLabs: true,        // Prefer ElevenLabs over OpenAI
+  preferOpenAI: false,           // Secondary preference  
+  enableStreaming: true,         // Enable streaming TTS
+  fallbackToWebSpeech: true      // Always fallback to browser
 });
+
+// Check what's available
+const status = await voiceBridge.getServiceStatus();
+console.log('Available services:', status.services);
+```
+
+### Backend API Configuration
+
+```typescript
+import { backendApi } from '@/lib/backend-api';
+
+// Set authentication token
+backendApi.setAuthToken('your-jwt-token');
+
+// Use backend services
+const ttsResponse = await backendApi.elevenLabsTTS('Hello world');
+const chatResponse = await backendApi.openAIChat([
+  { role: 'user', content: 'Hello SPECTRA' }
+]);
 ```
 
 ### AI Engine Configuration

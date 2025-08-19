@@ -86,7 +86,7 @@ export class OpenAIVoiceService {
       
       return new Promise((resolve, reject) => {
         source.onended = () => resolve();
-        source.onerror = () => reject(new Error('Audio playback failed'));
+        source.addEventListener('error', () => reject(new Error('Audio playback failed')));
         source.start();
       });
     } catch (error) {

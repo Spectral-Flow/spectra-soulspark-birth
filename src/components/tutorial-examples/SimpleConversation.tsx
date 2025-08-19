@@ -1,5 +1,3 @@
-'use client';
-
 import { useConversation } from '@elevenlabs/react';
 import { useCallback, useState } from 'react';
 
@@ -8,6 +6,8 @@ interface SimpleConversationProps {
 }
 
 export function SimpleConversation({ agentId = '' }: SimpleConversationProps) {
+  const [error, setError] = useState<string | null>(null);
+
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),
@@ -17,26 +17,42 @@ export function SimpleConversation({ agentId = '' }: SimpleConversationProps) {
 
   const startConversation = useCallback(async () => {
     try {
+      setError(null);
+      
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Start the conversation with your agent
+      // NOTE: Direct agent ID usage requires conversation tokens in @elevenlabs/react v0.5.0
+      // This tutorial example demonstrates the API structure but may not work without tokens
+      // For production use, please use the SignedUrl version with private agents
       await conversation.startSession({
         agentId: agentId || 'YOUR_AGENT_ID', // Replace with your agent ID
-        user_id: 'YOUR_CUSTOMER_USER_ID' // Optional field for tracking your end user IDs
       });
 
     } catch (error) {
       console.error('Failed to start conversation:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start conversation';
+      setError(errorMessage);
     }
   }, [conversation, agentId]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
+    setError(null);
   }, [conversation]);
 
   return (
     <div className="flex flex-col items-center gap-4">
+      {error && (
+        <div className="bg-red-50 border border-red-200 p-3 rounded-md text-sm text-red-700 max-w-md text-center">
+          <strong>Error:</strong> {error}
+          <br />
+          <span className="text-xs mt-1 block">
+            Note: Direct agent ID usage may require conversation tokens. Try the SignedUrl example instead.
+          </span>
+        </div>
+      )}
+      
       <div className="flex gap-2">
         <button
           onClick={startConversation}
@@ -56,7 +72,9 @@ export function SimpleConversation({ agentId = '' }: SimpleConversationProps) {
 
       <div className="flex flex-col items-center">
         <p>Status: {conversation.status}</p>
-        <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
+        {conversation.status === 'connected' && (
+          <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
+        )}
       </div>
     </div>
   );

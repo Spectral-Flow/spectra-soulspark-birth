@@ -101,6 +101,14 @@ const TutorialPage = () => {
                     <li>• Voice activity indication (speaking/listening)</li>
                   </ul>
                 </div>
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                  <h4 className="font-medium text-yellow-800 mb-2">⚠️ Important Note:</h4>
+                  <p className="text-sm text-yellow-700">
+                    Direct agent ID usage requires conversation tokens in @elevenlabs/react v0.5.0+. 
+                    This example demonstrates the API structure from the tutorial but may not work without proper tokens.
+                    For production use, please use the "Signed URL Authentication" example below.
+                  </p>
+                </div>
                 <SimpleConversation agentId={agentId} />
               </CardContent>
             </Card>
@@ -168,6 +176,14 @@ const TutorialPage = () => {
                   <li>• import.meta.env for environment variables</li>
                 </ul>
               </div>
+            </div>
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-medium text-blue-800 mb-2">📝 Version Compatibility Note:</h4>
+              <p className="text-sm text-blue-700">
+                The @elevenlabs/react package (v0.5.0+) requires conversation tokens for direct agent ID usage.
+                The original tutorial examples work with earlier versions or when tokens are properly configured.
+                This implementation prioritizes the signed URL approach for better compatibility and security.
+              </p>
             </div>
           </CardContent>
         </Card>

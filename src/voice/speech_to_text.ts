@@ -26,7 +26,7 @@ type STTErrorCallback = (error: Error) => void;
 export class SpeechToTextEngine {
   private config: STTConfig;
   private isListening: boolean = false;
-  private recognition: SpeechRecognition | null = null;
+  private recognition: any | null = null;
   private onResultCallback?: STTCallback;
   private onErrorCallback?: STTErrorCallback;
   private audioContext?: AudioContext;

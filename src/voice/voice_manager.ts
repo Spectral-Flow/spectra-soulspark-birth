@@ -6,7 +6,7 @@
 import { SpeechToTextEngine, createSpeechToText } from './speech_to_text';
 import { TextToSpeechEngine, createTextToSpeech } from './text_to_speech';
 
-interface VoiceConfig {
+export interface VoiceConfig {
   sttConfig?: any;
   ttsConfig?: any;
   muteMode?: boolean;
@@ -14,7 +14,7 @@ interface VoiceConfig {
   autoSpeak?: boolean;
 }
 
-interface VoiceEvents {
+export interface VoiceEvents {
   onTranscript?: (transcript: string, isFinal: boolean) => void;
   onSpeechStart?: () => void;
   onSpeechEnd?: () => void;

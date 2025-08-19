@@ -9,7 +9,7 @@ export function testSpectraVoice() {
   
   try {
     // Import voice system
-    import('./voice').then(({ createSpectraVoice }) => {
+    import('./index').then(({ createSpectraVoice }) => {
       const voice = createSpectraVoice({
         onTranscript: (transcript, isFinal) => {
           console.log(`📝 Transcript (${isFinal ? 'final' : 'interim'}):`, transcript);

@@ -38,7 +38,7 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
     },
     onError: (error) => {
       console.error('ElevenLabs Conversation Error:', error);
-      setError(error.message || 'An error occurred with the conversation');
+      setError(typeof error === 'string' ? error : 'An error occurred with the conversation');
       setIsConnecting(false);
     },
   });
@@ -72,11 +72,8 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
           signedUrl,
         });
       } else {
-        // Use agent ID directly for public agents
-        await conversation.startSession({
-          agentId: agentId,
-          // user_id: 'YOUR_CUSTOMER_USER_ID' // Optional field for tracking your end user IDs
-        });
+        // Use agent ID directly for public agents - requires conversation token for @elevenlabs/react
+        throw new Error('Public agent support requires conversation token. Please use private agent mode with signed URL.');
       }
 
     } catch (error) {

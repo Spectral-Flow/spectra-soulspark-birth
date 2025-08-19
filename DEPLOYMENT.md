@@ -4,21 +4,25 @@ This guide covers deploying SPECTRA to various platforms with proper configurati
 
 ## 🚀 Quick Deploy (Recommended)
 
-### Via Lovable Platform
+### Via Vercel Platform
 
 1. **Automatic Deployment**
+   - Connect your GitHub repository to Vercel
+   - Changes pushed to main branch auto-deploy
+   - Zero configuration needed for most React apps
+
+2. **Manual Deployment via Vercel**
    ```bash
-   # No manual steps needed!
-   # Changes pushed to main branch auto-deploy
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Login and deploy
+   vercel login
+   vercel
    ```
 
-2. **Manual Deployment via Lovable**
-   - Visit [Lovable Project](https://lovable.dev/projects/d65c0cd2-5774-48b2-b3f3-efacfc8e7fdb)
-   - Click **Share** → **Publish**
-   - Configure custom domain if needed
-
 3. **Environment Variables**
-   - Set in Lovable dashboard under Project Settings
+   - Set in Vercel dashboard under Project Settings
    - Required for voice services (see Environment Variables section)
 
 ## 🌍 Platform-Specific Deployments

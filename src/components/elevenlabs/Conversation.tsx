@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mic, MicOff, Phone, PhoneOff, Settings } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { createElevenLabsApiService } from './api';
 
 interface ConversationProps {
@@ -169,9 +171,16 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
             </div>
             
             {usePrivateAgent && (
-              <p className="text-xs text-muted-foreground">
-                Private agents require VITE_ELEVENLABS_API_KEY environment variable
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Private agents require VITE_ELEVENLABS_API_KEY environment variable
+                </p>
+                {!import.meta.env.VITE_ELEVENLABS_API_KEY && (
+                  <div className="p-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md">
+                    ⚠️ API key not configured. Private agent features will be unavailable.
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -214,7 +223,11 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
             variant="default"
             className="flex items-center gap-2"
           >
-            <Phone className="w-4 h-4" />
+            {isConnecting ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <Phone className="w-4 h-4" />
+            )}
             {isConnecting ? 'Connecting...' : 'Start Conversation'}
           </Button>
           
@@ -238,8 +251,21 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
           </div>
         )}
 
-        <div className="text-xs text-muted-foreground">
-          <p>Status: {conversation.status}</p>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p className="flex items-center gap-2">
+            <span>Status:</span>
+            <span className={cn(
+              "font-medium",
+              conversation.status === 'connected' && "text-green-600",
+              conversation.status === 'connecting' && "text-yellow-600",
+              conversation.status === 'disconnected' && "text-gray-600"
+            )}>
+              {conversation.status}
+            </span>
+            {(isConnecting || conversation.status === 'connecting') && (
+              <LoadingSpinner size="sm" />
+            )}
+          </p>
           {conversation.status === 'connected' && (
             <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
           )}

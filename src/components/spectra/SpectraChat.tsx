@@ -85,23 +85,28 @@ const SpectraChat = () => {
   // Initialize enhanced voice system and legacy fallback
   useEffect(() => {
     // Initialize new voice manager with Spectra's personality
-    const voice = createSpectraVoice({
-      onTranscript: (transcript, isFinal) => {
-        if (isFinal) {
-          setCurrentInput(transcript);
+    try {
+      const voice = createSpectraVoice({
+        onTranscript: (transcript, isFinal) => {
+          if (isFinal) {
+            setCurrentInput(transcript);
+            setIsRecording(false);
+          }
+        },
+        onError: (error) => {
+          console.error('Voice error:', error);
           setIsRecording(false);
+        },
+        onVoiceActivity: (isActive) => {
+          setIsRecording(isActive);
         }
-      },
-      onError: (error) => {
-        console.error('Voice error:', error);
-        setIsRecording(false);
-      },
-      onVoiceActivity: (isActive) => {
-        setIsRecording(isActive);
-      }
-    });
+      });
 
-    setVoiceManager(voice);
+      setVoiceManager(voice);
+    } catch (error) {
+      console.warn('Advanced voice system failed to initialize:', error);
+      // Continue with fallback voice system
+    }
 
     // Legacy TTS Setup (keeping for fallback compatibility)
     const loadVoices = () => {
@@ -344,10 +349,33 @@ const SpectraChat = () => {
 
       setMessages(prev => [...prev, spectraMessage]);
       updateEmotionalState(emotion.primary, emotion.intensity);
-      setIsTyping(false);
       
       // TTS for SPECTRA's response with emotion
-      speakText(response, emotion.primary);
+      try {
+        speakText(response, emotion.primary);
+      } catch (ttsError) {
+        console.warn('TTS failed:', ttsError);
+        // Continue without TTS
+      }
+    } catch (error) {
+      console.error('Message handling failed:', error);
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'spectra',
+        content: "I'm experiencing some difficulty processing that. Could you try rephrasing your message?",
+        timestamp: new Date(),
+        emotion: 'calm',
+        memoryImportance: 1
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      updateEmotionalState('calm', 0.3);
+    } finally {
+      setIsTyping(false);
+    }
+  };
     } catch (error) {
       console.error('Message handling error:', error);
       setIsTyping(false);

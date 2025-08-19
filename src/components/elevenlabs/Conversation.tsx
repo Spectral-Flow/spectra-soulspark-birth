@@ -1,5 +1,3 @@
-'use client';
-
 import { useConversation } from '@elevenlabs/react';
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mic, MicOff, Phone, PhoneOff, Settings } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { createElevenLabsApiService } from './api';
 
 interface ConversationProps {
@@ -19,7 +19,7 @@ interface ConversationProps {
 export function Conversation({ agentId: defaultAgentId = '', className }: ConversationProps) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [agentId, setAgentId] = useState(defaultAgentId);
+  const [agentId, setAgentId] = useState(defaultAgentId || import.meta.env.VITE_ELEVENLABS_AGENT_ID || '');
   const [usePrivateAgent, setUsePrivateAgent] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -171,26 +171,35 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
             </div>
             
             {usePrivateAgent && (
-              <p className="text-xs text-muted-foreground">
-                Private agents require VITE_ELEVENLABS_API_KEY environment variable
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Private agents require VITE_ELEVENLABS_API_KEY environment variable
+                </p>
+                {!import.meta.env.VITE_ELEVENLABS_API_KEY && (
+                  <div className="p-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md">
+                    ⚠️ API key not configured. Private agent features will be unavailable.
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
 
         {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+          <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
             {error}
           </div>
         )}
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant={getStatusBadgeVariant()}>
+            <Badge variant={getStatusBadgeVariant()} 
+                   className={isConnecting ? 'animate-pulse' : ''}>
               {getStatusText()}
             </Badge>
             {conversation.status === 'connected' && (
-              <Badge variant={conversation.isSpeaking ? 'default' : 'secondary'}>
+              <Badge variant={conversation.isSpeaking ? 'default' : 'secondary'}
+                     className={conversation.isSpeaking ? 'animate-pulse' : ''}>
                 {conversation.isSpeaking ? (
                   <>
                     <Mic className="w-3 h-3 mr-1" />
@@ -214,7 +223,11 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
             variant="default"
             className="flex items-center gap-2"
           >
-            <Phone className="w-4 h-4" />
+            {isConnecting ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <Phone className="w-4 h-4" />
+            )}
             {isConnecting ? 'Connecting...' : 'Start Conversation'}
           </Button>
           
@@ -229,8 +242,30 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground">
-          <p>Status: {conversation.status}</p>
+        {!agentId.trim() && !showSettings && (
+          <div className="p-3 text-sm text-muted-foreground bg-muted/30 border border-muted rounded-md">
+            <p className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Click the settings button above to configure your ElevenLabs Agent ID
+            </p>
+          </div>
+        )}
+
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p className="flex items-center gap-2">
+            <span>Status:</span>
+            <span className={cn(
+              "font-medium",
+              conversation.status === 'connected' && "text-green-600",
+              conversation.status === 'connecting' && "text-yellow-600",
+              conversation.status === 'disconnected' && "text-gray-600"
+            )}>
+              {conversation.status}
+            </span>
+            {(isConnecting || conversation.status === 'connecting') && (
+              <LoadingSpinner size="sm" />
+            )}
+          </p>
           {conversation.status === 'connected' && (
             <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
           )}

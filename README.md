@@ -192,11 +192,29 @@ const voiceBridge = createSpectraVoiceBridge({
 
 ## 🚀 Deployment
 
-### Via Lovable (Recommended)
+### Via Vercel (Recommended)
 
-1. Visit [Lovable Project](https://lovable.dev/projects/d65c0cd2-5774-48b2-b3f3-efacfc8e7fdb)
-2. Click Share → Publish
-3. Configure custom domain if needed
+1. **Setup Vercel Project**
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Login to Vercel
+   vercel login
+   
+   # Deploy
+   vercel
+   ```
+
+2. **Environment Variables**
+   In Vercel dashboard, add these environment variables:
+   ```bash
+   VITE_ELEVENLABS_API_KEY=your_api_key_here
+   VITE_OPENAI_API_KEY=your_api_key_here
+   ```
+
+3. **Custom Domain** (Optional)
+   Configure custom domain in Vercel dashboard under Project Settings.
 
 ### Manual Deployment
 
@@ -206,6 +224,12 @@ npm run build
 
 # Deploy the dist/ folder to your hosting provider
 ```
+
+### Alternative Platforms
+
+- **Netlify**: Drag and drop the `dist/` folder
+- **Surge**: `npm install -g surge && surge dist/`
+- **GitHub Pages**: Use the built-in GitHub Actions workflow
 
 ## 🔐 Security & Privacy
 

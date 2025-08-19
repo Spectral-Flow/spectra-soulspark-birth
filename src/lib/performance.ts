@@ -52,7 +52,7 @@ class SpectraPerformanceMonitor {
     }
 
     const duration = endTime - startTime;
-    const metadata = this.activeTimers.get(`${name}_metadata`) as Record<string, any>;
+    const metadata = (this.activeTimers.get(`${name}_metadata`) || {}) as Record<string, any>;
 
     this.recordMetric({
       name,

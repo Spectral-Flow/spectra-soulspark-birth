@@ -408,7 +408,7 @@ export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>)
   let apiKey: string | undefined;
   
   // Try to get from Vite environment variables first
-  if (typeof import !== 'undefined' && import.meta?.env) {
+  if (typeof window !== 'undefined' && import.meta?.env) {
     apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
   }
   

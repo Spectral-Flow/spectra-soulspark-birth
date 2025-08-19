@@ -79,18 +79,14 @@ export function testApiKeys() {
   console.log('🔑 Testing API Key Configuration...');
   
   // Check for ElevenLabs API key (prioritize VITE_ prefixed env vars)
-  const elevenLabsKey = (typeof import !== 'undefined' && import.meta?.env?.VITE_ELEVENLABS_API_KEY) ||
+  const elevenLabsKey = (typeof window !== 'undefined' && import.meta?.env?.VITE_ELEVENLABS_API_KEY) ||
                         (typeof window !== 'undefined' && (window as any).ELEVENLABS_API_KEY) || 
-                        (typeof window !== 'undefined' && (window as any).VITE_ELEVENLABS_API_KEY) ||
-                        (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_ELEVENLABS_API_KEY) ||
-                        (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.ELEVENLABS_API_KEY);
+                        (typeof window !== 'undefined' && (window as any).VITE_ELEVENLABS_API_KEY);
   
   // Check for OpenAI API key (prioritize VITE_ prefixed env vars)
-  const openAiKey = (typeof import !== 'undefined' && import.meta?.env?.VITE_OPENAI_API_KEY) ||
+  const openAiKey = (typeof window !== 'undefined' && import.meta?.env?.VITE_OPENAI_API_KEY) ||
                     (typeof window !== 'undefined' && (window as any).OPENAI_API_KEY) || 
-                    (typeof window !== 'undefined' && (window as any).VITE_OPENAI_API_KEY) ||
-                    (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_OPENAI_API_KEY) ||
-                    (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.OPENAI_API_KEY);
+                    (typeof window !== 'undefined' && (window as any).VITE_OPENAI_API_KEY);
   
   console.log('🎵 ElevenLabs API Key:', elevenLabsKey ? '✅ Set' : '❌ Not found');
   console.log('🤖 OpenAI API Key:', openAiKey ? '✅ Set' : '❌ Not found');

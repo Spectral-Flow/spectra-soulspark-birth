@@ -119,33 +119,8 @@ setVoiceManager(voiceInstance);
 
       // Fallback TTS Setup
 
-      const loadVoices = () => {
-
-        const availableVoices = speechSynth.getVoices();
-
-        setVoices(availableVoices);
-
-        const preferredVoice = availableVoices.find(voice => 
-
-          voice.name.toLowerCase().includes('female') || 
-
-          voice.name.toLowerCase().includes('samantha') ||
-
-          voice.name.toLowerCase().includes('zira')
-
-        ) || availableVoices[0];
-
-        setSelectedVoice(preferredVoice);
-
-      };
-
-      if (speechSynth.onvoiceschanged !== undefined) {
-
-        speechSynth.onvoiceschanged = loadVoices;
-
-      }
-
-      loadVoices();
+        // Fallback TTS available but not needed for current implementation
+        console.log('Fallback TTS could be configured here');
 
       // Fallback STT Setup
 
@@ -177,7 +152,7 @@ setVoiceManager(voiceInstance);
 
         recognition.onend = () => setIsRecording(false);
 
-        setRecognition(recognition);
+        // Recognition is available but managed by voiceManager
 
       }
 
@@ -197,9 +172,6 @@ setVoiceManager(voiceInstance);
 
         voiceManager.destroy();
 
-      }
-
-    };
       }
     };
   }, []);
@@ -635,7 +607,7 @@ setVoiceManager(voiceInstance);
             >
               {isTTSEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </Button>
-            {recognition && (
+            {voiceManager && (
               <Button
                 variant={isRecording ? "destructive" : "outline"}
                 size="icon"
@@ -734,7 +706,7 @@ setVoiceManager(voiceInstance);
           >
             <Send className="w-4 h-4" />
           </CosmicButton>
-          {recognition && (
+          {voiceManager && (
             <Button
               variant={isRecording ? "destructive" : "outline"}
               size="icon"

@@ -209,10 +209,9 @@ export class TextToSpeechEngine {
     }
 
     try {
-      const voiceSettings = this.elevenLabsService.getSpectraVoiceSettings(emotion);
-      const audioBuffer = await this.elevenLabsService.generateSpeech(text, voiceSettings);
-      await this.elevenLabsService.playAudio(audioBuffer);
-      console.log('✨ Spectra spoke using ElevenLabs TTS');
+      // Use the new speak method with streaming support and automatic fallback
+      await this.elevenLabsService.speak(text, emotion, true);
+      console.log('✨ Spectra spoke using ElevenLabs TTS with streaming');
     } catch (error) {
       console.error('ElevenLabs TTS error:', error);
       throw error;

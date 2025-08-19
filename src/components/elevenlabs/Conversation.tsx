@@ -22,26 +22,62 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
   const [agentId, setAgentId] = useState(defaultAgentId || import.meta.env.VITE_ELEVENLABS_AGENT_ID || '');
   const [usePrivateAgent, setUsePrivateAgent] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastConnectionAttempt, setLastConnectionAttempt] = useState<number>(0);
+
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 seconds
 
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to ElevenLabs Conversational AI');
       setIsConnecting(false);
       setError(null);
+      setRetryCount(0); // Reset retry count on successful connection
     },
     onDisconnect: () => {
       console.log('Disconnected from ElevenLabs Conversational AI');
       setIsConnecting(false);
     },
     onMessage: (message) => {
-      console.log('Message:', message);
+      console.log('ElevenLabs Message:', message);
+      // TODO: Integrate with Spectra's conversation history
     },
     onError: (error) => {
       console.error('ElevenLabs Conversation Error:', error);
-      setError(typeof error === 'string' ? error : 'An error occurred with the conversation');
+const errorMessage =
+  typeof error === 'string'
+    ? error
+    : error?.message || 'An error occurred with the conversation';
+setError(errorMessage);
       setIsConnecting(false);
+      
+      // Implement automatic retry for certain types of errors
+      if (retryCount < maxRetries && shouldRetry(error)) {
+        setTimeout(() => {
+          console.log(`Retrying connection (attempt ${retryCount + 1}/${maxRetries})`);
+          setRetryCount(prev => prev + 1);
+          startConversation();
+        }, retryDelay);
+      }
     },
   });
+
+  const shouldRetry = (error: any): boolean => {
+    // Retry on network errors or temporary server issues
+    const retryableErrors = [
+      'network error',
+      'connection failed',
+      'timeout',
+      'temporary unavailable',
+      'rate limit'
+    ];
+    
+    const errorMessage = (error.message || '').toLowerCase();
+    return retryableErrors.some(retryableError => 
+      errorMessage.includes(retryableError)
+    );
+  };
 
   const getSignedUrl = async (agentId: string): Promise<string> => {
     const apiService = createElevenLabsApiService();
@@ -55,6 +91,14 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
 
   const startConversation = useCallback(async () => {
     try {
+      // Prevent rapid retry attempts
+      const now = Date.now();
+      if (now - lastConnectionAttempt < retryDelay && retryCount > 0) {
+        console.log('Preventing rapid retry attempt');
+        return;
+      }
+      
+      setLastConnectionAttempt(now);
       setIsConnecting(true);
       setError(null);
       
@@ -63,7 +107,11 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
       }
 
       // Request microphone permission
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (micError) {
+        throw new Error('Microphone permission required for voice conversation');
+      }
 
       if (usePrivateAgent) {
         // Use signed URL for private agents
@@ -78,10 +126,16 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
 
     } catch (error) {
       console.error('Failed to start conversation:', error);
-      setError(error instanceof Error ? error.message : 'Failed to start conversation');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start conversation';
+      setError(errorMessage);
       setIsConnecting(false);
+      
+      // Don't auto-retry user input errors
+      if (errorMessage.includes('Agent ID') || errorMessage.includes('Microphone')) {
+        setRetryCount(maxRetries); // Prevent auto-retry
+      }
     }
-  }, [conversation, agentId, usePrivateAgent]);
+  }, [conversation, agentId, usePrivateAgent, retryCount, lastConnectionAttempt]);
 
   const stopConversation = useCallback(async () => {
     try {
@@ -183,8 +237,15 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
         )}
 
         {error && (
-          <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
-            {error}
+          <div className="space-y-2">
+            <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+              {error}
+            </div>
+            {retryCount > 0 && retryCount < maxRetries && (
+              <div className="p-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md">
+                🔄 Retrying connection... (attempt {retryCount}/{maxRetries})
+              </div>
+            )}
           </div>
         )}
         

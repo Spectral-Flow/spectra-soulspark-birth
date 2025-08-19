@@ -39,27 +39,67 @@ class SpectraAIEngine {
     try {
       console.log('🌟 Initializing SPECTRA AI Engine...');
       
-      // Initialize conversation model (Mistral/OpenHermes alternative)
-      this.conversationPipeline = await pipeline(
-        'text-generation',
-        'Xenova/LaMini-Flan-T5-783M', // Lightweight but capable
-        { device: this.config.device }
-      );
+      // Detect optimal device for transformers
+      const device = await this.detectOptimalDevice();
+      this.config.device = device;
+      
+      console.log(`🔧 Using device: ${device}`);
+      
+      // Initialize conversation model (Lightweight alternative)
+      try {
+        this.conversationPipeline = await pipeline(
+          'text-generation',
+          'Xenova/LaMini-Flan-T5-783M', // Lightweight but capable
+          { 
+            device: this.config.device,
+            progress_callback: (progress: any) => {
+              if (progress.status === 'progress') {
+                console.log(`📦 Loading AI model: ${Math.round(progress.progress * 100)}%`);
+              }
+            }
+          }
+        );
+      } catch (modelError) {
+        console.warn('Failed to load conversation model, using fallback responses:', modelError);
+        this.conversationPipeline = null;
+      }
 
-      // Initialize emotion detection
-      this.emotionPipeline = await pipeline(
-        'text-classification',
-        'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
-        { device: this.config.device }
-      );
+      // Initialize emotion detection (lighter model)
+      try {
+        this.emotionPipeline = await pipeline(
+          'text-classification',
+          'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
+          { device: this.config.device }
+        );
+      } catch (emotionError) {
+        console.warn('Failed to load emotion model, using basic emotion detection:', emotionError);
+        this.emotionPipeline = null;
+      }
 
       this.isInitialized = true;
       console.log('✨ SPECTRA AI Engine initialized successfully');
     } catch (error) {
       console.error('Failed to initialize AI engine:', error);
-      // Fallback to simulated responses
+      // Continue with fallback responses only
       this.isInitialized = false;
     }
+  }
+
+  private async detectOptimalDevice(): Promise<'webgpu' | 'cpu'> {
+    try {
+      // Check if WebGPU is available and supported
+      if ('gpu' in navigator) {
+        const adapter = await (navigator as any).gpu.requestAdapter();
+        if (adapter) {
+          console.log('🚀 WebGPU detected and available');
+          return 'webgpu';
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ WebGPU not available, falling back to CPU');
+    }
+    
+    return 'cpu';
   }
 
   async generateResponse(
@@ -70,6 +110,13 @@ class SpectraAIEngine {
     const startTime = Date.now();
 
     try {
+      // Lazy initialization - only initialize when first used
+      if (!this.isInitialized) {
+        console.log('🎯 Initializing AI engine on first use...');
+        await this.initialize();
+      }
+      
+      // If still not initialized or no pipeline, use fallback
       if (!this.isInitialized || !this.conversationPipeline) {
         return this.generateFallbackResponse(userMessage, startTime);
       }
@@ -250,5 +297,5 @@ class SpectraAIEngine {
 
 export const spectraAI = new SpectraAIEngine();
 
-// Initialize on import
-spectraAI.initialize().catch(console.error);
+// Initialize lazily - only when first used
+// This prevents blocking the app startup with heavy AI model loading

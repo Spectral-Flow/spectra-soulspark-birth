@@ -3,9 +3,8 @@
  * Unified interface for voice input/output with graceful fallbacks
  */
 
-export { createSpectraVoice, VoiceManager } from './voice_manager';
+export { createSpectraVoice, VoiceManager, createVoiceManager } from './voice_manager';
 export { TextToSpeechEngine, createTextToSpeech } from './text_to_speech';
-export { VoiceManager, createVoiceManager, createSpectraVoice } from './voice_manager';
 
 export { OpenAIVoiceService, createOpenAIVoiceService, createOpenAIVoiceFromEnv } from './openai_integration';
 

@@ -45,11 +45,10 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
     },
     onError: (error) => {
       console.error('ElevenLabs Conversation Error:', error);
-const errorMessage =
-  typeof error === 'string'
-    ? error
-    : error?.message || 'An error occurred with the conversation';
-setError(errorMessage);
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : (error as any)?.message || 'An error occurred with the conversation';
+      setError(errorMessage);
       setIsConnecting(false);
       
       // Implement automatic retry for certain types of errors

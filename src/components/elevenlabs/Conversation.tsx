@@ -1,5 +1,3 @@
-'use client';
-
 import { useConversation } from '@elevenlabs/react';
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +17,7 @@ interface ConversationProps {
 export function Conversation({ agentId: defaultAgentId = '', className }: ConversationProps) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [agentId, setAgentId] = useState(defaultAgentId);
+  const [agentId, setAgentId] = useState(defaultAgentId || import.meta.env.VITE_ELEVENLABS_AGENT_ID || '');
   const [usePrivateAgent, setUsePrivateAgent] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -179,18 +177,20 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
         )}
 
         {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+          <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
             {error}
           </div>
         )}
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant={getStatusBadgeVariant()}>
+            <Badge variant={getStatusBadgeVariant()} 
+                   className={isConnecting ? 'animate-pulse' : ''}>
               {getStatusText()}
             </Badge>
             {conversation.status === 'connected' && (
-              <Badge variant={conversation.isSpeaking ? 'default' : 'secondary'}>
+              <Badge variant={conversation.isSpeaking ? 'default' : 'secondary'}
+                     className={conversation.isSpeaking ? 'animate-pulse' : ''}>
                 {conversation.isSpeaking ? (
                   <>
                     <Mic className="w-3 h-3 mr-1" />
@@ -228,6 +228,15 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
             Stop Conversation
           </Button>
         </div>
+
+        {!agentId.trim() && !showSettings && (
+          <div className="p-3 text-sm text-muted-foreground bg-muted/30 border border-muted rounded-md">
+            <p className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Click the settings button above to configure your ElevenLabs Agent ID
+            </p>
+          </div>
+        )}
 
         <div className="text-xs text-muted-foreground">
           <p>Status: {conversation.status}</p>

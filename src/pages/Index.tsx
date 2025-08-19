@@ -140,10 +140,23 @@ const Index = () => {
           <TabsContent value="elevenlabs" className="mt-6">
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">ElevenLabs Conversational AI</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  ElevenLabs Conversational AI
+                </h2>
+                <p className="text-muted-foreground mb-4">
                   Experience real-time voice conversations with AI agents powered by ElevenLabs
                 </p>
+                <div className="flex justify-center gap-2">
+                  <Badge variant="outline" className="bg-primary/10">
+                    🎙️ Real-time Voice
+                  </Badge>
+                  <Badge variant="outline" className="bg-accent/10">
+                    🤖 AI Agents
+                  </Badge>
+                  <Badge variant="outline" className="bg-secondary/10">
+                    ⚡ Low Latency
+                  </Badge>
+                </div>
               </div>
               <Conversation className="border-primary/20 bg-card/30 backdrop-blur-sm" />
             </div>

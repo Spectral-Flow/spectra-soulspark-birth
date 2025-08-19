@@ -130,6 +130,39 @@ export class BackendApiClient {
     });
   }
 
+  // Memory Management API
+  async addMemory(data: {
+    userMessage: string;
+    aiResponse: string;
+    emotion: string;
+    importance: number;
+    sessionId?: string;
+    topics?: string[];
+  }) {
+    return this.makeRequest('/memory/add', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getRecentMemories(sessionId?: string, limit?: number) {
+    const params = new URLSearchParams();
+    if (sessionId) params.append('sessionId', sessionId);
+    if (limit) params.append('limit', limit.toString());
+    
+    return this.makeRequest(`/memory/recent?${params}`);
+  }
+
+  async getRelevantMemories(query: string, sessionId?: string, limit?: number) {
+    const params = new URLSearchParams();
+    params.append('query', query);
+    if (sessionId) params.append('sessionId', sessionId);
+    if (limit) params.append('limit', limit.toString());
+    params.append('contextual', 'true');
+    
+    return this.makeRequest(`/memory/relevant?${params}`);
+  }
+
   // Session Management
   async createSession(userId?: string, metadata?: any) {
     return this.makeRequest('/sessions', {

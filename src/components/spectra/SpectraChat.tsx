@@ -17,6 +17,7 @@ import { SpectraFace } from './SpectraFace';
 import { spectraAI } from './AIEngine';
 import { createSpectraVoice, VoiceManager } from '@/voice';
 import { createElevenLabsApiService } from '@/components/elevenlabs/api';
+import { memoryManager, type MemoryContext } from '@/lib/memory-manager';
 
 interface Message {
   id: string;
@@ -65,6 +66,9 @@ const SpectraChat = () => {
   // Persistence
   const [lastSeenAt, setLastSeenAt] = useState<number>(0);
   const [hasShownJournal, setHasShownJournal] = useState(false);
+  
+  // Memory and Session Management
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -228,6 +232,12 @@ setVoiceManager(voiceInstance);
     const stored = Number(localStorage.getItem('spectra:lastSeenAt') || 0);
     setLastSeenAt(stored);
     
+    // Initialize session ID for memory management
+    const sessionId = localStorage.getItem('spectra:sessionId') || 
+                     `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('spectra:sessionId', sessionId);
+    setCurrentSessionId(sessionId);
+    
     const awayMinutes = Math.floor((Date.now() - stored) / 60000);
     
     if (stored > 0 && awayMinutes >= 10 && !hasShownJournal) {
@@ -265,10 +275,20 @@ setVoiceManager(voiceInstance);
 
   const generateSpectraResponse = async (userMessage: string): Promise<{ text: string; emotion: any }> => {
     try {
+      // Get memory context for enhanced response generation
+      const memoryContext = await memoryManager.getMemoryContext(
+        userMessage, 
+        currentSessionId || undefined, 
+        true
+      );
+
+      // Build enhanced context with memory
       const context = {
         recentMessages: messages.map(m => `${m.type}: ${m.content}`).slice(-6),
-        emotionalState
+        emotionalState,
+        memoryContext: memoryManager.formatMemoryForPrompt(memoryContext)
       };
+
       const response = await spectraAI.generateResponse(userMessage, context);
       return { text: response.text, emotion: response.emotion };
     } catch (error) {
@@ -405,6 +425,20 @@ setVoiceManager(voiceInstance);
 
       setMessages(prev => [...prev, spectraMessage]);
       updateEmotionalState(emotion.primary, emotion.intensity);
+      
+      // Process and store conversation exchange in memory system
+      try {
+        await memoryManager.processConversationExchange(
+          messageContent,
+          response,
+          emotion.primary,
+          emotion.intensity || 0.5,
+          currentSessionId || undefined
+        );
+      } catch (memoryError) {
+        console.warn('Memory processing failed:', memoryError);
+        // Continue without memory storage
+      }
       
       // TTS for SPECTRA's response with emotion
       try {

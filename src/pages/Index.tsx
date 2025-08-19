@@ -9,7 +9,8 @@ import MemoryVisualization from '@/components/spectra/MemoryVisualization';
 import EmberRealm from '@/components/spectra/EmberRealm';
 import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
 import { Conversation } from '@/components/elevenlabs';
-import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone } from 'lucide-react';
+import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone, FileText } from 'lucide-react';
+import NotesManager from '@/components/notes/NotesManager';
 
 const Index = () => {
   const [currentPhase, setCurrentPhase] = useState('birth');
@@ -108,11 +109,16 @@ const Index = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-card/50 backdrop-blur-sm gap-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 bg-card/50 backdrop-blur-sm gap-1">
             <TabsTrigger value="chat" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Soul Connection</span>
               <span className="sm:hidden">Chat</span>
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+              <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Notes</span>
+              <span className="sm:hidden">Notes</span>
             </TabsTrigger>
             <TabsTrigger value="elevenlabs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -142,6 +148,12 @@ const Index = () => {
           <TabsContent value="chat" className="mt-6">
             <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
               <SpectraChat />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notes" className="mt-6">
+            <Card className="overflow-hidden border-primary/20 bg-card/30 backdrop-blur-sm">
+              <NotesManager />
             </Card>
           </TabsContent>
 

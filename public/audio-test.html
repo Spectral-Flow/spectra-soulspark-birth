@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectra Audio Processor Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #444;
+        }
+        .status {
+            background: #3a3a3a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 1rem;
+        }
+        button:hover {
+            background: #5855eb;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #1e40af;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .success {
+            background: #059669;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .error {
+            background: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .audio-level {
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .audio-level-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Spectra Audio Processor Test</h1>
+        
+        <div class="info">
+            <h3>Audio Support Detection</h3>
+            <div id="supportInfo">Checking browser support...</div>
+        </div>
+
+        <div class="status">
+            <div><strong>Status:</strong> <span id="status">Ready</span></div>
+            <div><strong>Processing Method:</strong> <span id="method">Not initialized</span></div>
+            <div><strong>Sample Rate:</strong> <span id="sampleRate">Unknown</span></div>
+            <div><strong>Recording:</strong> <span id="recording">No</span></div>
+        </div>
+
+        <div>
+            <button id="initBtn">Initialize Audio Processor</button>
+            <button id="startBtn" disabled>Start Recording</button>
+            <button id="stopBtn" disabled>Stop Recording</button>
+            <button id="cleanupBtn" disabled>Cleanup</button>
+        </div>
+
+        <div class="audio-level">
+            <div id="audioLevelBar" class="audio-level-bar"></div>
+        </div>
+
+        <div id="log" class="status" style="max-height: 300px; overflow-y: auto;">
+            <h4>Log:</h4>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SpectraAudioProcessor, getBrowserAudioSupport } from '/dist/assets/voice-DHKaf0X3.js';
+
+        let audioProcessor = null;
+
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const methodEl = document.getElementById('method');
+        const sampleRateEl = document.getElementById('sampleRate');
+        const recordingEl = document.getElementById('recording');
+        const supportInfoEl = document.getElementById('supportInfo');
+        const audioLevelBarEl = document.getElementById('audioLevelBar');
+        const logEl = document.getElementById('log');
+
+        const initBtn = document.getElementById('initBtn');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const cleanupBtn = document.getElementById('cleanupBtn');
+
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${time}] ${message}`;
+            if (type === 'error') logEntry.style.color = '#ff6b6b';
+            if (type === 'success') logEntry.style.color = '#51cf66';
+            if (type === 'warn') logEntry.style.color = '#ffd43b';
+            logEl.appendChild(logEntry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function updateStatus() {
+            if (audioProcessor) {
+                methodEl.textContent = audioProcessor.getProcessingMethod();
+                recordingEl.textContent = audioProcessor.getIsRecording() ? 'Yes' : 'No';
+                sampleRateEl.textContent = audioProcessor.getSampleRate() + ' Hz';
+            }
+        }
+
+        function updateAudioLevel(level) {
+            const percentage = Math.min(100, level * 100);
+            audioLevelBarEl.style.width = percentage + '%';
+        }
+
+        // Check browser support
+        function checkSupport() {
+            const support = getBrowserAudioSupport();
+            let html = '<ul>';
+            html += `<li>getUserMedia: ${support.getUserMedia ? '✅' : '❌'}</li>`;
+            html += `<li>AudioContext: ${support.audioContext ? '✅' : '❌'}</li>`;
+            html += `<li>AudioWorklet: ${support.audioWorklet ? '✅' : '❌'}</li>`;
+            html += `<li>ScriptProcessor: ${support.scriptProcessor ? '✅' : '❌'}</li>`;
+            html += '</ul>';
+            supportInfoEl.innerHTML = html;
+
+            if (support.audioWorklet) {
+                log('🎉 AudioWorklet is supported!', 'success');
+            } else if (support.scriptProcessor) {
+                log('⚠️ AudioWorklet not supported, will use ScriptProcessorNode fallback', 'warn');
+            } else {
+                log('❌ No audio processing support detected', 'error');
+            }
+        }
+
+        // Initialize audio processor
+        async function initialize() {
+            try {
+                statusEl.textContent = 'Initializing...';
+                log('🔧 Initializing audio processor...');
+
+                audioProcessor = new SpectraAudioProcessor({
+                    bufferSize: 4096,
+                    onAudioData: (audioData) => {
+                        // Calculate RMS level for visualization
+                        let sum = 0;
+                        for (let i = 0; i < audioData.length; i++) {
+                            sum += audioData[i] * audioData[i];
+                        }
+                        const rms = Math.sqrt(sum / audioData.length);
+                        updateAudioLevel(rms * 10); // Scale for visibility
+                    },
+                    onError: (error) => {
+                        log(`❌ Audio error: ${error.message}`, 'error');
+                        statusEl.textContent = 'Error';
+                    }
+                });
+
+                await audioProcessor.initialize();
+
+                statusEl.textContent = 'Initialized';
+                log('✅ Audio processor initialized successfully!', 'success');
+                updateStatus();
+
+                initBtn.disabled = true;
+                startBtn.disabled = false;
+                cleanupBtn.disabled = false;
+
+            } catch (error) {
+                log(`❌ Initialization failed: ${error.message}`, 'error');
+                statusEl.textContent = 'Failed';
+            }
+        }
+
+        // Start recording
+        async function startRecording() {
+            try {
+                log('🎤 Starting recording...');
+                await audioProcessor.startRecording();
+                log('✅ Recording started!', 'success');
+                updateStatus();
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } catch (error) {
+                log(`❌ Start recording failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Stop recording
+        function stopRecording() {
+            try {
+                log('⏹️ Stopping recording...');
+                audioProcessor.stopRecording();
+                log('✅ Recording stopped!', 'success');
+                updateStatus();
+                updateAudioLevel(0);
+
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            } catch (error) {
+                log(`❌ Stop recording failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Cleanup
+        function cleanup() {
+            try {
+                log('🧹 Cleaning up...');
+                audioProcessor.cleanup();
+                audioProcessor = null;
+                log('✅ Cleanup complete!', 'success');
+                
+                statusEl.textContent = 'Ready';
+                methodEl.textContent = 'Not initialized';
+                recordingEl.textContent = 'No';
+                sampleRateEl.textContent = 'Unknown';
+                updateAudioLevel(0);
+
+                initBtn.disabled = false;
+                startBtn.disabled = true;
+                stopBtn.disabled = true;
+                cleanupBtn.disabled = true;
+            } catch (error) {
+                log(`❌ Cleanup failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Event listeners
+        initBtn.addEventListener('click', initialize);
+        startBtn.addEventListener('click', startRecording);
+        stopBtn.addEventListener('click', stopRecording);
+        cleanupBtn.addEventListener('click', cleanup);
+
+        // Initialize
+        checkSupport();
+        log('🎭 Spectra Audio Processor Test loaded');
+    </script>
+</body>
+</html>

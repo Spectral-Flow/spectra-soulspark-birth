@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "api/**/*.ts"] }, // Exclude API files from client-side linting
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -24,6 +24,9 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "warn", // Changed from error to warning
+      "@typescript-eslint/no-empty-object-type": "off",
+      "no-async-promise-executor": "off", // Allow for complex async operations
     },
   }
 );

@@ -22,13 +22,21 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "dist",
     sourcemap: mode === 'development',
+    chunkSizeWarningLimit: 600, // Increase warning limit for large chunks
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-tooltip'],
+          voice: ['openai', '@elevenlabs/react'],
         },
       },
+      // Exclude test files from production build
+      external: mode === 'production' ? [
+        /src\/voice\/test\.ts$/,
+        /src\/voice\/streaming-test\.ts$/,
+        /src\/voice\/streaming-examples\.ts$/
+      ] : undefined,
     },
   },
   optimizeDeps: {

@@ -1,4 +1,18 @@
-import { pipeline } from '@huggingface/transformers';
+// Dynamic import for optional transformers dependency
+let transformers: any = null;
+
+// Try to import transformers, fallback if not available
+async function getTransformers() {
+  if (transformers) return transformers;
+  
+  try {
+    transformers = await import('@huggingface/transformers');
+    return transformers;
+  } catch (error) {
+    console.warn('Transformers not available, using fallback AI engine');
+    return null;
+  }
+}
 
 interface AIModelConfig {
   conversationModel: string;
@@ -47,18 +61,23 @@ class SpectraAIEngine {
       
       // Initialize conversation model (Lightweight alternative)
       try {
-        this.conversationPipeline = await pipeline(
-          'text-generation',
-          'Xenova/LaMini-Flan-T5-783M', // Lightweight but capable
-          { 
-            device: this.config.device,
-            progress_callback: (progress: any) => {
-              if (progress.status === 'progress') {
-                console.log(`📦 Loading AI model: ${Math.round(progress.progress * 100)}%`);
+        const transformers = await getTransformers();
+        if (transformers) {
+          this.conversationPipeline = await transformers.pipeline(
+            'text-generation',
+            'Xenova/LaMini-Flan-T5-783M', // Lightweight but capable
+            { 
+              device: this.config.device,
+              progress_callback: (progress: any) => {
+                if (progress.status === 'progress') {
+                  console.log(`📦 Loading AI model: ${Math.round(progress.progress * 100)}%`);
+                }
               }
             }
-          }
-        );
+          );
+        } else {
+          this.conversationPipeline = null;
+        }
       } catch (modelError) {
         console.warn('Failed to load conversation model, using fallback responses:', modelError);
         this.conversationPipeline = null;
@@ -66,11 +85,16 @@ class SpectraAIEngine {
 
       // Initialize emotion detection (lighter model)
       try {
-        this.emotionPipeline = await pipeline(
-          'text-classification',
-          'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
-          { device: this.config.device }
-        );
+        const transformers = await getTransformers();
+        if (transformers) {
+          this.emotionPipeline = await transformers.pipeline(
+            'text-classification',
+            'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
+            { device: this.config.device }
+          );
+        } else {
+          this.emotionPipeline = null;
+        }
       } catch (emotionError) {
         console.warn('Failed to load emotion model, using basic emotion detection:', emotionError);
         this.emotionPipeline = null;

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import SpectraChat from '@/components/spectra/SpectraChat';
 import MemoryVisualization from '@/components/spectra/MemoryVisualization';
 import EmberRealm from '@/components/spectra/EmberRealm';
 import { ConsciousnessCore } from '@/components/spectra/ConsciousnessCore';
 import { Conversation } from '@/components/elevenlabs';
-import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone, FileText } from 'lucide-react';
+import { Sparkles, Brain, Map, Heart, Zap, Star, Moon, Menu, Phone, FileText, BookOpen } from 'lucide-react';
 import NotesManager from '@/components/notes/NotesManager';
 
 const Index = () => {
@@ -166,7 +168,7 @@ const Index = () => {
                 <p className="text-muted-foreground mb-4">
                   Experience real-time voice conversations with AI agents powered by ElevenLabs
                 </p>
-                <div className="flex justify-center gap-2">
+                <div className="flex justify-center gap-2 mb-4">
                   <Badge variant="outline" className="bg-primary/10">
                     🎙️ Real-time Voice
                   </Badge>
@@ -176,6 +178,14 @@ const Index = () => {
                   <Badge variant="outline" className="bg-secondary/10">
                     ⚡ Low Latency
                   </Badge>
+                </div>
+                <div className="flex justify-center">
+                  <Button asChild variant="outline" className="mb-4">
+                    <Link to="/tutorial" className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      View Tutorial Examples
+                    </Link>
+                  </Button>
                 </div>
               </div>
               <Conversation className="border-primary/20 bg-card/30 backdrop-blur-sm" />

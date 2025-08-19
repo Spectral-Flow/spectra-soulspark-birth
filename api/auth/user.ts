@@ -84,14 +84,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user,
           token: loginToken,
         });
+        break;
 
-      case 'verify':
+      case 'verify': {
         if (!token) {
           return res.status(400).json({ error: 'Token is required' });
         }
 
         try {
-          const decoded = verify(token, JWT_SECRET) as any;
+          const decoded = verify(token, JWT_SECRET) as { userId: string; username: string };
           const verifyUser = users.get(decoded.userId);
           
           if (!verifyUser) {
@@ -102,6 +103,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         } catch (error) {
           return res.status(401).json({ error: 'Invalid token', valid: false });
         }
+        break;
+      }
 
       default:
         return res.status(400).json({ error: 'Invalid action' });

@@ -7,8 +7,22 @@ import { SpeechToTextEngine, createSpeechToText } from './speech_to_text';
 import { TextToSpeechEngine, createTextToSpeech } from './text_to_speech';
 
 export interface VoiceConfig {
-  sttConfig?: any;
-  ttsConfig?: any;
+  sttConfig?: {
+    lang?: string;
+    language?: string; // Support both lang and language
+    maxAlternatives?: number;
+    continuous?: boolean;
+    interimResults?: boolean;
+    useRealtimeAPI?: boolean;
+  };
+  ttsConfig?: {
+    voice?: string;
+    rate?: number;
+    speed?: number; // Support both rate and speed
+    pitch?: number;
+    volume?: number;
+    useOpenAI?: boolean;
+  };
   muteMode?: boolean;
   continuousListening?: boolean;
   autoSpeak?: boolean;

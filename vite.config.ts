@@ -19,4 +19,22 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    'process.env': {}
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: mode === 'development',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-tooltip'],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
 }));

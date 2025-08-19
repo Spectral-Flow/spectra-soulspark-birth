@@ -197,7 +197,7 @@ export function createOpenAIVoiceService(apiKey: string, config?: Partial<OpenAI
 
 // Environment variable helper
 export function createOpenAIVoiceFromEnv(config?: Partial<OpenAIConfig>): OpenAIVoiceService | null {
-  const apiKey = process.env.OPENAI_API_KEY || (window as any).OPENAI_API_KEY;
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY || (window as any).OPENAI_API_KEY;
   
   if (!apiKey) {
     console.warn('OpenAI API key not found in environment variables');

@@ -1,8 +1,9 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
+  "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
     {
@@ -12,7 +13,8 @@
   ],
   "functions": {
     "app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
+      "runtime": "vercel-node@18.16.0",
+      "maxDuration": 10
     }
   },
   "env": {

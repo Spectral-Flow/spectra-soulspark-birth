@@ -227,6 +227,102 @@ export class MobileOptimization {
     return /Android/.test(navigator.userAgent);
   }
 
+  // Android-specific version and compatibility detection
+  getAndroidVersion(): number | null {
+    if (!this.isAndroid()) return null;
+    
+    const match = navigator.userAgent.match(/Android\s+([\d.]+)/);
+    if (match) {
+      return parseFloat(match[1]);
+    }
+    return null;
+  }
+
+  getChromeVersion(): number | null {
+    const match = navigator.userAgent.match(/Chrome\/([\d.]+)/);
+    if (match) {
+      return parseFloat(match[1]);
+    }
+    return null;
+  }
+
+  getWebViewVersion(): number | null {
+    if (!this.isAndroid()) return null;
+    
+    // Detect Android System WebView
+    const webViewMatch = navigator.userAgent.match(/(?:wv|WebView).*Chrome\/([\d.]+)/);
+    if (webViewMatch) {
+      return parseFloat(webViewMatch[1]);
+    }
+    return null;
+  }
+
+  // Check AudioWorklet compatibility specifically for Android
+  isAudioWorkletCompatibleOnAndroid(): { compatible: boolean; reason?: string; recommendation?: string } {
+    if (!this.isAndroid()) {
+      return { compatible: true }; // Not Android, use standard detection
+    }
+
+    const androidVersion = this.getAndroidVersion();
+    const chromeVersion = this.getChromeVersion();
+    const webViewVersion = this.getWebViewVersion();
+
+    // Android 6.0+ is generally required for AudioWorklet
+    if (androidVersion && androidVersion < 6.0) {
+      return {
+        compatible: false,
+        reason: `Android ${androidVersion} detected. AudioWorklet requires Android 6.0+`,
+        recommendation: 'Update your Android device to a newer version if possible'
+      };
+    }
+
+    // Check WebView version for embedded apps
+    if (webViewVersion) {
+      if (webViewVersion < 66) {
+        return {
+          compatible: false,
+          reason: `Android System WebView ${webViewVersion} detected. AudioWorklet requires WebView 66+`,
+          recommendation: 'Update Android System WebView via Google Play Store or system settings'
+        };
+      }
+      
+      // Known problematic WebView versions
+      if (webViewVersion >= 80 && webViewVersion < 84) {
+        return {
+          compatible: false,
+          reason: `Android System WebView ${webViewVersion} has known AudioWorklet issues`,
+          recommendation: 'Update Android System WebView to version 84+ via Google Play Store'
+        };
+      }
+    }
+
+    // Check Chrome version
+    if (chromeVersion && chromeVersion < 64) {
+      return {
+        compatible: false,
+        reason: `Chrome ${chromeVersion} detected. AudioWorklet requires Chrome 64+`,
+        recommendation: 'Update Chrome browser to the latest version'
+      };
+    }
+
+    // Additional checks for Samsung Internet and other browsers
+    const isSamsungInternet = /SamsungBrowser/i.test(navigator.userAgent);
+    if (isSamsungInternet) {
+      const samsungMatch = navigator.userAgent.match(/SamsungBrowser\/([\d.]+)/);
+      const samsungVersion = samsungMatch ? parseFloat(samsungMatch[1]) : 0;
+      
+      if (samsungVersion < 8.0) {
+        return {
+          compatible: false,
+          reason: `Samsung Internet ${samsungVersion} has limited AudioWorklet support`,
+          recommendation: 'Use Chrome browser or update Samsung Internet to version 8.0+'
+        };
+      }
+    }
+
+    return { compatible: true };
+  }
+
   isTouchDevice(): boolean {
     return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   }

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectra Audio Processor Test - Development</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #444;
+        }
+        .status {
+            background: #3a3a3a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 1rem;
+        }
+        button:hover {
+            background: #5855eb;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #1e40af;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .success {
+            background: #059669;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .error {
+            background: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .warn {
+            background: #d97706;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .audio-level {
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .audio-level-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Spectra Audio Processor Test - Development</h1>
+        
+        <div class="info">
+            <h3>Audio Support Detection & Android Compatibility</h3>
+            <div id="supportInfo">Checking browser support...</div>
+        </div>
+
+        <div class="status">
+            <div><strong>Status:</strong> <span id="status">Ready</span></div>
+            <div><strong>Processing Method:</strong> <span id="method">Not initialized</span></div>
+            <div><strong>Sample Rate:</strong> <span id="sampleRate">Unknown</span></div>
+            <div><strong>Recording:</strong> <span id="recording">No</span></div>
+        </div>
+
+        <div>
+            <button id="initBtn">Initialize Audio Processor</button>
+            <button id="startBtn" disabled>Start Recording</button>
+            <button id="stopBtn" disabled>Stop Recording</button>
+            <button id="cleanupBtn" disabled>Cleanup</button>
+        </div>
+
+        <div class="audio-level">
+            <div id="audioLevelBar" class="audio-level-bar"></div>
+        </div>
+
+        <div id="log" class="status" style="max-height: 300px; overflow-y: auto;">
+            <h4>Log:</h4>
+        </div>
+    </div>
+
+    <script>
+        // Simple compatibility testing without imports for development testing
+        class MockMobileOptimization {
+            isAndroid() {
+                return /Android/.test(navigator.userAgent);
+            }
+
+            getAndroidVersion() {
+                if (!this.isAndroid()) return null;
+                const match = navigator.userAgent.match(/Android\s+([\d.]+)/);
+                return match ? parseFloat(match[1]) : null;
+            }
+
+            getChromeVersion() {
+                const match = navigator.userAgent.match(/Chrome\/([\d.]+)/);
+                return match ? parseFloat(match[1]) : null;
+            }
+
+            getWebViewVersion() {
+                if (!this.isAndroid()) return null;
+                const webViewMatch = navigator.userAgent.match(/(?:wv|WebView).*Chrome\/([\d.]+)/);
+                return webViewMatch ? parseFloat(webViewMatch[1]) : null;
+            }
+
+            isAudioWorkletCompatibleOnAndroid() {
+                if (!this.isAndroid()) {
+                    return { compatible: true };
+                }
+
+                const androidVersion = this.getAndroidVersion();
+                const chromeVersion = this.getChromeVersion();
+                const webViewVersion = this.getWebViewVersion();
+
+                if (androidVersion && androidVersion < 6.0) {
+                    return {
+                        compatible: false,
+                        reason: `Android ${androidVersion} detected. AudioWorklet requires Android 6.0+`,
+                        recommendation: 'Update your Android device to a newer version if possible'
+                    };
+                }
+
+                if (webViewVersion) {
+                    if (webViewVersion < 66) {
+                        return {
+                            compatible: false,
+                            reason: `Android System WebView ${webViewVersion} detected. AudioWorklet requires WebView 66+`,
+                            recommendation: 'Update Android System WebView via Google Play Store or system settings'
+                        };
+                    }
+                    
+                    if (webViewVersion >= 80 && webViewVersion < 84) {
+                        return {
+                            compatible: false,
+                            reason: `Android System WebView ${webViewVersion} has known AudioWorklet issues`,
+                            recommendation: 'Update Android System WebView to version 84+ via Google Play Store'
+                        };
+                    }
+                }
+
+                if (chromeVersion && chromeVersion < 64) {
+                    return {
+                        compatible: false,
+                        reason: `Chrome ${chromeVersion} detected. AudioWorklet requires Chrome 64+`,
+                        recommendation: 'Update Chrome browser to the latest version'
+                    };
+                }
+
+                const isSamsungInternet = /SamsungBrowser/i.test(navigator.userAgent);
+                if (isSamsungInternet) {
+                    const samsungMatch = navigator.userAgent.match(/SamsungBrowser\/([\d.]+)/);
+                    const samsungVersion = samsungMatch ? parseFloat(samsungMatch[1]) : 0;
+                    
+                    if (samsungVersion < 8.0) {
+                        return {
+                            compatible: false,
+                            reason: `Samsung Internet ${samsungVersion} has limited AudioWorklet support`,
+                            recommendation: 'Use Chrome browser or update Samsung Internet to version 8.0+'
+                        };
+                    }
+                }
+
+                return { compatible: true };
+            }
+        }
+
+        const mobile = new MockMobileOptimization();
+
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const methodEl = document.getElementById('method');
+        const sampleRateEl = document.getElementById('sampleRate');
+        const recordingEl = document.getElementById('recording');
+        const supportInfoEl = document.getElementById('supportInfo');
+        const audioLevelBarEl = document.getElementById('audioLevelBar');
+        const logEl = document.getElementById('log');
+
+        const initBtn = document.getElementById('initBtn');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const cleanupBtn = document.getElementById('cleanupBtn');
+
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${time}] ${message}`;
+            logEntry.className = type;
+            logEl.appendChild(logEntry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function getBrowserAudioSupport() {
+            let basicWorkletSupported = false;
+            try {
+                basicWorkletSupported = (
+                    typeof AudioContext !== 'undefined' &&
+                    typeof AudioWorkletNode !== 'undefined' &&
+                    AudioContext.prototype && 
+                    'audioWorklet' in AudioContext.prototype
+                );
+            } catch (e) {
+                basicWorkletSupported = false;
+            }
+
+            let audioWorkletSupported = basicWorkletSupported;
+            let compatibilityDetails = { supported: true };
+
+            if (mobile.isAndroid()) {
+                compatibilityDetails = mobile.isAudioWorkletCompatibleOnAndroid();
+                audioWorkletSupported = basicWorkletSupported && compatibilityDetails.compatible;
+            }
+
+            return {
+                getUserMedia: !!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                audioContext: typeof AudioContext !== 'undefined',
+                audioWorklet: audioWorkletSupported,
+                audioWorkletDetails: compatibilityDetails,
+                scriptProcessor: typeof AudioContext !== 'undefined' && 
+                                AudioContext.prototype && 
+                                'createScriptProcessor' in AudioContext.prototype
+            };
+        }
+
+        // Check browser support
+        function checkSupport() {
+            const support = getBrowserAudioSupport();
+            let html = '<ul>';
+            html += `<li>getUserMedia: ${support.getUserMedia ? '✅' : '❌'}</li>`;
+            html += `<li>AudioContext: ${support.audioContext ? '✅' : '❌'}</li>`;
+            html += `<li>AudioWorklet: ${support.audioWorklet ? '✅' : '❌'}</li>`;
+            html += `<li>ScriptProcessor: ${support.scriptProcessor ? '✅' : '❌'}</li>`;
+            html += '</ul>';
+
+            // Add device information
+            html += '<div style="margin-top: 1rem; padding: 0.75rem; background: #444; border-radius: 4px;">';
+            html += '<strong>Device Information:</strong><br>';
+            html += `User Agent: ${navigator.userAgent}<br>`;
+            if (mobile.isAndroid()) {
+                html += `Android Version: ${mobile.getAndroidVersion() || 'Unknown'}<br>`;
+                html += `Chrome Version: ${mobile.getChromeVersion() || 'Unknown'}<br>`;
+                html += `WebView Version: ${mobile.getWebViewVersion() || 'Not detected'}<br>`;
+            }
+            html += '</div>';
+
+            // Add detailed compatibility information
+            if (support.audioWorkletDetails) {
+                const details = support.audioWorkletDetails;
+                if (!details.supported && details.reason) {
+                    html += `<div class="error" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px;">
+                        <strong>⚠️ AudioWorklet Compatibility Issue:</strong><br>
+                        ${details.reason}
+                        ${details.recommendation ? `<br><br><strong>💡 Recommendation:</strong><br>${details.recommendation}` : ''}
+                        <br><br>✅ ScriptProcessorNode fallback is available.
+                    </div>`;
+                }
+            }
+
+            supportInfoEl.innerHTML = html;
+
+            if (support.audioWorklet) {
+                log('🎉 AudioWorklet is supported!', 'success');
+            } else if (support.scriptProcessor) {
+                log('⚠️ AudioWorklet not supported, will use ScriptProcessorNode fallback', 'warn');
+                if (support.audioWorkletDetails?.reason) {
+                    log(`ℹ️ Reason: ${support.audioWorkletDetails.reason}`, 'info');
+                }
+                if (support.audioWorkletDetails?.recommendation) {
+                    log(`💡 Recommendation: ${support.audioWorkletDetails.recommendation}`, 'info');
+                }
+            } else {
+                log('❌ No audio processing support detected', 'error');
+            }
+        }
+
+        // Simple test buttons
+        initBtn.addEventListener('click', () => {
+            log('🔧 This is a development test page for compatibility checking only', 'info');
+            log('✅ Compatibility check completed!', 'success');
+        });
+
+        // Initialize
+        checkSupport();
+        log('🎭 Spectra Audio Processor Compatibility Test loaded', 'info');
+    </script>
+</body>
+</html>

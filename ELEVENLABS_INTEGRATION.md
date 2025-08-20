@@ -80,6 +80,9 @@ await tts.speak("Time to be playful!", "playful");
 4. For private agents: Enable "Private Agent" and ensure API key is configured
 5. Click "Start Conversation" to begin talking with the AI
 
+### Pre-configured Agent
+The application comes with a pre-configured ElevenLabs agent (`agent_2201k2z83ad3egas4vbks6jsnye1`) that provides optimized voice conversation experience. This agent is set as the default in the environment configuration.
+
 ### Configuration Options
 - **Agent ID**: Configure which ElevenLabs agent to connect to
 - **Public/Private Agent**: Toggle between public and private agent modes

@@ -113,23 +113,30 @@ export function createElevenLabsApiService(): ElevenLabsApiService | null {
   const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
   
   // Check for window variables (useful for testing)
-// Safely read OpenRouter API key from window (browser) or fallback to environment (Node.js)
-const windowApiKey = typeof window !== 'undefined' 
-  ? (window as Record<string, unknown>).OPENROUTER_API_KEY as string | undefined
-  : undefined;
-
-const apiKey = windowApiKey || process.env.OPENROUTER_API_KEY;
-
-if (!apiKey) {
-  throw new Error("OpenRouter API key is not defined. Set it in window.OPENROUTER_API_KEY or environment variable OPENROUTER_API_KEY.");
-}
-
-// Now you can use `apiKey` in your fetch or API requests
+  const windowApiKey = typeof window !== 'undefined' 
+    ? (window as unknown as Record<string, unknown>).ELEVENLABS_API_KEY as string | undefined
+    : undefined;
+  
+  const windowUsername = typeof window !== 'undefined' 
+    ? (window as unknown as Record<string, unknown>).ELEVENLABS_USERNAME as string | undefined
+    : undefined;
+  
+  const windowPassword = typeof window !== 'undefined' 
+    ? (window as unknown as Record<string, unknown>).ELEVENLABS_PASSWORD as string | undefined
+    : undefined;
   
   // Determine which credentials to use
   const finalApiKey = apiKey || windowApiKey;
   const hasCredentials = finalApiKey || (windowUsername && windowPassword);
-  
+
+  if (!hasCredentials) {
+    console.warn('ElevenLabs credentials not found. Private agent features will be unavailable.');
+    console.log('💡 Set API key: window.ELEVENLABS_API_KEY = "your_key"');
+    console.log('💡 Or set username/password: window.ELEVENLABS_USERNAME = "user"; window.ELEVENLABS_PASSWORD = "pass"');
+    return null;
+  }
+
+  // Create service with appropriate credentials
   if (!hasCredentials) {
     console.warn('ElevenLabs credentials not found. Private agent features will be unavailable.');
     console.log('💡 Set API key: window.ELEVENLABS_API_KEY = "your_key"');
@@ -144,8 +151,8 @@ if (!apiKey) {
   } else {
     console.log('👤 Creating ElevenLabs service with username/password authentication');
     return new ElevenLabsApiService({
-      username: windowUsername,
-      password: windowPassword
+      username: windowUsername!,
+      password: windowPassword!
     });
   }
 }

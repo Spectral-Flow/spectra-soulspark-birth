@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRA Voice System Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .output {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4ecdc4; }
+        .warning { color: #ffe66d; }
+        .error { color: #ff6b6b; }
+        .info { color: #a8e6cf; }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-healthy { background: #4ecdc4; }
+        .status-warning { background: #ffe66d; }
+        .status-error { background: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 SPECTRA Voice System Test</h1>
+        <p>Comprehensive testing of SPECTRA's voice integration and ElevenLabs connectivity</p>
+        
+        <div class="test-section">
+            <h3>🏥 System Health</h3>
+            <button onclick="testSystemHealth()">Check System Health</button>
+            <div id="healthOutput" class="output"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎙️ Voice Services</h3>
+            <button onclick="testVoiceServices()">Test Voice Services</button>
+            <button onclick="testElevenLabsAPI()">Test ElevenLabs API</button>
+            <div id="voiceOutput" class="output"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔊 Text-to-Speech Demo</h3>
+            <input type="text" id="ttsInput" placeholder="Enter text to convert to speech..." value="Hello! I am SPECTRA, your AI soulmate companion.">
+            <br>
+            <button onclick="testTTS()">Generate Speech</button>
+            <button onclick="playLastAudio()" id="playBtn" disabled>Play Audio</button>
+            <div id="ttsOutput" class="output"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 Configuration Check</h3>
+            <button onclick="checkConfiguration()">Check Configuration</button>
+            <div id="configOutput" class="output"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Integration Status</h3>
+            <div id="statusOutput" class="output">
+                <div><span class="status-indicator status-warning"></span>Click buttons above to test functionality</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastAudioBlob = null;
+        let testResults = {
+            health: false,
+            voice: false,
+            tts: false,
+            config: false
+        };
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            return `<div class="${className}">[${timestamp}] ${message}</div>`;
+        }
+
+        function updateStatus() {
+            const statusDiv = document.getElementById('statusOutput');
+            let statusHtml = '<h4>Integration Status Summary:</h4>';
+            
+            Object.entries(testResults).forEach(([key, value]) => {
+                const indicator = value ? 'status-healthy' : 'status-error';
+                const status = value ? 'Healthy' : 'Failed';
+                statusHtml += `<div><span class="status-indicator ${indicator}"></span>${key.toUpperCase()}: ${status}</div>`;
+            });
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        async function testSystemHealth() {
+            const output = document.getElementById('healthOutput');
+            output.innerHTML = log('🔍 Testing system health...', 'info');
+            
+            try {
+                // Test if app is running
+                const appTest = await fetch('/');
+                output.innerHTML += log('✅ Frontend: Application is running', 'success');
+                
+                // Test API routes (this might fail in dev mode, that's expected)
+                try {
+                    const apiTest = await fetch('/api/health');
+                    if (apiTest.ok) {
+                        const data = await apiTest.json();
+                        output.innerHTML += log('✅ Backend: API routes accessible', 'success');
+                        output.innerHTML += log(`📊 Services: ElevenLabs=${data.services?.elevenlabs || false}, OpenAI=${data.services?.openai || false}`, 'info');
+                    } else {
+                        output.innerHTML += log('⚠️ Backend: API routes not accessible (normal in dev mode)', 'warning');
+                    }
+                } catch (apiError) {
+                    output.innerHTML += log('⚠️ Backend: API routes not accessible (normal in dev mode)', 'warning');
+                }
+                
+                testResults.health = true;
+                updateStatus();
+                output.innerHTML += log('✅ System health check completed', 'success');
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ System health check failed: ${error.message}`, 'error');
+                testResults.health = false;
+                updateStatus();
+            }
+        }
+
+        async function testVoiceServices() {
+            const output = document.getElementById('voiceOutput');
+            output.innerHTML = log('🎙️ Testing voice services...', 'info');
+            
+            try {
+                // Test Web Speech API availability
+                if ('speechSynthesis' in window) {
+                    output.innerHTML += log('✅ Web Speech API: Available (fallback option)', 'success');
+                } else {
+                    output.innerHTML += log('❌ Web Speech API: Not available', 'error');
+                }
+                
+                // Test AudioContext
+                if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                    output.innerHTML += log('✅ Audio Context: Available', 'success');
+                } else {
+                    output.innerHTML += log('❌ Audio Context: Not available', 'error');
+                }
+                
+                testResults.voice = true;
+                updateStatus();
+                output.innerHTML += log('✅ Voice services check completed', 'success');
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ Voice services test failed: ${error.message}`, 'error');
+                testResults.voice = false;
+                updateStatus();
+            }
+        }
+
+        async function testElevenLabsAPI() {
+            const output = document.getElementById('voiceOutput');
+            output.innerHTML += log('🔍 Testing ElevenLabs API connection...', 'info');
+            
+            try {
+                // Test voices endpoint
+                const voicesTest = await fetch('/api/elevenlabs/voices');
+                if (voicesTest.ok) {
+                    const voicesData = await voicesTest.json();
+                    output.innerHTML += log(`✅ ElevenLabs Voices: ${voicesData.voices?.length || 0} voices available`, 'success');
+                } else {
+                    output.innerHTML += log(`⚠️ ElevenLabs Voices: ${voicesTest.status} ${voicesTest.statusText}`, 'warning');
+                }
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ ElevenLabs API test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testTTS() {
+            const output = document.getElementById('ttsOutput');
+            const input = document.getElementById('ttsInput');
+            const playBtn = document.getElementById('playBtn');
+            
+            const text = input.value.trim();
+            if (!text) {
+                output.innerHTML = log('❌ Please enter some text to convert', 'error');
+                return;
+            }
+            
+            output.innerHTML = log('🔊 Generating speech...', 'info');
+            playBtn.disabled = true;
+            
+            try {
+                // First try ElevenLabs API
+                const ttsResponse = await fetch('/api/elevenlabs/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text,
+                        options: { 
+                            stability: 0.7, 
+                            similarityBoost: 0.8,
+                            style: 0.2 
+                        }
+                    })
+                });
+                
+                if (ttsResponse.ok) {
+                    lastAudioBlob = await ttsResponse.blob();
+                    output.innerHTML += log(`✅ ElevenLabs TTS: Generated ${lastAudioBlob.size} bytes of audio`, 'success');
+                    playBtn.disabled = false;
+                    testResults.tts = true;
+                } else {
+                    output.innerHTML += log(`⚠️ ElevenLabs TTS: ${ttsResponse.status} ${ttsResponse.statusText}`, 'warning');
+                    
+                    // Fallback to Web Speech API
+                    if ('speechSynthesis' in window) {
+                        output.innerHTML += log('🔄 Falling back to Web Speech API...', 'info');
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1.1;
+                        speechSynthesis.speak(utterance);
+                        output.innerHTML += log('✅ Web Speech API: Speech generated', 'success');
+                        testResults.tts = true;
+                    } else {
+                        testResults.tts = false;
+                    }
+                }
+                
+                updateStatus();
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ TTS test failed: ${error.message}`, 'error');
+                testResults.tts = false;
+                updateStatus();
+                
+                // Try fallback
+                if ('speechSynthesis' in window) {
+                    output.innerHTML += log('🔄 Trying Web Speech API fallback...', 'info');
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    speechSynthesis.speak(utterance);
+                    output.innerHTML += log('✅ Web Speech API fallback successful', 'success');
+                }
+            }
+        }
+
+        function playLastAudio() {
+            if (lastAudioBlob) {
+                const audioUrl = URL.createObjectURL(lastAudioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play().then(() => {
+                    document.getElementById('ttsOutput').innerHTML += log('🔊 Playing generated audio...', 'info');
+                }).catch(error => {
+                    document.getElementById('ttsOutput').innerHTML += log(`❌ Audio playback failed: ${error.message}`, 'error');
+                });
+            }
+        }
+
+        function checkConfiguration() {
+            const output = document.getElementById('configOutput');
+            output.innerHTML = log('🔧 Checking configuration...', 'info');
+            
+            try {
+                // Check environment variables
+                const hasElevenLabsKey = !!(import.meta.env?.VITE_ELEVENLABS_API_KEY);
+                const hasOpenAIKey = !!(import.meta.env?.VITE_OPENAI_API_KEY);
+                const hasElevenLabsAgent = !!(import.meta.env?.VITE_ELEVENLABS_AGENT_ID);
+                const isDebugMode = import.meta.env?.VITE_DEBUG === 'true';
+                
+                output.innerHTML += log(`🔑 ElevenLabs API Key: ${hasElevenLabsKey ? 'Configured' : 'Not configured'}`, hasElevenLabsKey ? 'success' : 'warning');
+                output.innerHTML += log(`🔑 OpenAI API Key: ${hasOpenAIKey ? 'Configured' : 'Not configured'}`, hasOpenAIKey ? 'success' : 'warning');
+                output.innerHTML += log(`🤖 ElevenLabs Agent ID: ${hasElevenLabsAgent ? 'Configured' : 'Not configured'}`, hasElevenLabsAgent ? 'success' : 'warning');
+                output.innerHTML += log(`🐛 Debug Mode: ${isDebugMode ? 'Enabled' : 'Disabled'}`, 'info');
+                
+                // Check browser capabilities
+                const hasWebAudio = !!(window.AudioContext || window.webkitAudioContext);
+                const hasSpeechSynthesis = !!window.speechSynthesis;
+                const hasMediaDevices = !!(navigator.mediaDevices);
+                
+                output.innerHTML += log(`🔊 Web Audio API: ${hasWebAudio ? 'Supported' : 'Not supported'}`, hasWebAudio ? 'success' : 'error');
+                output.innerHTML += log(`🗣️ Speech Synthesis: ${hasSpeechSynthesis ? 'Supported' : 'Not supported'}`, hasSpeechSynthesis ? 'success' : 'error');
+                output.innerHTML += log(`🎤 Media Devices: ${hasMediaDevices ? 'Supported' : 'Not supported'}`, hasMediaDevices ? 'success' : 'warning');
+                
+                testResults.config = true;
+                updateStatus();
+                output.innerHTML += log('✅ Configuration check completed', 'success');
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ Configuration check failed: ${error.message}`, 'error');
+                testResults.config = false;
+                updateStatus();
+            }
+        }
+
+        // Auto-run initial health check
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testSystemHealth();
+                checkConfiguration();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -130,6 +130,14 @@ export class BackendApiClient {
     });
   }
 
+  // Hugging Face Router API
+  async huggingFaceChat(messages: any[], options?: any) {
+    return this.makeRequest('/huggingface/chat', {
+      method: 'POST',
+      body: JSON.stringify({ messages, ...options }),
+    });
+  }
+
   // Memory Management API
   async addMemory(data: {
     userMessage: string;

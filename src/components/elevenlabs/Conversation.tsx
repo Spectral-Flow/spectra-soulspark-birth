@@ -11,6 +11,12 @@ import { Mic, MicOff, Phone, PhoneOff, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createElevenLabsApiService } from './api';
 
+interface ConversationError {
+  message?: string;
+  type?: string;
+  code?: string | number;
+}
+
 interface ConversationProps {
   agentId?: string;
   className?: string;
@@ -47,7 +53,7 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
       console.error('ElevenLabs Conversation Error:', error);
       const errorMessage = typeof error === 'string' 
         ? error 
-        : (error as any)?.message || 'An error occurred with the conversation';
+        : (error as ConversationError)?.message || 'An error occurred with the conversation';
       setError(errorMessage);
       setIsConnecting(false);
       
@@ -62,7 +68,7 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
     },
   });
 
-  const shouldRetry = (error: any): boolean => {
+  const shouldRetry = (error: unknown): boolean => {
     // Retry on network errors or temporary server issues
     const retryableErrors = [
       'network error',
@@ -72,7 +78,9 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
       'rate limit'
     ];
     
-    const errorMessage = (error.message || '').toLowerCase();
+    const errorMessage = typeof error === 'string' 
+      ? error.toLowerCase()
+      : ((error as ConversationError)?.message || '').toLowerCase();
     return retryableErrors.some(retryableError => 
       errorMessage.includes(retryableError)
     );
@@ -108,7 +116,7 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
       // Request microphone permission
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (micError) {
+      } catch {
         throw new Error('Microphone permission required for voice conversation');
       }
 

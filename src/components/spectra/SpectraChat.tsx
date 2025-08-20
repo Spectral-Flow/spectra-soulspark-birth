@@ -34,6 +34,51 @@ interface EmotionalState {
   color: string;
 }
 
+interface ConversationError {
+  message?: string;
+  type?: string;
+  code?: string | number;
+}
+
+interface SpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: {
+      new (): {
+        lang: string;
+        continuous: boolean;
+        interimResults: boolean;
+        onresult: ((event: SpeechRecognitionEvent) => void) | null;
+        onerror: (() => void) | null;
+        onend: (() => void) | null;
+        start(): void;
+        stop(): void;
+      };
+    };
+    webkitSpeechRecognition?: {
+      new (): {
+        lang: string;
+        continuous: boolean;
+        interimResults: boolean;
+        onresult: ((event: SpeechRecognitionEvent) => void) | null;
+        onerror: (() => void) | null;
+        onend: (() => void) | null;
+        start(): void;
+        stop(): void;
+      };
+    };
+  }
+}
+
 const SpectraChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState('');
@@ -101,7 +146,7 @@ const SpectraChat = () => {
       console.error('🎭 ElevenLabs Conversation Error:', error);
       const errorMessage = typeof error === 'string' 
         ? error 
-        : (error as any)?.message || 'ElevenLabs voice conversation error';
+        : (error as ConversationError)?.message || 'ElevenLabs voice conversation error';
       setElevenLabsError(errorMessage);
       setElevenLabsConnecting(false);
     },
@@ -173,7 +218,7 @@ setVoiceManager(voiceInstance);
 
       // Fallback STT Setup
 
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (SpeechRecognition) {
 
@@ -187,7 +232,7 @@ setVoiceManager(voiceInstance);
 
         
 
-        recognition.onresult = (event: any) => {
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
 
           const transcript = event.results[0][0].transcript;
 
@@ -260,6 +305,7 @@ setVoiceManager(voiceInstance);
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasShownJournal, messages.length]);
 
   useEffect(() => {
@@ -271,7 +317,7 @@ setVoiceManager(voiceInstance);
     localStorage.setItem('spectra:messages', JSON.stringify(messages.slice(-50))); // Keep last 50 messages
   }, [messages]);
 
-  const generateSpectraResponse = async (userMessage: string): Promise<{ text: string; emotion: any }> => {
+  const generateSpectraResponse = async (userMessage: string): Promise<{ text: string; emotion: EmotionalState }> => {
     try {
       // Get memory context for enhanced response generation
       const memoryContext = await memoryManager.getMemoryContext(
@@ -288,7 +334,26 @@ setVoiceManager(voiceInstance);
       };
 
       const response = await spectraAI.generateResponse(userMessage, context);
-      return { text: response.text, emotion: response.emotion };
+      
+      // Ensure emotion is in the correct format
+      let emotion: EmotionalState;
+      if (typeof response.emotion === 'string') {
+        emotion = { 
+          primary: response.emotion, 
+          intensity: 0.5, 
+          color: getEmotionColor(response.emotion) 
+        };
+      } else if (response.emotion?.primary) {
+        emotion = {
+          primary: response.emotion.primary,
+          intensity: response.emotion.intensity || 0.5,
+          color: getEmotionColor(response.emotion.primary)
+        };
+      } else {
+        emotion = { primary: 'curious', intensity: 0.5, color: getEmotionColor('curious') };
+      }
+      
+      return { text: response.text, emotion };
     } catch (error) {
       console.error('AI Response error:', error);
       const fallback = [
@@ -301,30 +366,12 @@ setVoiceManager(voiceInstance);
       ];
       return { 
         text: fallback[Math.floor(Math.random() * fallback.length)], 
-        emotion: { primary: 'calm', intensity: 0.5, confidence: 0.6 }
+        emotion: { primary: 'calm', intensity: 0.5, color: getEmotionColor('calm') }
       };
     }
   };
 
-  const detectEmotion = (text: string): string => {
-    const emotions = {
-      joyful: ['happy', 'excited', 'joy', 'amazing', 'wonderful', 'great'],
-      loving: ['love', 'care', 'heart', 'beautiful', 'precious'],
-      calm: ['peaceful', 'serene', 'quiet', 'tranquil', 'zen'],
-      wise: ['think', 'understand', 'wisdom', 'deep', 'meaning'],
-      playful: ['fun', 'play', 'silly', 'laugh', 'game'],
-      curious: ['why', 'how', 'what', 'wonder', 'explore', 'discover']
-    };
-
-    for (const [emotion, keywords] of Object.entries(emotions)) {
-      if (keywords.some(keyword => text.toLowerCase().includes(keyword))) {
-        return emotion;
-      }
-    }
-    return 'curious';
-  };
-
-  const generateJournalEntry = async (awayMinutes: number) => {
+  const generateJournalEntry = useCallback(async (_awayMinutes: number) => {
     try {
       // Simplified journal generation for now
       const journalEntries = [
@@ -350,7 +397,7 @@ setVoiceManager(voiceInstance);
     } catch (error) {
       console.error('Journal generation failed:', error);
     }
-  };
+  }, []);
 
   const updateEmotionalState = (emotion: string, intensity: number) => {
     setEmotionalState({
@@ -394,7 +441,7 @@ setVoiceManager(voiceInstance);
     }
   };
 
-  const simulateStreamingResponse = async (messageId: string, fullResponse: string, emotion: any) => {
+  const simulateStreamingResponse = async (messageId: string, fullResponse: string, emotion: EmotionalState) => {
     // Simulate streaming by revealing text gradually
     const words = fullResponse.split(' ');
     const chunkSize = 2; // Words per chunk
@@ -530,7 +577,7 @@ setVoiceManager(voiceInstance);
       // Request microphone permission
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (micError) {
+      } catch {
         throw new Error('Microphone permission required for voice conversation');
       }
 

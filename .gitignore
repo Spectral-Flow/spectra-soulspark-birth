@@ -45,6 +45,7 @@ lerna-debug.log*
 /tmp
 *.tmp
 *.temp
+lint_output.txt
 
 # Coverage reports
 coverage/

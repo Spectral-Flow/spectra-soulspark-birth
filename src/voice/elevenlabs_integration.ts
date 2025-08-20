@@ -28,8 +28,9 @@ export class ElevenLabsVoiceService {
   private baseUrl = 'https://api.elevenlabs.io/v1';
   private spectraVoiceId: string | null = null;
 
-  constructor(config: ElevenLabsConfig) {
+  constructor(config: Partial<ElevenLabsConfig> = {}) {
     this.config = {
+      apiKey: '', // Not needed as backend handles API key
       voiceName: 'Spectra',
       model: 'eleven_multilingual_v2',
       stability: 0.5,
@@ -95,19 +96,21 @@ export class ElevenLabsVoiceService {
   }
 
   /**
-   * Get available voices from ElevenLabs
+   * Get available voices from ElevenLabs via backend API
    */
   private async getVoices(): Promise<any[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/voices`, {
+      // Use backend API instead of direct ElevenLabs API call
+      const response = await fetch('/api/elevenlabs/voices', {
+        method: 'GET',
         headers: {
-          'xi-api-key': this.config.apiKey,
           'Content-Type': 'application/json'
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch voices: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(`Backend API error: ${response.status} - ${errorData.error || response.statusText}`);
       }
 
       const data = await response.json();
@@ -115,7 +118,7 @@ export class ElevenLabsVoiceService {
     } catch (error) {
       // Improve error handling for network issues
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to ElevenLabs API. Check your internet connection.');
+        throw new Error('Network error: Unable to connect to backend API. Check your connection and ensure backend is running.');
       }
       throw error;
     }
@@ -142,26 +145,25 @@ export class ElevenLabsVoiceService {
 
     const requestBody = {
       text,
-      model_id: options?.model ?? this.config.model,
-      voice_settings: voiceSettings
+      voiceId: this.spectraVoiceId,
+      options: {
+        model: options?.model ?? this.config.model,
+        voice_settings: voiceSettings
+      }
     };
 
-    const response = await fetch(
-      `${this.baseUrl}/text-to-speech/${this.spectraVoiceId}`,
-      {
-        method: 'POST',
-        headers: {
-          'xi-api-key': this.config.apiKey,
-          'Content-Type': 'application/json',
-          'Accept': 'audio/mpeg'
-        },
-        body: JSON.stringify(requestBody)
-      }
-    );
+    // Use backend API instead of direct ElevenLabs API call
+    const response = await fetch('/api/elevenlabs/tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`ElevenLabs TTS failed: ${response.status} ${response.statusText} - ${errorText}`);
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(`Backend TTS API error: ${response.status} - ${errorData.error || response.statusText}`);
     }
 
     return await response.arrayBuffer();
@@ -532,36 +534,12 @@ export function createElevenLabsVoiceService(apiKey: string, config?: Partial<El
 }
 
 // Environment variable helper
-export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>): ElevenLabsVoiceService | null {
-  let apiKey: string | undefined;
+export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>): ElevenLabsVoiceService {
+  // Since we're using backend API, we don't need client-side API key
+  // The backend handles authentication securely
+  console.info('🔧 ElevenLabs service configured to use backend API for secure voice synthesis.');
   
-  // Try to get from Vite environment variables first
-  if (typeof window !== 'undefined' && import.meta?.env) {
-    apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
-  }
-  
-  // Try to get from browser window (for testing)
-  if (!apiKey && typeof window !== 'undefined') {
-    apiKey = (window as any).ELEVENLABS_API_KEY || (window as any).VITE_ELEVENLABS_API_KEY;
-  }
-  
-  // Try to get from environment if available (Node.js/build time)
-  if (!apiKey) {
-    try {
-      apiKey = (globalThis as any).process?.env?.VITE_ELEVENLABS_API_KEY || 
-               (globalThis as any).process?.env?.ELEVENLABS_API_KEY;
-    } catch (e) {
-      // Ignore if process is not available
-    }
-  }
-  
-  if (!apiKey) {
-    console.info('🔧 ElevenLabs API key not found. Voice features will use fallback providers.');
-    console.info('💡 To enable ElevenLabs: Set VITE_ELEVENLABS_API_KEY environment variable or window.ELEVENLABS_API_KEY for testing.');
-    return null;
-  }
-
-  return new ElevenLabsVoiceService({ apiKey, ...config });
+  return new ElevenLabsVoiceService(config || {});
 }
 
 /**

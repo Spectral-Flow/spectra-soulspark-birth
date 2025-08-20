@@ -162,15 +162,15 @@ export async function backendMemoryExample() {
       topics: ["guitar", "music", "learning"]
     });
     
-    console.log('Memory added via API:', addResult.data?.memory?.id);
+    console.log('Memory added via API:', (addResult.data as any)?.memory?.id);
     
     // Get recent memories via API
     const recentResult = await backendApi.getRecentMemories("session_music_learning", 5);
-    console.log('Recent memories from API:', recentResult.data?.memories?.length);
+    console.log('Recent memories from API:', (recentResult.data as any)?.memories?.length);
     
     // Search relevant memories via API
     const relevantResult = await backendApi.getRelevantMemories("guitar music", "session_music_learning", 3);
-    console.log('Relevant memories from API:', relevantResult.data?.memories?.length);
+    console.log('Relevant memories from API:', (relevantResult.data as any)?.memories?.length);
     
   } catch (error) {
     console.error('Backend memory API error:', error);

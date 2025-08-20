@@ -23,6 +23,18 @@ interface ElevenLabsTTSOptions {
   useSpeakerBoost?: boolean;
 }
 
+interface VoiceData {
+  voice_id: string;
+  name: string;
+  category?: string;
+  labels?: {
+    gender?: string;
+    age?: string;
+    accent?: string;
+    description?: string;
+  };
+}
+
 export class ElevenLabsVoiceService {
   private config: ElevenLabsConfig;
   private baseUrl = 'https://api.elevenlabs.io/v1';
@@ -98,7 +110,7 @@ export class ElevenLabsVoiceService {
   /**
    * Get available voices from ElevenLabs via backend API
    */
-  private async getVoices(): Promise<any[]> {
+  async getVoices(): Promise<VoiceData[]> {
     try {
       // Use backend API instead of direct ElevenLabs API call
       const response = await fetch('/api/elevenlabs/voices', {

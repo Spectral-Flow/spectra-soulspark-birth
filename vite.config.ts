@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
     outDir: "dist",
     sourcemap: mode === 'development',
     minify: mode === 'production' ? 'esbuild' : false,
-    target: 'es2020', // Modern target for better performance
+    target: 'es2022', // Updated to ES2022 for better modern browser support
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
@@ -74,7 +74,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Performance optimizations
   esbuild: {
-    target: 'es2020',
+    target: 'es2022', // Updated to ES2022
     logOverride: { 'this-is-undefined-in-esm': 'silent' },
   },
 }));

@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "author": "Spectral-Flow",
   "homepage": "https://github.com/Spectral-Flow/spectra-soulspark-birth",
   "repository": {
@@ -85,7 +89,7 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.62.0",
-    "react-resizable-panels": "^2.1.9",
+    "react-resizable-panels": "^3.0.4",
     "react-router-dom": "^6.30.1",
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",
@@ -101,7 +105,7 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "@vercel/node": "^5.3.13",
+    "@vercel/node": "^2.3.0",
     "@vitejs/plugin-react-swc": "^4.0.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.33.0",
@@ -119,5 +123,9 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Spectral-Flow/spectra-soulspark-birth/issues"
+  },
+  "overrides": {
+    "esbuild": "^0.25.0",
+    "path-to-regexp": "^8.0.0"
   }
 }

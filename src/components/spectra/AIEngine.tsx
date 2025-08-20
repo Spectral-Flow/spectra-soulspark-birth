@@ -163,7 +163,7 @@ Respond as SPECTRA would - with depth, empathy, and genuine care. Keep responses
     return this.generateEnhancedFallbackResponse(input, context);
   }
 
-  private generateEnhancedFallbackResponse(input: string, context?: Record<string, unknown>): string {
+  private generateEnhancedFallbackResponse(input: string, _context?: Record<string, unknown>): string {
     const responses = [
       "That's a fascinating perspective. Tell me more about what you're thinking.",
       "I find your thoughts intriguing. How does that make you feel?",

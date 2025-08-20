@@ -8,29 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { 
-  Brain, 
-  Heart, 
-  Clock, // Changed from Timeline which doesn't exist
   Activity, 
-  BarChart3, 
-  Zap, 
-  TrendingUp,
-  Eye,
   Pause,
   Play,
   RotateCcw,
-  Download,
-  Settings,
-  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { memoryManager, type Memory, type MemoryAnalytics } from '@/lib/memory-manager';
-import { getEmotionColor, getEmotionGradient } from '@/components/spectra/EmotionColors';
+import { getEmotionColor } from '@/components/spectra/EmotionColors';
 
 interface ConversationNode {
   id: string;
@@ -87,40 +76,12 @@ export const ConversationFlowVisualization = ({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
   const [showConnections, setShowConnections] = useState(true);
-  const [emotionFilter, setEmotionFilter] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<'1h' | '6h' | '24h' | '7d' | 'all'>('24h');
   const [activeTab, setActiveTab] = useState('flow');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef<number>(0);
-
-  // Load and process data
-  useEffect(() => {
-    loadConversationData();
-  }, [sessionId, timeRange]);
-
-  // Real-time updates
-  useEffect(() => {
-    if (!realTimeMode) return;
-
-    const interval = setInterval(() => {
-      loadConversationData();
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [realTimeMode, sessionId]);
-
-  // Animation loop
-  useEffect(() => {
-    if (isPlaying) {
-      startAnimation();
-    } else {
-      stopAnimation();
-    }
-
-    return () => stopAnimation();
-  }, [isPlaying, nodes, emotionData, currentTimeIndex, playbackSpeed]);
 
   const loadConversationData = useCallback(async () => {
     try {
@@ -180,8 +141,6 @@ export const ConversationFlowVisualization = ({
 
   const convertMemoriesToNodes = (memories: Memory[]): ConversationNode[] => {
     const nodes: ConversationNode[] = [];
-    const width = 800;
-    const height = 600;
 
     memories.forEach((memory, index) => {
       // Create user node
@@ -229,30 +188,7 @@ export const ConversationFlowVisualization = ({
     });
   };
 
-  const startAnimation = () => {
-    const animate = (currentTime: number) => {
-      if (currentTime - lastUpdateRef.current >= (1000 / playbackSpeed)) {
-        // Update animation state
-        if (currentTimeIndex < nodes.length - 1) {
-          setCurrentTimeIndex(prev => prev + 1);
-        }
-        lastUpdateRef.current = currentTime;
-      }
-
-      drawCanvas();
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
-  const stopAnimation = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-  };
-
-  const drawCanvas = () => {
+  const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -328,7 +264,57 @@ export const ConversationFlowVisualization = ({
       const label = node.type === 'user' ? 'U' : 'S';
       ctx.fillText(label, node.x, node.y + 3);
     });
+  }, [showConnections, nodes, currentTimeIndex, selectedNode]);
+
+  const startAnimation = useCallback(() => {
+    const animate = (currentTime: number) => {
+      if (currentTime - lastUpdateRef.current >= (1000 / playbackSpeed)) {
+        // Update animation state
+        if (currentTimeIndex < nodes.length - 1) {
+          setCurrentTimeIndex(prev => prev + 1);
+        }
+        lastUpdateRef.current = currentTime;
+      }
+
+      drawCanvas();
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+  }, [playbackSpeed, currentTimeIndex, nodes.length, drawCanvas]);
+
+  const stopAnimation = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
   };
+
+  // Load and process data
+  useEffect(() => {
+    loadConversationData();
+  }, [loadConversationData]);
+
+  // Real-time updates
+  useEffect(() => {
+    if (!realTimeMode) return;
+
+    const interval = setInterval(() => {
+      loadConversationData();
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [realTimeMode, loadConversationData]);
+
+  // Animation loop
+  useEffect(() => {
+    if (isPlaying) {
+      startAnimation();
+    } else {
+      stopAnimation();
+    }
+
+    return () => stopAnimation();
+  }, [isPlaying, startAnimation]);
 
   const handleNodeClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -463,7 +449,7 @@ export const ConversationFlowVisualization = ({
             <select
               id="time-range"
               value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value as any)}
+              onChange={(e) => setTimeRange(e.target.value as '1h' | '6h' | '24h' | '7d' | 'all')}
               className="border rounded px-2 py-1"
             >
               <option value="1h">1 Hour</option>

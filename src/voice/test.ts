@@ -83,21 +83,36 @@ export function testApiKeys() {
                         (typeof window !== 'undefined' && (window as any).ELEVENLABS_API_KEY) || 
                         (typeof window !== 'undefined' && (window as any).VITE_ELEVENLABS_API_KEY);
   
+  // Check for ElevenLabs username/password credentials
+  const elevenLabsUsername = (typeof window !== 'undefined' && (window as any).ELEVENLABS_USERNAME);
+  const elevenLabsPassword = (typeof window !== 'undefined' && (window as any).ELEVENLABS_PASSWORD);
+  
   // Check for OpenAI API key (prioritize VITE_ prefixed env vars)
   const openAiKey = (typeof window !== 'undefined' && import.meta?.env?.VITE_OPENAI_API_KEY) ||
                     (typeof window !== 'undefined' && (window as any).OPENAI_API_KEY) || 
                     (typeof window !== 'undefined' && (window as any).VITE_OPENAI_API_KEY);
   
   console.log('🎵 ElevenLabs API Key:', elevenLabsKey ? '✅ Set' : '❌ Not found');
+  console.log('👤 ElevenLabs Username:', elevenLabsUsername ? `✅ Set (${elevenLabsUsername})` : '❌ Not found');
+  console.log('🔑 ElevenLabs Password:', elevenLabsPassword ? '✅ Set' : '❌ Not found');
   console.log('🤖 OpenAI API Key:', openAiKey ? '✅ Set' : '❌ Not found');
   
-  if (!elevenLabsKey && !openAiKey) {
-    console.log('💡 To set ElevenLabs key: window.ELEVENLABS_API_KEY = "your_key"');
+  const hasElevenLabsAuth = elevenLabsKey || (elevenLabsUsername && elevenLabsPassword);
+  
+  if (!hasElevenLabsAuth && !openAiKey) {
+    console.log('💡 To set ElevenLabs API key: window.ELEVENLABS_API_KEY = "your_key"');
+    console.log('💡 To set ElevenLabs username/password: window.ELEVENLABS_USERNAME = "user"; window.ELEVENLABS_PASSWORD = "pass"');
     console.log('💡 To set OpenAI key: window.OPENAI_API_KEY = "your_key"');
     console.log('💡 Or set VITE_ELEVENLABS_API_KEY / VITE_OPENAI_API_KEY in .env file');
   }
   
-  return { elevenLabsKey: !!elevenLabsKey, openAiKey: !!openAiKey };
+  return { 
+    elevenLabsKey: !!elevenLabsKey, 
+    elevenLabsUsername: !!elevenLabsUsername,
+    elevenLabsPassword: !!elevenLabsPassword,
+    hasElevenLabsAuth,
+    openAiKey: !!openAiKey 
+  };
 }
 
 // Browser globals for testing

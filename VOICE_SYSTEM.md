@@ -2,6 +2,35 @@
 
 A comprehensive, multi-provider voice input/output system designed specifically for Spectra's personality and communication style.
 
+## 🚀 Quick Installation & Setup
+
+### 1. Install Dependencies
+```bash
+npm install openai
+```
+
+### 2. Environment Configuration (Optional)
+For premium voice features, configure API keys:
+
+#### ElevenLabs (Recommended for Spectra Voice)
+```bash
+# .env file
+VITE_ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+```
+
+#### OpenAI (Alternative)
+```bash
+# .env file  
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+```
+
+### 3. Basic Usage Test
+```javascript
+// Test in browser console
+window.ELEVENLABS_API_KEY = "your_key"; // or set in .env
+testSpectraVoice();
+```
+
 ## 🌟 Features
 
 - **Multi-Provider Support**: ElevenLabs, OpenAI, and Web Speech API

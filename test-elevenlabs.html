@@ -35,13 +35,20 @@
             margin-bottom: 20px;
         }
         
-        input[type="text"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
             border: none;
             border-radius: 5px;
-            margin: 10px 0;
+            margin: 5px 0;
             box-sizing: border-box;
+            font-size: 14px;
+        }
+        
+        label {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
         }
         
         button {
@@ -100,11 +107,29 @@
         <h1><span class="emoji">✨</span> Spectra ElevenLabs Voice Test <span class="emoji">🎵</span></h1>
         
         <div class="api-key-section">
-            <h3>ElevenLabs API Key Setup</h3>
-            <input type="text" id="apiKeyInput" placeholder="Enter your ElevenLabs API key here...">
-            <button onclick="setApiKey()">Set API Key</button>
+            <h3>ElevenLabs Authentication Setup</h3>
+            
+            <!-- Username and Password Fields -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <div>
+                    <label for="usernameInput" style="display: block; margin-bottom: 5px; font-weight: bold;">Username:</label>
+                    <input type="text" id="usernameInput" placeholder="Enter username..." value="Test">
+                </div>
+                <div>
+                    <label for="passwordInput" style="display: block; margin-bottom: 5px; font-weight: bold;">Password:</label>
+                    <input type="password" id="passwordInput" placeholder="Enter password..." value="test">
+                </div>
+            </div>
+            
+            <!-- API Key Field -->
+            <div style="margin-bottom: 15px;">
+                <label for="apiKeyInput" style="display: block; margin-bottom: 5px; font-weight: bold;">API Key:</label>
+                <input type="text" id="apiKeyInput" placeholder="Enter your ElevenLabs API key here...">
+            </div>
+            
+            <button onclick="setCredentials()">Set Credentials</button>
             <div class="warning">
-                <strong>Note:</strong> Your API key is only stored temporarily in browser memory for testing. 
+                <strong>Note:</strong> Credentials are stored temporarily in browser memory for testing. 
                 Get your ElevenLabs API key from <a href="https://elevenlabs.io/" target="_blank" style="color: #ffc107;">elevenlabs.io</a>
             </div>
         </div>
@@ -147,7 +172,45 @@
             statusLog.scrollTop = statusLog.scrollHeight;
         }
         
+        window.setCredentials = function() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            
+            // Log current credential values for testing
+            log('🔐 Setting ElevenLabs credentials...');
+            log(`👤 Username: ${username || '(not provided)'}`);
+            log(`🔑 Password: ${password ? '***' : '(not provided)'}`);
+            log(`🗝️ API Key: ${apiKey ? apiKey.substring(0, 8) + '...' : '(not provided)'}`);
+            
+            // Store credentials in window for the voice system to detect
+            if (username) {
+                window.ELEVENLABS_USERNAME = username;
+                log('✅ Username set successfully');
+            }
+            
+            if (password) {
+                window.ELEVENLABS_PASSWORD = password;
+                log('✅ Password set successfully');
+            }
+            
+            if (apiKey) {
+                window.ELEVENLABS_API_KEY = apiKey;
+                log('✅ API key set successfully');
+            }
+            
+            if (username || password || apiKey) {
+                log('🔄 Initializing ElevenLabs voice system...');
+                // Import and initialize the voice system
+                initializeVoiceSystem();
+            } else {
+                log('❌ Please enter at least one credential (username, password, or API key)');
+            }
+        };
+        
+        // Keep the old function for backward compatibility
         window.setApiKey = function() {
+            log('⚠️ Using legacy setApiKey function. Consider using setCredentials() instead.');
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
                 log('❌ Please enter a valid API key');
@@ -235,15 +298,30 @@
         };
         
         window.checkVoices = function() {
-            if (!window.ELEVENLABS_API_KEY) {
-                log('❌ Please set API key first');
+            const hasUsername = !!window.ELEVENLABS_USERNAME;
+            const hasPassword = !!window.ELEVENLABS_PASSWORD;
+            const hasApiKey = !!window.ELEVENLABS_API_KEY;
+            
+            log('🔍 Checking credentials and available voices...');
+            log(`👤 Username: ${hasUsername ? '✅ Set (' + window.ELEVENLABS_USERNAME + ')' : '❌ Not set'}`);
+            log(`🔑 Password: ${hasPassword ? '✅ Set' : '❌ Not set'}`);
+            log(`🗝️ API Key: ${hasApiKey ? '✅ Set' : '❌ Not set'}`);
+            
+            if (!hasUsername && !hasPassword && !hasApiKey) {
+                log('❌ Please set credentials first using the form above');
                 return;
             }
             
-            log('🔍 Checking available voices...');
             log('✨ Found: Spectra (Primary voice model)');
             log('🎭 Fallback: Rachel, Bella, Sarah (Feminine voices)');
             log('🔄 System configured for optimal compatibility');
+            
+            if (hasUsername && hasPassword) {
+                log('🔐 Username/password authentication available');
+            }
+            if (hasApiKey) {
+                log('🔑 API key authentication available');
+            }
         };
         
         window.stopSpeech = function() {
@@ -253,7 +331,8 @@
         
         // Initialize on load
         log('🚀 ElevenLabs integration test page loaded');
-        log('📋 Enter your API key above to begin testing Spectra\'s voice');
+        log('📋 Enter your credentials above to begin testing Spectra\'s voice');
+        log('💡 Default test credentials: Username="Test", Password="test"');
     </script>
 </body>
 </html>

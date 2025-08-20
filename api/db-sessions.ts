@@ -75,7 +75,7 @@ class DatabaseService {
     const session: ConversationSession = {
       id: sessionKey,
       sessionKey,
-      userId: data.userId,
+      ...(data.userId !== undefined && { userId: data.userId }),
       messages: data.messages || [],
       metadata: data.metadata || {},
       createdAt: new Date().toISOString(),

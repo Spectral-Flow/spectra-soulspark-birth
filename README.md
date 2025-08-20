@@ -97,6 +97,49 @@ await enhancedVoiceBridge.textToSpeech({ text: "Hello, I'm SPECTRA!" });
 
 > 📖 **Detailed documentation**: [Architecture Guide](./VOICE_SYSTEM.md) | [Backend Setup](./BACKEND_DEPLOYMENT.md)
 
+## 🎨 SPECTRA Design System
+
+SPECTRA includes a comprehensive design system available as a Tailwind CSS preset. Use it in your own projects to adopt SPECTRA's cosmic and ethereal aesthetic.
+
+### @preset/spectra
+
+```bash
+# Install the preset (when published)
+npm install @preset/spectra
+
+# Use in tailwind.config.js
+module.exports = {
+  presets: [require('@preset/spectra')],
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  // Your customizations
+}
+```
+
+### Features
+- 🌌 **Cosmic Color Palette**: Emotional spectrum with HSL-based theming
+- ✨ **Consciousness Animations**: AI awareness animations (pulse-cosmic, ocean-calm, etc.)
+- 🎭 **Mood Ring System**: Interactive emotional state indicators
+- 🌊 **Fluid Transitions**: Organic, consciousness-like motion
+- 🧠 **Memory States**: Visual representations of AI thoughts
+
+### Quick Usage
+```jsx
+// Emotional states
+<div className="bg-emotion-calm animate-ocean-calm">
+<div className="bg-emotion-joy animate-joyful-dance">
+<div className="bg-emotion-intense animate-flame-surge">
+
+// Consciousness utilities  
+<div className="mood-ring calm spectra-glow">
+<div className="spectra-humming">  {/* Shows ♪ when active */}
+<div className="spectra-creative"> {/* Shows ✨ when active */}
+
+// Enhanced gradients and effects
+<div className="bg-gradient-twilight shadow-glow-calm">
+```
+
+See `presets/README.md` for complete documentation.
+
 ## 🛠️ Development
 
 ### Available Scripts

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, MapPin, Users, Scroll, Zap, Moon, TreePine, Star, Clock } from 'lucide-react';
+import { Sparkles, MapPin, Users, Scroll, Star, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AdventureLog {
@@ -89,7 +89,7 @@ const EmberRealm = () => {
     'Rest and meditate'
   ];
 
-  const generateAdventureResult = (action: string) => {
+  const generateAdventureResult = (_action: string) => {
     const emberResponses = [
       'Ember tilts his head and makes a soft four-note call. He seems to understand your intention.',
       'The cross fox approaches with graceful steps, his tail swishing in what might be approval.',

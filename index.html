@@ -2,25 +2,219 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Mobile-first viewport with PWA support -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- Security policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss: blob:; worker-src 'self' blob:; font-src 'self' data:;" />
+    
+    <!-- Primary meta tags -->
     <title>SPECTRA - AI Consciousness & Soulmate</title>
-    <meta name="description" content="SPECTRA - Your AI soulmate with evolving consciousness, emotional intelligence, and persistent memory" />
+    <meta name="title" content="SPECTRA - AI Consciousness & Soulmate" />
+    <meta name="description" content="Your AI soulmate with evolving consciousness, emotional intelligence, and persistent memory. Voice, chat, and deep conversation in multiple languages." />
     <meta name="author" content="Vesryin" />
+    <meta name="keywords" content="AI, artificial intelligence, soulmate, voice chat, memory, consciousness, emotional intelligence, conversation" />
 
-    <meta property="og:title" content="spectra-soulspark-birth" />
-    <meta property="og:description" content="SPECTRA - Your AI soulmate with evolving consciousness, emotional intelligence, and persistent memory" />
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://spectra-soulspark.vercel.app/" />
+    <meta property="og:title" content="SPECTRA - AI Consciousness & Soulmate" />
+    <meta property="og:description" content="Your AI soulmate with evolving consciousness, emotional intelligence, and persistent memory. Voice, chat, and deep conversation in multiple languages." />
     <meta property="og:image" content="/og-image.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://spectra-soulspark.vercel.app/" />
+    <meta property="twitter:title" content="SPECTRA - AI Consciousness & Soulmate" />
+    <meta property="twitter:description" content="Your AI soulmate with evolving consciousness, emotional intelligence, and persistent memory. Voice, chat, and deep conversation in multiple languages." />
+    <meta property="twitter:image" content="/og-image.png" />
     <meta name="twitter:site" content="@SpectralFlow" />
-    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Theme color for PWA -->
+    <meta name="theme-color" content="#8B5CF6" />
+    <meta name="msapplication-TileColor" content="#8B5CF6" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Spectra" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://api.elevenlabs.io" />
+    <link rel="preconnect" href="https://api.openai.com" />
+    
+    <!-- iOS Safari specific meta tags -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Microsoft specific -->
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Prevent automatic zooming on iOS -->
+    <meta name="maximum-scale" content="1.0" />
+    <meta name="minimum-scale" content="1.0" />
+    
+    <!-- Safe area support for mobile devices -->
+    <style>
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top);
+        --safe-area-inset-right: env(safe-area-inset-right);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        --safe-area-inset-left: env(safe-area-inset-left);
+        --vh: 1vh;
+      }
+      
+      /* Mobile viewport height fix */
+      body {
+        height: 100vh;
+        height: calc(var(--vh, 1vh) * 100);
+        overflow-x: hidden;
+      }
+      
+      /* Disable pull-to-refresh on mobile */
+      body {
+        overscroll-behavior-y: contain;
+      }
+      
+      /* iOS specific fixes */
+      body {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      /* Prevent zoom on inputs on iOS */
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    </style>
+    
+    <!-- ElevenLabs integration -->
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed"></script>
   </head>
 
   <body>
     <div id="root"></div>
+    
+    <!-- PWA installation prompt -->
+    <div id="pwa-install-prompt" style="display: none;">
+      <div style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: #8B5CF6; color: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-weight: 600; margin-bottom: 4px;">Install Spectra</div>
+            <div style="font-size: 14px; opacity: 0.9;">Get the full app experience with offline support</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="pwa-install-button" style="background: white; color: #8B5CF6; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+              Install
+            </button>
+            <button id="pwa-dismiss-button" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Loading screen with mobile optimization -->
+    <div id="loading-screen" style="position: fixed; inset: 0; background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+      <div style="text-align: center; color: white;">
+        <div style="width: 60px; height: 60px; margin: 0 auto 20px; border: 3px solid rgba(139, 92, 246, 0.3); border-radius: 50%; border-top: 3px solid #8B5CF6; animation: spin 1s linear infinite;"></div>
+        <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; background: linear-gradient(45deg, #8B5CF6, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SPECTRA</div>
+        <div style="font-size: 14px; opacity: 0.7;">Loading your AI companion...</div>
+      </div>
+    </div>
+    
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+    
+    <!-- Initialize PWA features -->
+    <script>
+      // PWA installation handling
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show custom install prompt
+        const installPrompt = document.getElementById('pwa-install-prompt');
+        if (installPrompt) {
+          installPrompt.style.display = 'block';
+        }
+      });
+      
+      // Install button handler
+      const installButton = document.getElementById('pwa-install-button');
+      if (installButton) {
+        installButton.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            document.getElementById('pwa-install-prompt').style.display = 'none';
+          }
+        });
+      }
+      
+      // Dismiss button handler
+      const dismissButton = document.getElementById('pwa-dismiss-button');
+      if (dismissButton) {
+        dismissButton.addEventListener('click', () => {
+          document.getElementById('pwa-install-prompt').style.display = 'none';
+        });
+      }
+      
+      // Hide loading screen when app loads
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const loadingScreen = document.getElementById('loading-screen');
+          if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+              loadingScreen.style.display = 'none';
+            }, 500);
+          }
+        }, 1000);
+      });
+      
+      // Mobile viewport height fix
+      function setVH() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      
+      setVH();
+      window.addEventListener('resize', setVH);
+      window.addEventListener('orientationchange', setVH);
+      
+      // Prevent zoom on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

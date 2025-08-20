@@ -7,3 +7,4 @@
 
 export { SimpleConversation } from './SimpleConversation';
 export { SignedUrlConversation } from './SignedUrlConversation';
+export { NextJSTutorial } from './NextJSTutorial';

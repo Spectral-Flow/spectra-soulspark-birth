@@ -11,6 +11,7 @@ interface VoiceConfig {
   preferBackend?: boolean;
   preferElevenLabs?: boolean;
   preferOpenAI?: boolean;
+  preferHuggingFace?: boolean;
   enableStreaming?: boolean;
   fallbackToWebSpeech?: boolean;
 }
@@ -25,7 +26,7 @@ interface TTSRequest {
 interface TTSResponse {
   audio?: Blob | ArrayBuffer;
   error?: string;
-  service: 'backend-elevenlabs' | 'backend-openai' | 'elevenlabs' | 'openai' | 'webspeech';
+  service: 'backend-elevenlabs' | 'backend-openai' | 'backend-huggingface' | 'elevenlabs' | 'openai' | 'webspeech';
 }
 
 export class EnhancedVoiceBridge {
@@ -186,13 +187,26 @@ export class EnhancedVoiceBridge {
    */
   async chatCompletion(messages: any[], options: any = {}): Promise<any> {
     if (this.backendAvailable && this.config.preferBackend) {
+      // Try Hugging Face first if preferred
+      if (this.config.preferHuggingFace) {
+        try {
+          const response = await backendApi.huggingFaceChat(messages, options);
+          if (response.data && !response.error) {
+            return response.data;
+          }
+        } catch (error) {
+          console.warn('Backend Hugging Face chat API failed:', error);
+        }
+      }
+
+      // Try OpenAI backend
       try {
         const response = await backendApi.openAIChat(messages, options);
         if (response.data && !response.error) {
           return response.data;
         }
       } catch (error) {
-        console.warn('Backend chat API failed:', error);
+        console.warn('Backend OpenAI chat API failed:', error);
       }
     }
 

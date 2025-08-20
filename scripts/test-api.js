@@ -66,6 +66,28 @@ async function testAPI() {
       method: 'GET',
     },
     {
+      name: 'OpenAI Chat',
+      path: '/api/openai/chat',
+      method: 'POST',
+      body: {
+        messages: [{ role: 'user', content: 'Hello' }],
+        model: 'gpt-4',
+        temperature: 0.7,
+        max_tokens: 50,
+      },
+    },
+    {
+      name: 'Hugging Face Chat',
+      path: '/api/huggingface/chat',
+      method: 'POST',
+      body: {
+        messages: [{ role: 'user', content: 'What is the capital of France?' }],
+        model: 'openai/gpt-oss-20b:fireworks-ai',
+        temperature: 0.7,
+        max_tokens: 50,
+      },
+    },
+    {
       name: 'Session Creation',
       path: '/api/sessions',
       method: 'POST',

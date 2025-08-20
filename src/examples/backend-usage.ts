@@ -61,6 +61,36 @@ async function chatWithAI(message: string) {
   }
 }
 
+// Example 2a: Chat with Hugging Face models specifically
+async function chatWithHuggingFace(message: string) {
+  try {
+    const messages = [
+      { role: 'user', content: message }
+    ];
+
+    // Use Hugging Face router directly
+    const response = await backendApi.huggingFaceChat(messages, {
+      model: 'openai/gpt-oss-20b:fireworks-ai',
+      temperature: 0.7,
+      max_tokens: 150,
+    });
+
+    const aiResponse = (response.data as any)?.choices?.[0]?.message?.content;
+    
+    if (aiResponse) {
+      console.log('Hugging Face AI Response:', aiResponse);
+      
+      // Speak the response
+      await speakText(aiResponse);
+    }
+
+    return aiResponse;
+  } catch (error) {
+    console.error('Hugging Face chat error:', error);
+    return 'Sorry, I encountered an error with Hugging Face.';
+  }
+}
+
 // Example 3: User session management
 async function createUserSession() {
   try {
@@ -200,6 +230,7 @@ export function useSpectraVoice() {
 export {
   speakText,
   chatWithAI,
+  chatWithHuggingFace,
   createUserSession,
   continuePersistentConversation,
   checkServiceStatus,

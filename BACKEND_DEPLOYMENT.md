@@ -135,6 +135,7 @@ The SPECTRA application now includes a complete backend infrastructure that can 
 | `/api/elevenlabs/signed-url` | POST | Get signed URL for conversations |
 | `/api/openai/tts` | POST | Text-to-speech via OpenAI |
 | `/api/openai/chat` | POST | Chat completions |
+| `/api/huggingface/chat` | POST | Chat completions via Hugging Face router |
 | `/api/auth/user` | POST | User authentication |
 | `/api/sessions` | GET/POST/PUT/DELETE | Session management |
 | `/api/db-sessions` | GET/POST/PUT/DELETE | Database-backed sessions |
@@ -143,9 +144,10 @@ The SPECTRA application now includes a complete backend infrastructure that can 
 
 #### Required Backend Variables
 ```bash
-# API Keys (choose one or both)
+# API Keys (choose one or more)
 ELEVENLABS_API_KEY=sk-...           # ElevenLabs API key
 OPENAI_API_KEY=sk-...               # OpenAI API key
+HF_TOKEN=hf_...                     # Hugging Face token for router
 
 # Security
 JWT_SECRET=your-secret-min-32-chars  # JWT signing secret

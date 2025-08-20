@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugging Face Router Test - SPECTRA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .output {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #ff6b6b; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Hugging Face Router Test</h1>
+        
+        <div class="test-section">
+            <h3>Test Hugging Face Chat API</h3>
+            <p>This tests the new Hugging Face router endpoint that mimics the OpenAI API.</p>
+            <button onclick="testHuggingFaceChat()">Test HF Chat</button>
+            <button onclick="testOpenAIChat()">Test OpenAI Chat (comparison)</button>
+            <button onclick="testHealthCheck()">Test Health Check</button>
+            <div id="output" class="output">Click a button to run tests...</div>
+        </div>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function testHuggingFaceChat() {
+            log('🚀 Testing Hugging Face Router Chat API...', 'info');
+            
+            try {
+                const response = await fetch('/api/huggingface/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            {
+                                role: 'user',
+                                content: 'What is the capital of France?'
+                            }
+                        ],
+                        model: 'openai/gpt-oss-20b:fireworks-ai',
+                        temperature: 0.7,
+                        max_tokens: 100
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Hugging Face Chat API Success!', 'success');
+                    log(`Response: ${JSON.stringify(data, null, 2)}`, 'info');
+                    
+                    if (data.choices && data.choices[0] && data.choices[0].message) {
+                        log(`AI Response: "${data.choices[0].message.content}"`, 'success');
+                    }
+                } else {
+                    const error = await response.text();
+                    log(`❌ HF Chat API Error (${response.status}): ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testOpenAIChat() {
+            log('🚀 Testing OpenAI Chat API (for comparison)...', 'info');
+            
+            try {
+                const response = await fetch('/api/openai/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            {
+                                role: 'user',
+                                content: 'What is the capital of France?'
+                            }
+                        ],
+                        model: 'gpt-4',
+                        temperature: 0.7,
+                        max_tokens: 100
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ OpenAI Chat API Success!', 'success');
+                    log(`Response: ${JSON.stringify(data, null, 2)}`, 'info');
+                    
+                    if (data.choices && data.choices[0] && data.choices[0].message) {
+                        log(`AI Response: "${data.choices[0].message.content}"`, 'success');
+                    }
+                } else {
+                    const error = await response.text();
+                    log(`❌ OpenAI Chat API Error (${response.status}): ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHealthCheck() {
+            log('🏥 Testing Health Check...', 'info');
+            
+            try {
+                const response = await fetch('/api/health');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Health Check Success!', 'success');
+                    log(`Status: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    const error = await response.text();
+                    log(`❌ Health Check Error (${response.status}): ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Log initial message
+        log('Ready to test APIs. Make sure HF_TOKEN is set in environment variables.', 'info');
+    </script>
+</body>
+</html>

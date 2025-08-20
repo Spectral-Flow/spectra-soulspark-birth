@@ -46,6 +46,16 @@ window.addEventListener('unhandledrejection', (event) => {
 try {
   createRoot(document.getElementById("root")!).render(<App />);
   console.log('✨ React app initialized successfully');
+  
+  // Hide loading screen immediately when React app is ready
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.opacity = '0';
+    loadingScreen.style.transition = 'opacity 0.5s ease';
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+    }, 500);
+  }
 } catch (error) {
   console.error('Failed to initialize React app:', error);
   

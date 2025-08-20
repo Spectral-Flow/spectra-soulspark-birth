@@ -140,7 +140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         topics
       });
 
-      res.status(201).json({ memory });
+      return res.status(201).json({ memory });
     } catch (error) {
       console.error('Memory add error:', error);
       return res.status(500).json({ 

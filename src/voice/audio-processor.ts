@@ -1,12 +1,16 @@
 /**
  * Audio Processing Manager with AudioWorklet and ScriptProcessorNode fallback
  * Provides cross-browser audio processing for Spectra voice system
+ * Enhanced with Android compatibility detection and retry mechanisms
  */
+
+import { MobileOptimization } from '../lib/mobile-support';
 
 export interface AudioProcessorConfig {
   bufferSize?: number;
   onAudioData?: (audioData: Float32Array) => void;
   onError?: (error: Error) => void;
+  onCompatibilityWarning?: (warning: { message: string; recommendation?: string }) => void;
 }
 
 export class SpectraAudioProcessor {
@@ -27,17 +31,83 @@ export class SpectraAudioProcessor {
   }
 
   /**
-   * Check if AudioWorklet is supported
+   * Check if AudioWorklet is supported with Android-specific compatibility checks
    */
   static isAudioWorkletSupported(): boolean {
     try {
-      return (
+      const basicSupport = (
         typeof AudioContext !== 'undefined' &&
         typeof AudioContext.prototype.audioWorklet !== 'undefined' &&
         typeof AudioWorkletNode !== 'undefined'
       );
+
+      if (!basicSupport) {
+        return false;
+      }
+
+      // Additional Android compatibility check
+      const mobile = MobileOptimization.getInstance();
+      if (mobile.isAndroid()) {
+        const androidCompat = mobile.isAudioWorkletCompatibleOnAndroid();
+        return androidCompat.compatible;
+      }
+
+      return true;
     } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * Get detailed AudioWorklet compatibility information
+   */
+  static getAudioWorkletCompatibility(): { 
+    supported: boolean; 
+    reason?: string; 
+    recommendation?: string;
+    fallbackAvailable: boolean;
+  } {
+    const mobile = MobileOptimization.getInstance();
+    
+    try {
+      const basicSupport = (
+        typeof AudioContext !== 'undefined' &&
+        typeof AudioContext.prototype.audioWorklet !== 'undefined' &&
+        typeof AudioWorkletNode !== 'undefined'
+      );
+
+      if (!basicSupport) {
+        return {
+          supported: false,
+          reason: 'AudioWorklet API not available in this browser',
+          recommendation: 'Update your browser to a version that supports AudioWorklet (Chrome 64+, Firefox 76+)',
+          fallbackAvailable: typeof AudioContext !== 'undefined' && 
+                           typeof AudioContext.prototype.createScriptProcessor === 'function'
+        };
+      }
+
+      // Check Android-specific compatibility
+      if (mobile.isAndroid()) {
+        const androidCompat = mobile.isAudioWorkletCompatibleOnAndroid();
+        return {
+          supported: androidCompat.compatible,
+          reason: androidCompat.reason,
+          recommendation: androidCompat.recommendation,
+          fallbackAvailable: true
+        };
+      }
+
+      return {
+        supported: true,
+        fallbackAvailable: true
+      };
+    } catch (error) {
+      return {
+        supported: false,
+        reason: 'Error checking AudioWorklet compatibility',
+        recommendation: 'Try refreshing the page or updating your browser',
+        fallbackAvailable: true
+      };
     }
   }
 
@@ -46,6 +116,15 @@ export class SpectraAudioProcessor {
    */
   async initialize(): Promise<void> {
     try {
+      // Check compatibility and provide warnings
+      const compatibility = SpectraAudioProcessor.getAudioWorkletCompatibility();
+      if (!compatibility.supported && compatibility.reason && this.config.onCompatibilityWarning) {
+        this.config.onCompatibilityWarning({
+          message: compatibility.reason,
+          recommendation: compatibility.recommendation
+        });
+      }
+
       // Get user media
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -77,40 +156,104 @@ export class SpectraAudioProcessor {
   }
 
   /**
-   * Initialize AudioWorklet processing
+   * Initialize AudioWorklet processing with retry logic for Android compatibility
    */
   private async initializeWorklet(): Promise<void> {
     if (!this.audioContext || !this.sourceNode) {
       throw new Error('Audio context not initialized');
     }
 
-    try {
-      // Load worklet module
-      await this.audioContext.audioWorklet.addModule('/audio-worklet.js');
-      
-      // Create worklet node
-      this.workletNode = new AudioWorkletNode(this.audioContext, 'spectra-audio-processor');
-      
-      // Handle messages from worklet
-      this.workletNode.port.onmessage = (event) => {
-        const { type, data } = event.data;
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔧 Attempting AudioWorklet initialization (attempt ${attempt}/${maxRetries})`);
         
-        if (type === 'audioData' && this.config.onAudioData) {
-          this.config.onAudioData(data);
+        // Load worklet module with timeout
+        await this.loadWorkletModuleWithTimeout('/audio-worklet.js', 10000);
+        
+        // Create worklet node
+        this.workletNode = new AudioWorkletNode(this.audioContext, 'spectra-audio-processor');
+        
+        // Handle messages from worklet
+        this.workletNode.port.onmessage = (event) => {
+          const { type, data } = event.data;
+          
+          if (type === 'audioData' && this.config.onAudioData) {
+            this.config.onAudioData(data);
+          }
+        };
+
+        // Handle worklet errors
+        this.workletNode.addEventListener('processorerror', (event) => {
+          console.error('AudioWorklet processor error:', event);
+          this.config.onError?.(new Error(`AudioWorklet processor error: ${event.type}`));
+        });
+
+        // Connect audio graph
+        this.sourceNode.connect(this.workletNode);
+        this.workletNode.connect(this.audioContext.destination);
+        
+        this.usingWorklet = true;
+        console.log('✅ AudioWorklet initialized successfully');
+        return; // Success, exit retry loop
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.warn(`AudioWorklet initialization attempt ${attempt} failed:`, lastError.message);
+        
+        // Clean up any partially created nodes
+        if (this.workletNode) {
+          try {
+            this.workletNode.disconnect();
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+          this.workletNode = null;
         }
-      };
 
-      // Connect audio graph
-      this.sourceNode.connect(this.workletNode);
-      this.workletNode.connect(this.audioContext.destination);
-      
-      this.usingWorklet = true;
-      console.log('✅ AudioWorklet initialized successfully');
-
-    } catch (error) {
-      console.warn('AudioWorklet initialization failed, falling back to ScriptProcessorNode:', error);
-      this.initializeScriptProcessor();
+        // Wait before retry (exponential backoff)
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          console.log(`⏳ Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
+
+    // All retries failed, fall back to ScriptProcessorNode
+    console.warn('All AudioWorklet initialization attempts failed, falling back to ScriptProcessorNode:', lastError?.message);
+    this.initializeScriptProcessor();
+  }
+
+  /**
+   * Load worklet module with timeout to handle Android loading issues
+   */
+  private async loadWorkletModuleWithTimeout(url: string, timeout: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`AudioWorklet module loading timed out after ${timeout}ms. This may indicate Android WebView compatibility issues.`));
+      }, timeout);
+
+      this.audioContext!.audioWorklet.addModule(url)
+        .then(() => {
+          clearTimeout(timeoutId);
+          resolve();
+        })
+        .catch((error) => {
+          clearTimeout(timeoutId);
+          // Enhance error message for common Android issues
+          let enhancedError = error;
+          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            enhancedError = new Error(
+              `Failed to load AudioWorklet module. This is often caused by outdated Android System WebView. ` +
+              `Original error: ${error.message}`
+            );
+          }
+          reject(enhancedError);
+        });
+    });
   }
 
   /**
@@ -246,13 +389,16 @@ export function createAudioProcessor(config?: AudioProcessorConfig): SpectraAudi
 }
 
 /**
- * Utility function to check browser audio support
+ * Utility function to check browser audio support with enhanced Android compatibility
  */
 export function getBrowserAudioSupport() {
+  const compatibility = SpectraAudioProcessor.getAudioWorkletCompatibility();
+  
   return {
     getUserMedia: typeof navigator?.mediaDevices?.getUserMedia === 'function',
     audioContext: typeof AudioContext !== 'undefined',
-    audioWorklet: SpectraAudioProcessor.isAudioWorkletSupported(),
+    audioWorklet: compatibility.supported,
+    audioWorkletDetails: compatibility,
     scriptProcessor: typeof AudioContext !== 'undefined' && 
                     typeof AudioContext.prototype.createScriptProcessor === 'function'
   };

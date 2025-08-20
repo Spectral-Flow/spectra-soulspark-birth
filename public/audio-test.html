@@ -109,7 +109,7 @@
     </div>
 
     <script type="module">
-        import { SpectraAudioProcessor, getBrowserAudioSupport } from '/dist/assets/voice-DHKaf0X3.js';
+        import { SpectraAudioProcessor, getBrowserAudioSupport } from '/dist/assets/voice-BxH5QWuH.js';
 
         let audioProcessor = null;
 
@@ -160,12 +160,32 @@
             html += `<li>AudioWorklet: ${support.audioWorklet ? '✅' : '❌'}</li>`;
             html += `<li>ScriptProcessor: ${support.scriptProcessor ? '✅' : '❌'}</li>`;
             html += '</ul>';
+
+            // Add detailed compatibility information
+            if (support.audioWorkletDetails) {
+                const details = support.audioWorkletDetails;
+                if (!details.supported && details.reason) {
+                    html += `<div class="error" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px;">
+                        <strong>⚠️ AudioWorklet Compatibility Issue:</strong><br>
+                        ${details.reason}
+                        ${details.recommendation ? `<br><br><strong>💡 Recommendation:</strong><br>${details.recommendation}` : ''}
+                        ${details.fallbackAvailable ? '<br><br>✅ ScriptProcessorNode fallback is available.' : ''}
+                    </div>`;
+                }
+            }
+
             supportInfoEl.innerHTML = html;
 
             if (support.audioWorklet) {
                 log('🎉 AudioWorklet is supported!', 'success');
             } else if (support.scriptProcessor) {
                 log('⚠️ AudioWorklet not supported, will use ScriptProcessorNode fallback', 'warn');
+                if (support.audioWorkletDetails?.reason) {
+                    log(`ℹ️ Reason: ${support.audioWorkletDetails.reason}`, 'info');
+                }
+                if (support.audioWorkletDetails?.recommendation) {
+                    log(`💡 Recommendation: ${support.audioWorkletDetails.recommendation}`, 'info');
+                }
             } else {
                 log('❌ No audio processing support detected', 'error');
             }
@@ -191,6 +211,12 @@
                     onError: (error) => {
                         log(`❌ Audio error: ${error.message}`, 'error');
                         statusEl.textContent = 'Error';
+                    },
+                    onCompatibilityWarning: (warning) => {
+                        log(`⚠️ Compatibility Warning: ${warning.message}`, 'warn');
+                        if (warning.recommendation) {
+                            log(`💡 Recommendation: ${warning.recommendation}`, 'info');
+                        }
                     }
                 });
 

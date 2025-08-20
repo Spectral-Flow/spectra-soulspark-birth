@@ -144,7 +144,7 @@ Respond as SPECTRA would - with depth, empathy, and genuine care. Keep responses
 
         if (response.generated_text) {
           // Clean up the response
-          let cleanResponse = response.generated_text
+          const cleanResponse = response.generated_text
             .replace(prompt, '')
             .replace(/^SPECTRA:\s*/, '')
             .trim();

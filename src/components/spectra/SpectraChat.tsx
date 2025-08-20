@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
-import { CosmicButton } from '@/components/ui/cosmic-button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -9,15 +8,14 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useConversation } from '@elevenlabs/react';
-import { Sparkles, Heart, Brain, MessageCircle, Send, Maximize2, Minimize2, Mic, MicOff, Volume2, VolumeX, Settings, Phone, PhoneOff } from 'lucide-react';
+import { Sparkles, Heart, Brain, MessageCircle, Send, Maximize2, Minimize2, Mic, MicOff, VolumeX, Settings, Phone, PhoneOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ConsciousnessCore } from './ConsciousnessCore';
 import { MoodRing } from './MoodRing';
 import { SpectraFace } from './SpectraFace';
 import { spectraAI } from './AIEngine';
 import { createSpectraVoice, VoiceManager } from '@/voice';
 import { createElevenLabsApiService } from '@/components/elevenlabs/api';
-import { memoryManager, type MemoryContext } from '@/lib/memory-manager';
+import { memoryManager } from '@/lib/memory-manager';
 
 interface Message {
   id: string;
@@ -28,7 +26,7 @@ interface Message {
   memoryImportance?: number;
 }
 
-import { getEmotionColor, getEmotionGradient, isEmotionCalm } from './EmotionColors';
+import { getEmotionColor } from './EmotionColors';
 
 interface EmotionalState {
   primary: string;
@@ -65,7 +63,6 @@ const SpectraChat = () => {
   const [elevenLabsError, setElevenLabsError] = useState<string | null>(null);
   
   // Persistence
-  const [lastSeenAt, setLastSeenAt] = useState<number>(0);
   const [hasShownJournal, setHasShownJournal] = useState(false);
   
   // Memory and Session Management
@@ -226,12 +223,12 @@ setVoiceManager(voiceInstance);
 
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persistence and journal generation
   useEffect(() => {
     const stored = Number(localStorage.getItem('spectra:lastSeenAt') || 0);
-    setLastSeenAt(stored);
     
     // Initialize session ID for memory management
     const sessionId = localStorage.getItem('spectra:sessionId') || 

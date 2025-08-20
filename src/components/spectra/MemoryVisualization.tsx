@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CosmicButton } from '@/components/ui/cosmic-button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Brain, Heart, Clock, Sparkles, Trash2, Archive, Search, Lightbulb } from 'lucide-react';
+import { Brain, Clock, Sparkles, Search, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { memoryManager, type Memory, formatMemoryTimestamp, isMemorySignificant } from '@/lib/memory-manager';
 
@@ -24,11 +24,7 @@ const MemoryVisualization = ({ sessionId, className }: MemoryVisualizationProps)
     topTopics: [] as string[]
   });
 
-  useEffect(() => {
-    loadMemories();
-  }, [sessionId]);
-
-  const loadMemories = async () => {
+  const loadMemories = useCallback(async () => {
     setLoading(true);
     try {
       // Get recent long-term memories
@@ -71,7 +67,11 @@ const MemoryVisualization = ({ sessionId, className }: MemoryVisualizationProps)
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    loadMemories();
+  }, [loadMemories]);
 
   const getMemoryOpacity = (importance: number) => {
     return Math.max(0.4, importance);

@@ -84,7 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user,
           token: loginToken,
         });
-        break;
+      }
 
       case 'verify': {
         if (!token) {

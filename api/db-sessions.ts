@@ -32,6 +32,43 @@ const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
   : null;
 
+// Helper function to parse messages field from database
+function parseMessagesField(raw: unknown): Array<{role: 'user' | 'assistant'; content: string; timestamp: string}> {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      return [];
+    } catch (err) {
+      console.warn('Failed to parse messages JSON:', err);
+      return [];
+    }
+  }
+  
+  // If it's an object, try to convert or return empty array
+  return [];
+}
+
+// Helper function to parse metadata field from database
+function parseMetadataField(raw: unknown): {voiceService?: 'elevenlabs' | 'openai' | 'webspeech'; mood?: string; topics?: string[]} {
+  if (!raw) return {};
+  if (typeof raw === 'object' && raw !== null) return raw as any;
+  
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw);
+    } catch (err) {
+      console.warn('Failed to parse metadata JSON:', err);
+      return {};
+    }
+  }
+  
+  return {};
+}
+
 class DatabaseService {
   async createSession(data: Partial<ConversationSession>): Promise<ConversationSession> {
     const sessionKey = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -83,8 +120,8 @@ class DatabaseService {
         id: data.id,
         sessionKey: data.session_key,
         userId: data.user_id,
-        messages: data.messages || [],
-        metadata: data.metadata || {},
+        messages: parseMessagesField(data.messages),
+        metadata: parseMetadataField(data.metadata),
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -113,8 +150,8 @@ class DatabaseService {
         id: data.id,
         sessionKey: data.session_key,
         userId: data.user_id,
-        messages: data.messages || [],
-        metadata: data.metadata || {},
+        messages: parseMessagesField(data.messages),
+        metadata: parseMetadataField(data.metadata),
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -163,8 +200,8 @@ class DatabaseService {
         id: item.id,
         sessionKey: item.session_key,
         userId: item.user_id,
-        messages: item.messages || [],
-        metadata: item.metadata || {},
+        messages: parseMessagesField(item.messages),
+        metadata: parseMetadataField(item.metadata),
         createdAt: item.created_at,
         updatedAt: item.updated_at,
       }));

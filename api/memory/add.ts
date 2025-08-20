@@ -143,12 +143,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(201).json({ memory });
     } catch (error) {
       console.error('Memory add error:', error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }

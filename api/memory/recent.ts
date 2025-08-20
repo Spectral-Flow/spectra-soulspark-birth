@@ -97,15 +97,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         memoryLimit
       );
 
-      res.status(200).json({ memories });
+      return res.status(200).json({ memories });
     } catch (error) {
       console.error('Memory recent error:', error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }

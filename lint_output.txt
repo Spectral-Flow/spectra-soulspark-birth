@@ -1,0 +1,177 @@
+
+> spectra-soulspark@1.0.0 lint
+> eslint .
+
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/tutorial-examples/SignedUrlConversation.tsx
+  50:6  warning  React Hook useCallback has a missing dependency: 'getSignedUrl'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/tutorial-examples/SimpleConversation.tsx
+  38:6  warning  React Hook useCallback has unnecessary dependencies: 'agentId' and 'conversation'. Either exclude them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/badge.tsx
+  36:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/button.tsx
+  56:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/cosmic-button.tsx
+  59:24  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/error-boundary.tsx
+  177:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/form.tsx
+  168:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/navigation-menu.tsx
+  119:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/sidebar.tsx
+  757:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/sonner.tsx
+  29:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/toggle.tsx
+  43:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/components/ui/voice-training-interface.tsx
+   80:6   warning  React Hook useEffect has a missing dependency: 'loadProfiles'. Either include it or remove the dependency array                                           react-hooks/exhaustive-deps
+  116:6   warning  React Hook useEffect has a missing dependency: 'loadProfiles'. Either include it or remove the dependency array                                           react-hooks/exhaustive-deps
+  260:6   warning  React Hook useEffect has missing dependencies: 'currentScript' and 'getTrainingScripts'. Either include them or remove the dependency array               react-hooks/exhaustive-deps
+  313:71  error    Unexpected any. Specify a different type                                                                                                                  @typescript-eslint/no-explicit-any
+  327:68  error    Unexpected any. Specify a different type                                                                                                                  @typescript-eslint/no-explicit-any
+  341:70  error    Unexpected any. Specify a different type                                                                                                                  @typescript-eslint/no-explicit-any
+  408:38  error    React Hook "useCustomVoice" cannot be called inside a callback. React Hooks must be called in a React function component or a custom React Hook function  react-hooks/rules-of-hooks
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/examples/backend-usage.ts
+   78:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:77  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:94  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/examples/memory-usage.ts
+    6:30  error  'Memory' is defined but never used        @typescript-eslint/no-unused-vars
+  165:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  169:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  173:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/hooks/use-toast.ts
+  18:7  error  'actionTypes' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/lib/backend-api.ts
+    6:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  175:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/lib/i18n.ts
+  456:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  469:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/lib/logger.ts
+   36:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   48:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   61:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   65:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/lib/mobile-support.ts
+   41:27   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   96:33   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  196:18   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  198:18   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  200:22   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  200:65   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  207:18   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  208:24   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  209:22   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  210:22   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  367:38   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  367:71   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  367:107  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  385:45   error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  448:6    warning  React Hook useEffect has a missing dependency: 'installManager'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  480:6    warning  React Hook useEffect has a missing dependency: 'mobile'. Either include it or remove the dependency array          react-hooks/exhaustive-deps
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/lib/performance.ts
+   12:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   35:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   40:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   55:90  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  240:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/main.tsx
+  12:10  error  'i18n' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/audio-processor.ts
+   56:14  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  104:14  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  210:20  error  'e' is defined but never used      @typescript-eslint/no-unused-vars
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/elevenlabs_integration.ts
+  317:20  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  412:26  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/index.ts
+  29:18  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  32:14  error  'error' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  35:12  error  'error' is defined but never used                                        @typescript-eslint/no-unused-vars
+  45:18  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  46:18  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  47:18  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  52:14  error  'error' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  55:12  error  'error' is defined but never used                                        @typescript-eslint/no-unused-vars
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/openai_integration.ts
+   78:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  209:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  209:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  215:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  217:14  error  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/speech_to_text.ts
+  29:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:79  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/streaming-test.ts
+  91:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/test.ts
+   83:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:75  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:75  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/spectra-soulspark-birth/spectra-soulspark-birth/src/voice/voice_manager.ts
+  96:33  error  'transcript' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 112 problems (96 errors, 16 warnings)
+

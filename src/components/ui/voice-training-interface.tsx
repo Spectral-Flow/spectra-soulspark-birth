@@ -17,20 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Mic, 
-  MicOff, 
   Play, 
   Pause, 
   Square, 
   Trash2, 
-  Download, 
-  Upload, 
   Check, 
   X, 
-  Clock, 
-  Volume2,
   Brain,
   Sparkles,
-  Settings,
   User,
   Bot
 } from 'lucide-react';
@@ -38,7 +32,6 @@ import { cn } from '@/lib/utils';
 import { 
   voiceTrainingManager, 
   type VoiceProfile, 
-  type VoiceSample, 
   type TrainingProgress,
   TRAINING_SCRIPTS
 } from '@/lib/voice-training';

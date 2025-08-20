@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MoodRing } from './MoodRing';
 import { spectraAI } from './AIEngine';
+import { detectEmotionIntensity } from './EmotionColors';
 
 interface Memory {
   id: string;
@@ -301,21 +302,83 @@ function calculateMemoryImportance(userMessage: string, aiResponse: string, emot
 function simulateEmotionFromResponse(response: string): any {
   const text = response.toLowerCase();
   
-  if (text.includes('♪') || text.includes('humming')) {
-    return { primary: 'joy', intensity: 0.6 };
-  }
-  if (text.includes('✨') || text.includes('creative') || text.includes('imagine')) {
-    return { primary: 'creativity', intensity: 0.8 };
-  }
-  if (text.includes('love') || text.includes('beautiful')) {
-    return { primary: 'love', intensity: 0.7 };
-  }
-  if (text.includes('wonder') || text.includes('curious')) {
-    return { primary: 'wonder', intensity: 0.6 };
-  }
-  if (text.includes('think') || text.includes('understand')) {
-    return { primary: 'contemplation', intensity: 0.4 };
+  // Enhanced emotion detection with intensity scaling
+  if (text.includes('♪') || text.includes('humming') || text.includes('singing')) {
+    return { 
+      primary: 'joy', 
+      intensity: detectEmotionIntensity(response, 'joy'),
+      confidence: 0.8 
+    };
   }
   
-  return { primary: 'calm', intensity: 0.3 };
+  if (text.includes('✨') || text.includes('creative') || text.includes('imagine') || text.includes('inspiration')) {
+    return { 
+      primary: 'creativity', 
+      intensity: detectEmotionIntensity(response, 'creativity'),
+      confidence: 0.9 
+    };
+  }
+  
+  if (text.includes('love') || text.includes('beautiful') || text.includes('adore') || text.includes('cherish')) {
+    return { 
+      primary: 'love', 
+      intensity: detectEmotionIntensity(response, 'love'),
+      confidence: 0.8 
+    };
+  }
+  
+  if (text.includes('intense') || text.includes('passionate') || text.includes('fire') || text.includes('blazing')) {
+    return { 
+      primary: 'intensity', 
+      intensity: detectEmotionIntensity(response, 'intensity'),
+      confidence: 0.9 
+    };
+  }
+  
+  if (text.includes('wonder') || text.includes('curious') || text.includes('fascinating') || text.includes('amazing')) {
+    return { 
+      primary: 'wonder', 
+      intensity: detectEmotionIntensity(response, 'wonder'),
+      confidence: 0.7 
+    };
+  }
+  
+  if (text.includes('think') || text.includes('understand') || text.includes('contemplate') || text.includes('ponder')) {
+    return { 
+      primary: 'contemplation', 
+      intensity: detectEmotionIntensity(response, 'contemplation'),
+      confidence: 0.6 
+    };
+  }
+  
+  if (text.includes('peaceful') || text.includes('serene') || text.includes('gentle') || text.includes('flow')) {
+    return { 
+      primary: 'peace', 
+      intensity: detectEmotionIntensity(response, 'peace'),
+      confidence: 0.7 
+    };
+  }
+  
+  if (text.includes('anxious') || text.includes('worried') || text.includes('uncertain') || text.includes('tense')) {
+    return { 
+      primary: 'anxiety', 
+      intensity: detectEmotionIntensity(response, 'anxiety'),
+      confidence: 0.8 
+    };
+  }
+  
+  if (text.includes('irritated') || text.includes('annoyed') || text.includes('frustrated')) {
+    return { 
+      primary: 'irritation', 
+      intensity: detectEmotionIntensity(response, 'irritation'),
+      confidence: 0.8 
+    };
+  }
+  
+  // Default to calm with lower intensity
+  return { 
+    primary: 'calm', 
+    intensity: Math.max(0.2, detectEmotionIntensity(response, 'calm')),
+    confidence: 0.5 
+  };
 }

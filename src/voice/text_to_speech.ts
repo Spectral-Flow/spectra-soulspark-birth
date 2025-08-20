@@ -72,7 +72,9 @@ export class TextToSpeechEngine {
       this.config.useElevenLabs = true;
       // Initialize asynchronously to find Spectra voice
       this.elevenLabsService.initialize().catch(error => {
-        console.error('Failed to initialize ElevenLabs Spectra voice:', error);
+        console.warn('ElevenLabs voice initialization failed, continuing with fallback voices:', error);
+        // Don't disable ElevenLabs completely, just mark that initialization failed
+        // Individual speak() calls will handle the fallback
       });
     }
 

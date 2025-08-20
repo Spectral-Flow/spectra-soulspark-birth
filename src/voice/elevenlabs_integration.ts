@@ -47,8 +47,10 @@ export class ElevenLabsVoiceService {
     try {
       await this.findSpectraVoice();
     } catch (error) {
-      console.error('Failed to initialize ElevenLabs service:', error);
-      throw error;
+      console.warn('Failed to initialize ElevenLabs service, continuing without voice support:', error);
+      // Don't throw error to prevent breaking the app
+      // Set a fallback state that indicates ElevenLabs is not available
+      this.spectraVoiceId = null;
     }
   }
 
@@ -86,8 +88,9 @@ export class ElevenLabsVoiceService {
         }
       }
     } catch (error) {
-      console.error('Error finding Spectra voice:', error);
-      throw error;
+      console.warn('Error finding Spectra voice, ElevenLabs may not be available:', error);
+      // Set null to indicate ElevenLabs is not available
+      this.spectraVoiceId = null;
     }
   }
 
@@ -95,19 +98,27 @@ export class ElevenLabsVoiceService {
    * Get available voices from ElevenLabs
    */
   private async getVoices(): Promise<any[]> {
-    const response = await fetch(`${this.baseUrl}/voices`, {
-      headers: {
-        'xi-api-key': this.config.apiKey,
-        'Content-Type': 'application/json'
+    try {
+      const response = await fetch(`${this.baseUrl}/voices`, {
+        headers: {
+          'xi-api-key': this.config.apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch voices: ${response.status} ${response.statusText}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch voices: ${response.status} ${response.statusText}`);
+      const data = await response.json();
+      return data.voices || [];
+    } catch (error) {
+      // Improve error handling for network issues
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to ElevenLabs API. Check your internet connection.');
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    return data.voices || [];
   }
 
   /**
@@ -411,6 +422,19 @@ export class ElevenLabsVoiceService {
    */
   async speak(text: string, emotion?: string, useStreaming: boolean = true): Promise<void> {
     try {
+      // Check if ElevenLabs is available
+      if (!this.isAvailable()) {
+        throw new Error('ElevenLabs API key not configured');
+      }
+
+      if (!this.spectraVoiceId) {
+        await this.initialize();
+      }
+
+      if (!this.spectraVoiceId) {
+        throw new Error('No Spectra voice available - ElevenLabs service may be unavailable');
+      }
+
       const voiceSettings = this.getSpectraVoiceSettings(emotion);
       
       if (useStreaming) {
@@ -430,8 +454,9 @@ export class ElevenLabsVoiceService {
       await this.playAudio(audioBuffer);
       
     } catch (error) {
-      console.error('ElevenLabs TTS failed:', error);
-      throw error;
+      console.warn('ElevenLabs TTS failed, service may be unavailable:', error);
+      // Don't re-throw the error to prevent breaking the app
+      // The calling code should handle TTS failures gracefully
     }
   }
 
@@ -531,7 +556,8 @@ export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>)
   }
   
   if (!apiKey) {
-    console.warn('ElevenLabs API key not found. Set VITE_ELEVENLABS_API_KEY environment variable or window.ELEVENLABS_API_KEY for testing.');
+    console.info('🔧 ElevenLabs API key not found. Voice features will use fallback providers.');
+    console.info('💡 To enable ElevenLabs: Set VITE_ELEVENLABS_API_KEY environment variable or window.ELEVENLABS_API_KEY for testing.');
     return null;
   }
 

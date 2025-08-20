@@ -11,13 +11,7 @@ interface Memory {
   associatedMessage?: string;
 }
 
-interface EmotionData {
-  happiness: number;
-  sadness: number;
-  anger: number;
-  surprise: number;
-  fear: number;
-}
+
 
 interface BasicEmotionData {
   primary: string;
@@ -133,7 +127,7 @@ export function ConsciousnessCore({
     }));
 
     onEmotionalStateChange?.(newEmotionalState);
-  }, [onEmotionalStateChange]);
+  }, [onEmotionalStateChange, emotionalColors]);
 
   // Calculate memory importance
   const calculateMemoryImportance = useCallback((userMessage: string, aiResponse: string, emotion: BasicEmotionData): number => {

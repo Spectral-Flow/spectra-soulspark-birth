@@ -21,6 +21,36 @@ export interface MemoryContext {
   sessionContext: string[];
 }
 
+export interface MemoryAnalytics {
+  totalMemories: number;
+  averageImportance: number;
+  significantMemories: number;
+  topTopics: { topic: string; count: number; importance: number }[];
+  emotionDistribution: { emotion: string; count: number; avgIntensity: number }[];
+  conversationTrends: {
+    period: string;
+    memoryCount: number;
+    avgImportance: number;
+  }[];
+  memoryTimeline: {
+    date: string;
+    memories: Memory[];
+    importance: number;
+  }[];
+}
+
+export interface MemoryExportData {
+  exportDate: string;
+  sessionId?: string;
+  memories: Memory[];
+  analytics: MemoryAnalytics;
+  metadata: {
+    version: string;
+    totalSize: number;
+    exportType: 'full' | 'session' | 'filtered';
+  };
+}
+
 class MemoryManager {
   private shortTermMemory: Map<string, Memory[]> = new Map(); // Session-level memory
   private maxShortTermMemories = 20;
@@ -265,6 +295,272 @@ class MemoryManager {
     }
 
     return prompt.trim();
+  }
+
+  // Enhanced Analytics Methods
+  async generateMemoryAnalytics(sessionId?: string): Promise<MemoryAnalytics> {
+    try {
+      // Get all memories for analysis
+      const recentMemories = await this.getRecentMemories(sessionId, 100);
+      const shortTermMemories = sessionId ? this.getShortTermMemories(sessionId) : [];
+      const allMemories = [...recentMemories, ...shortTermMemories];
+
+      // Basic statistics
+      const totalMemories = allMemories.length;
+      const totalImportance = allMemories.reduce((sum, m) => sum + m.importance, 0);
+      const averageImportance = totalMemories > 0 ? totalImportance / totalMemories : 0;
+      const significantMemories = allMemories.filter(m => isMemorySignificant(m.importance)).length;
+
+      // Topic analysis
+      const topicCount: Record<string, { count: number; totalImportance: number }> = {};
+      allMemories.forEach(memory => {
+        if (memory.topics) {
+          memory.topics.forEach(topic => {
+            if (!topicCount[topic]) {
+              topicCount[topic] = { count: 0, totalImportance: 0 };
+            }
+            topicCount[topic].count++;
+            topicCount[topic].totalImportance += memory.importance;
+          });
+        }
+      });
+
+      const topTopics = Object.entries(topicCount)
+        .map(([topic, data]) => ({
+          topic,
+          count: data.count,
+          importance: data.totalImportance / data.count
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      // Emotion distribution
+      const emotionCount: Record<string, { count: number; totalIntensity: number }> = {};
+      allMemories.forEach(memory => {
+        if (!emotionCount[memory.emotion]) {
+          emotionCount[memory.emotion] = { count: 0, totalIntensity: 0 };
+        }
+        emotionCount[memory.emotion].count++;
+        emotionCount[memory.emotion].totalIntensity += memory.importance; // Using importance as intensity proxy
+      });
+
+      const emotionDistribution = Object.entries(emotionCount)
+        .map(([emotion, data]) => ({
+          emotion,
+          count: data.count,
+          avgIntensity: data.totalIntensity / data.count
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // Conversation trends (last 7 days)
+      const now = new Date();
+      const conversationTrends = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const dayMemories = allMemories.filter(m => {
+          const memDate = new Date(m.timestamp);
+          return memDate >= dayStart && memDate <= dayEnd;
+        });
+
+        conversationTrends.push({
+          period: date.toLocaleDateString(),
+          memoryCount: dayMemories.length,
+          avgImportance: dayMemories.length > 0 
+            ? dayMemories.reduce((sum, m) => sum + m.importance, 0) / dayMemories.length 
+            : 0
+        });
+      }
+
+      // Memory timeline (group by day)
+      const timelineMap: Record<string, { memories: Memory[]; importance: number }> = {};
+      allMemories.forEach(memory => {
+        const date = new Date(memory.timestamp).toLocaleDateString();
+        if (!timelineMap[date]) {
+          timelineMap[date] = { memories: [], importance: 0 };
+        }
+        timelineMap[date].memories.push(memory);
+        timelineMap[date].importance += memory.importance;
+      });
+
+      const memoryTimeline = Object.entries(timelineMap)
+        .map(([date, data]) => ({
+          date,
+          memories: data.memories,
+          importance: data.importance / data.memories.length
+        }))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 30); // Last 30 days
+
+      return {
+        totalMemories,
+        averageImportance,
+        significantMemories,
+        topTopics,
+        emotionDistribution,
+        conversationTrends,
+        memoryTimeline
+      };
+    } catch (error) {
+      console.error('Error generating memory analytics:', error);
+      return {
+        totalMemories: 0,
+        averageImportance: 0,
+        significantMemories: 0,
+        topTopics: [],
+        emotionDistribution: [],
+        conversationTrends: [],
+        memoryTimeline: []
+      };
+    }
+  }
+
+  // Memory Export/Import Methods
+  async exportMemories(
+    sessionId?: string, 
+    exportType: 'full' | 'session' | 'filtered' = 'session'
+  ): Promise<MemoryExportData> {
+    try {
+      let memories: Memory[] = [];
+      
+      switch (exportType) {
+        case 'full':
+          memories = await this.getRecentMemories(undefined, 1000);
+          break;
+        case 'session':
+          if (sessionId) {
+            const recent = await this.getRecentMemories(sessionId, 100);
+            const shortTerm = this.getShortTermMemories(sessionId);
+            memories = [...recent, ...shortTerm];
+          }
+          break;
+        case 'filtered':
+          memories = await this.getRecentMemories(sessionId, 100);
+          memories = memories.filter(m => isMemorySignificant(m.importance));
+          break;
+      }
+
+      const analytics = await this.generateMemoryAnalytics(sessionId);
+      const totalSize = JSON.stringify(memories).length;
+
+      return {
+        exportDate: new Date().toISOString(),
+        sessionId,
+        memories,
+        analytics,
+        metadata: {
+          version: '1.0.0',
+          totalSize,
+          exportType
+        }
+      };
+    } catch (error) {
+      console.error('Error exporting memories:', error);
+      throw new Error(`Failed to export memories: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async importMemories(exportData: MemoryExportData): Promise<{ imported: number; skipped: number }> {
+    try {
+      let imported = 0;
+      let skipped = 0;
+
+      for (const memory of exportData.memories) {
+        try {
+          // Check if memory already exists (basic duplicate detection)
+          const existing = await this.getRecentMemories(memory.sessionId, 1000);
+          const isDuplicate = existing.some(m => 
+            m.userMessage === memory.userMessage && 
+            m.aiResponse === memory.aiResponse &&
+            Math.abs(new Date(m.timestamp).getTime() - new Date(memory.timestamp).getTime()) < 60000 // 1 minute tolerance
+          );
+
+          if (!isDuplicate && isMemorySignificant(memory.importance)) {
+            await this.addToLongTermMemory({
+              sessionId: memory.sessionId,
+              userMessage: memory.userMessage,
+              aiResponse: memory.aiResponse,
+              emotion: memory.emotion,
+              importance: memory.importance,
+              topics: memory.topics
+            });
+            imported++;
+          } else {
+            skipped++;
+          }
+        } catch (error) {
+          console.error('Error importing memory:', error);
+          skipped++;
+        }
+      }
+
+      return { imported, skipped };
+    } catch (error) {
+      console.error('Error importing memories:', error);
+      throw new Error(`Failed to import memories: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Enhanced semantic search with better scoring
+  async getEnhancedRelevantMemories(
+    query: string, 
+    sessionId?: string, 
+    limit: number = 5,
+    minImportance: number = 0.3
+  ): Promise<Memory[]> {
+    try {
+      const memories = await this.getRecentMemories(sessionId, 100);
+      const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 2);
+      
+      const scoredMemories = memories
+        .filter(memory => memory.importance >= minImportance)
+        .map(memory => {
+          let score = 0;
+          const memoryText = `${memory.userMessage} ${memory.aiResponse}`.toLowerCase();
+          
+          // Keyword matching with position weighting
+          queryWords.forEach(word => {
+            const userIndex = memory.userMessage.toLowerCase().indexOf(word);
+            const aiIndex = memory.aiResponse.toLowerCase().indexOf(word);
+            
+            if (userIndex !== -1) score += 2; // User message match is more important
+            if (aiIndex !== -1) score += 1;
+            
+            // Boost score for exact phrase matches
+            if (memoryText.includes(query.toLowerCase())) score += 3;
+          });
+          
+          // Topic relevance boost
+          if (memory.topics) {
+            const topicMatch = memory.topics.some(topic => 
+              queryWords.some(word => topic.toLowerCase().includes(word))
+            );
+            if (topicMatch) score += 2;
+          }
+          
+          // Importance and recency weighting
+          score *= memory.importance;
+          const daysSince = (Date.now() - new Date(memory.timestamp).getTime()) / (1000 * 60 * 60 * 24);
+          const recencyBoost = Math.max(0.1, 1 - (daysSince / 30)); // Decay over 30 days
+          score *= recencyBoost;
+          
+          return { memory, score };
+        })
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+        .map(item => item.memory);
+
+      return scoredMemories;
+    } catch (error) {
+      console.error('Error getting enhanced relevant memories:', error);
+      return this.getRelevantMemories(query, sessionId, limit); // Fallback to original method
+    }
   }
 }
 

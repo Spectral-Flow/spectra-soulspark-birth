@@ -170,15 +170,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
       }
 
-      res.status(200).json({ memories, query, resultsCount: memories.length });
+      return res.status(200).json({ memories, query, resultsCount: memories.length });
     } catch (error) {
       console.error('Memory relevant error:', error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }

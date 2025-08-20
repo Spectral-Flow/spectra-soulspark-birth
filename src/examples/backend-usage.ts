@@ -75,7 +75,7 @@ async function chatWithHuggingFace(message: string) {
       max_tokens: 150,
     });
 
-    const aiResponse = (response.data as any)?.choices?.[0]?.message?.content;
+    const aiResponse = (response.data as { choices?: Array<{ message?: { content?: string } }> })?.choices?.[0]?.message?.content;
     
     if (aiResponse) {
       console.log('Hugging Face AI Response:', aiResponse);
@@ -98,7 +98,7 @@ async function createUserSession() {
     const userResponse = await backendApi.register('demo-user', 'demo@example.com');
     
     if (userResponse.data && !userResponse.error) {
-      const responseData = userResponse.data as { user: any; token: string };
+      const responseData = userResponse.data as { user: { id: string; username: string }; token: string };
       const { user, token } = responseData;
       
       // Set auth token for future requests

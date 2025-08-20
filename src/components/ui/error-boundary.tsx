@@ -72,8 +72,8 @@ export class SpectraErrorBoundary extends Component<Props, State> {
 
   private reportError(error: Error, errorInfo: ErrorInfo) {
     // Example: Send to error tracking service
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureException(error, {
+    if (typeof window !== 'undefined' && (window as Record<string, unknown>).Sentry) {
+      (window as Record<string, unknown> & { Sentry: { captureException: (error: Error, context?: Record<string, unknown>) => void } }).Sentry.captureException(error, {
         contexts: {
           react: {
             componentStack: errorInfo.componentStack

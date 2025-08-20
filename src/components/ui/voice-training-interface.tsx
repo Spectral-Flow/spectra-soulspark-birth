@@ -17,20 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Mic, 
-  MicOff, 
   Play, 
   Pause, 
   Square, 
   Trash2, 
-  Download, 
-  Upload, 
   Check, 
   X, 
-  Clock, 
-  Volume2,
   Brain,
   Sparkles,
-  Settings,
   User,
   Bot
 } from 'lucide-react';
@@ -38,7 +32,6 @@ import { cn } from '@/lib/utils';
 import { 
   voiceTrainingManager, 
   type VoiceProfile, 
-  type VoiceSample, 
   type TrainingProgress,
   TRAINING_SCRIPTS
 } from '@/lib/voice-training';
@@ -248,7 +241,7 @@ export const VoiceTrainingInterface = ({
     }
   };
 
-  const useCustomVoice = async () => {
+  const activateCustomVoice = async () => {
     if (!selectedProfile) return;
 
     const success = await voiceTrainingManager.useCustomVoice(selectedProfile.id);
@@ -317,7 +310,7 @@ export const VoiceTrainingInterface = ({
           <div className="grid grid-cols-4 gap-4">
             <div>
               <Label>Gender</Label>
-              <Select value={newProfileGender} onValueChange={(value: any) => setNewProfileGender(value)}>
+              <Select value={newProfileGender} onValueChange={(value: string) => setNewProfileGender(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -331,7 +324,7 @@ export const VoiceTrainingInterface = ({
             
             <div>
               <Label>Age</Label>
-              <Select value={newProfileAge} onValueChange={(value: any) => setNewProfileAge(value)}>
+              <Select value={newProfileAge} onValueChange={(value: string) => setNewProfileAge(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -345,7 +338,7 @@ export const VoiceTrainingInterface = ({
             
             <div>
               <Label>Style</Label>
-              <Select value={newProfileStyle} onValueChange={(value: any) => setNewProfileStyle(value)}>
+              <Select value={newProfileStyle} onValueChange={(value: string) => setNewProfileStyle(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -412,7 +405,7 @@ export const VoiceTrainingInterface = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => useCustomVoice()}
+                      onClick={() => activateCustomVoice()}
                       className="text-green-600 hover:text-green-700"
                     >
                       <Check className="w-4 h-4" />

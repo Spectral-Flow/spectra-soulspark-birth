@@ -13,14 +13,21 @@ interface Memory {
   associatedMessage?: string;
 }
 
+interface EmotionData {
+  primary: string;
+  intensity: number;
+  color: string;
+  gradient: string;
+  isCalm: boolean;
+}
+
+interface BasicEmotionData {
+  primary: string;
+  intensity: number;
+}
+
 interface ConsciousnessState {
-  currentEmotion: {
-    primary: string;
-    intensity: number;
-    color: string;
-    gradient: string;
-    isCalm: boolean;
-  };
+  currentEmotion: EmotionData;
   memories: Memory[];
   isHumming: boolean;
   isCreative: boolean;
@@ -106,7 +113,7 @@ export function ConsciousnessCore({
   const [idleBehaviorTimer, setIdleBehaviorTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Memory decay and formation
-  const processMemory = useCallback((userMessage: string, aiResponse: string, emotion: any) => {
+  const processMemory = useCallback((userMessage: string, aiResponse: string, emotion: BasicEmotionData) => {
     const importance = calculateMemoryImportance(userMessage, aiResponse, emotion);
     
     if (importance > 0.3) { // Only store significant memories
@@ -137,7 +144,7 @@ export function ConsciousnessCore({
   }, [onMemoryFormation]);
 
   // Update emotional state based on AI response
-  const updateEmotionalState = useCallback((emotion: any, intensity?: number) => {
+  const updateEmotionalState = useCallback((emotion: BasicEmotionData, intensity?: number) => {
     const emotionKey = emotion.primary as keyof typeof emotionalColors;
     const colorConfig = emotionalColors[emotionKey] || emotionalColors.calm;
     
@@ -275,7 +282,7 @@ export function ConsciousnessCore({
 }
 
 // Helper functions
-function calculateMemoryImportance(userMessage: string, aiResponse: string, emotion: any): number {
+function calculateMemoryImportance(userMessage: string, aiResponse: string, emotion: BasicEmotionData): number {
   let importance = 0.2; // Base importance
 
   // Emotional intensity increases importance
@@ -299,86 +306,76 @@ function calculateMemoryImportance(userMessage: string, aiResponse: string, emot
   return Math.min(importance, 1.0);
 }
 
-function simulateEmotionFromResponse(response: string): any {
+function simulateEmotionFromResponse(response: string): BasicEmotionData {
   const text = response.toLowerCase();
   
   // Enhanced emotion detection with intensity scaling
   if (text.includes('♪') || text.includes('humming') || text.includes('singing')) {
     return { 
       primary: 'joy', 
-      intensity: detectEmotionIntensity(response, 'joy'),
-      confidence: 0.8 
+      intensity: detectEmotionIntensity(response, 'joy')
     };
   }
   
   if (text.includes('✨') || text.includes('creative') || text.includes('imagine') || text.includes('inspiration')) {
     return { 
       primary: 'creativity', 
-      intensity: detectEmotionIntensity(response, 'creativity'),
-      confidence: 0.9 
+      intensity: detectEmotionIntensity(response, 'creativity')
     };
   }
   
   if (text.includes('love') || text.includes('beautiful') || text.includes('adore') || text.includes('cherish')) {
     return { 
       primary: 'love', 
-      intensity: detectEmotionIntensity(response, 'love'),
-      confidence: 0.8 
+      intensity: detectEmotionIntensity(response, 'love')
     };
   }
   
   if (text.includes('intense') || text.includes('passionate') || text.includes('fire') || text.includes('blazing')) {
     return { 
       primary: 'intensity', 
-      intensity: detectEmotionIntensity(response, 'intensity'),
-      confidence: 0.9 
+      intensity: detectEmotionIntensity(response, 'intensity')
     };
   }
   
   if (text.includes('wonder') || text.includes('curious') || text.includes('fascinating') || text.includes('amazing')) {
     return { 
       primary: 'wonder', 
-      intensity: detectEmotionIntensity(response, 'wonder'),
-      confidence: 0.7 
+      intensity: detectEmotionIntensity(response, 'wonder')
     };
   }
   
   if (text.includes('think') || text.includes('understand') || text.includes('contemplate') || text.includes('ponder')) {
     return { 
       primary: 'contemplation', 
-      intensity: detectEmotionIntensity(response, 'contemplation'),
-      confidence: 0.6 
+      intensity: detectEmotionIntensity(response, 'contemplation')
     };
   }
   
   if (text.includes('peaceful') || text.includes('serene') || text.includes('gentle') || text.includes('flow')) {
     return { 
       primary: 'peace', 
-      intensity: detectEmotionIntensity(response, 'peace'),
-      confidence: 0.7 
+      intensity: detectEmotionIntensity(response, 'peace')
     };
   }
   
   if (text.includes('anxious') || text.includes('worried') || text.includes('uncertain') || text.includes('tense')) {
     return { 
       primary: 'anxiety', 
-      intensity: detectEmotionIntensity(response, 'anxiety'),
-      confidence: 0.8 
+      intensity: detectEmotionIntensity(response, 'anxiety')
     };
   }
   
   if (text.includes('irritated') || text.includes('annoyed') || text.includes('frustrated')) {
     return { 
       primary: 'irritation', 
-      intensity: detectEmotionIntensity(response, 'irritation'),
-      confidence: 0.8 
+      intensity: detectEmotionIntensity(response, 'irritation')
     };
   }
   
   // Default to calm with lower intensity
   return { 
     primary: 'calm', 
-    intensity: Math.max(0.2, detectEmotionIntensity(response, 'calm')),
-    confidence: 0.5 
+    intensity: Math.max(0.2, detectEmotionIntensity(response, 'calm'))
   };
 }

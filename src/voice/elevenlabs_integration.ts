@@ -75,7 +75,7 @@ export class ElevenLabsVoiceService {
       const voices = await this.getVoices();
       
       // Look for voice named "Spectra" 
-      const spectraVoice = voices.find((voice: any) => 
+      const spectraVoice = voices.find((voice: VoiceData) => 
         voice.name.toLowerCase().includes('spectra')
       );
 
@@ -84,7 +84,7 @@ export class ElevenLabsVoiceService {
         console.log(`✨ Found Spectra voice: ${spectraVoice.name} (${spectraVoice.voice_id})`);
       } else {
         // Fallback to a feminine voice if Spectra is not available
-        const feminineVoice = voices.find((voice: any) => 
+        const feminineVoice = voices.find((voice: VoiceData) => 
           voice.labels?.gender === 'female' || 
           voice.name.toLowerCase().includes('rachel') ||
           voice.name.toLowerCase().includes('bella') ||
@@ -269,7 +269,7 @@ export class ElevenLabsVoiceService {
           resolve();
         };
 
-        audio.onerror = (error) => {
+        audio.onerror = (_error) => {
           URL.revokeObjectURL(audioUrl);
           reject(new Error('Audio playback failed'));
         };
@@ -290,7 +290,7 @@ export class ElevenLabsVoiceService {
     return new Promise(async (resolve, reject) => {
       try {
         // Initialize Web Audio API context
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
         
         if (audioContext.state === 'suspended') {
           await audioContext.resume();
@@ -560,7 +560,7 @@ export function createElevenLabsVoiceFromEnv(config?: Partial<ElevenLabsConfig>)
  */
 export async function stream(audioStream: ReadableStream<Uint8Array>): Promise<void> {
   // Initialize Web Audio API context
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
   
   if (audioContext.state === 'suspended') {
     await audioContext.resume();

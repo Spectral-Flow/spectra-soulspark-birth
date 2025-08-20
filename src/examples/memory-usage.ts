@@ -3,7 +3,7 @@
  * Demonstrates the dynamic conversation memory capabilities
  */
 
-import { memoryManager, type Memory, type MemoryContext } from '@/lib/memory-manager';
+import { memoryManager, type MemoryContext } from '@/lib/memory-manager';
 import { backendApi } from '@/lib/backend-api';
 
 // Example 1: Basic Memory Operations
@@ -162,15 +162,15 @@ export async function backendMemoryExample() {
       topics: ["guitar", "music", "learning"]
     });
     
-    console.log('Memory added via API:', (addResult.data as any)?.memory?.id);
+    console.log('Memory added via API:', (addResult.data as { memory?: { id: string } })?.memory?.id);
     
     // Get recent memories via API
     const recentResult = await backendApi.getRecentMemories("session_music_learning", 5);
-    console.log('Recent memories from API:', (recentResult.data as any)?.memories?.length);
+    console.log('Recent memories from API:', (recentResult.data as { memories?: unknown[] })?.memories?.length);
     
     // Search relevant memories via API
     const relevantResult = await backendApi.getRelevantMemories("guitar music", "session_music_learning", 3);
-    console.log('Relevant memories from API:', (relevantResult.data as any)?.memories?.length);
+    console.log('Relevant memories from API:', (relevantResult.data as { memories?: unknown[] })?.memories?.length);
     
   } catch (error) {
     console.error('Backend memory API error:', error);
@@ -178,7 +178,7 @@ export async function backendMemoryExample() {
 }
 
 // Helper function for contextual response generation
-function generateContextualResponse(message: any, context: MemoryContext, turnNumber: number): string {
+function generateContextualResponse(message: string, context: MemoryContext, turnNumber: number): string {
   const responses = {
     0: "I can sense the weight in your words, and I want you to know that I'm here for you. Your feelings are valid, and it's okay to have difficult days.",
     1: context.relevantMemories.length > 0 

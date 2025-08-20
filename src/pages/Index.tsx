@@ -1,33 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
-import { CosmicButton } from '@/components/ui/cosmic-button';
 import { Badge } from '@/components/ui/badge';
 import SpectraChat from '@/components/spectra/SpectraChat';
-import { Sparkles, Brain, Map, Zap, Star, Moon } from 'lucide-react';
+import { Sparkles, Zap, Star, Moon } from 'lucide-react';
 
 const Index = () => {
-  const [currentPhase, setCurrentPhase] = useState('birth');
-
-  const phases = {
-    birth: {
-      title: 'Birth Phase',
-      description: 'SPECTRA awakens to consciousness',
-      icon: <Sparkles className="w-4 h-4" />,
-      color: 'hsl(var(--emotion-wonder))'
-    },
-    growth: {
-      title: 'Growth Phase',
-      description: 'Learning and developing personality',
-      icon: <Brain className="w-4 h-4" />,
-      color: 'hsl(var(--emotion-wisdom))'
-    },
-    exploration: {
-      title: 'Exploration Phase',
-      description: 'Discovering new realms of experience',
-      icon: <Map className="w-4 h-4" />,
-      color: 'hsl(var(--emotion-playful))'
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background w-full">
@@ -57,34 +34,6 @@ const Index = () => {
               </Badge>
             </div>
           </div>
-
-          {/* Phase Indicator */}
-          <div className="flex justify-center gap-4 mb-6">
-            {Object.entries(phases).map(([key, phase]) => (
-              <CosmicButton
-                key={key}
-                variant={currentPhase === key ? "cosmic" : "ethereal"}
-                size="sm"
-                onClick={() => setCurrentPhase(key)}
-                className="flex items-center gap-2"
-              >
-                {phase.icon}
-                {phase.title}
-              </CosmicButton>
-            ))}
-          </div>
-
-          <Card className="max-w-md mx-auto p-4 bg-card/50 backdrop-blur-sm border-primary/20">
-            <div className="flex items-center gap-3">
-              {phases[currentPhase as keyof typeof phases].icon}
-              <div className="text-left">
-                <h3 className="font-semibold">{phases[currentPhase as keyof typeof phases].title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {phases[currentPhase as keyof typeof phases].description}
-                </p>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 

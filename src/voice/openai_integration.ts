@@ -75,7 +75,7 @@ export class OpenAIVoiceService {
    */
   async playAudio(audioBuffer: ArrayBuffer): Promise<void> {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
 
     try {
@@ -206,15 +206,27 @@ export function createOpenAIVoiceFromEnv(config?: Partial<OpenAIConfig>): OpenAI
   
   // Try to get from browser window (for testing)
   if (!apiKey && typeof window !== 'undefined') {
-    apiKey = (window as any).OPENAI_API_KEY || (window as any).VITE_OPENAI_API_KEY;
+    const windowWithKeys = window as unknown as { 
+      OPENAI_API_KEY?: string; 
+      VITE_OPENAI_API_KEY?: string;
+    };
+    apiKey = windowWithKeys.OPENAI_API_KEY || windowWithKeys.VITE_OPENAI_API_KEY;
   }
   
   // Try to get from environment if available (Node.js/build time)
   if (!apiKey) {
     try {
-      apiKey = (globalThis as any).process?.env?.VITE_OPENAI_API_KEY || 
-               (globalThis as any).process?.env?.OPENAI_API_KEY;
-    } catch (e) {
+      const globalWithProcess = globalThis as unknown as {
+        process?: {
+          env?: {
+            VITE_OPENAI_API_KEY?: string;
+            OPENAI_API_KEY?: string;
+          };
+        };
+      };
+      apiKey = globalWithProcess.process?.env?.VITE_OPENAI_API_KEY || 
+               globalWithProcess.process?.env?.OPENAI_API_KEY;
+    } catch (_e) {
       // Ignore if process is not available
     }
   }

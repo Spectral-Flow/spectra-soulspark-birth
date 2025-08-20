@@ -113,9 +113,9 @@ export function createElevenLabsApiService(): ElevenLabsApiService | null {
   const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
   
   // Check for window variables (useful for testing)
-  const windowApiKey = typeof window !== 'undefined' ? (window as any).ELEVENLABS_API_KEY : undefined;
-  const windowUsername = typeof window !== 'undefined' ? (window as any).ELEVENLABS_USERNAME : undefined;
-  const windowPassword = typeof window !== 'undefined' ? (window as any).ELEVENLABS_PASSWORD : undefined;
+  const windowApiKey = typeof window !== 'undefined' ? (window as unknown as { ELEVENLABS_API_KEY?: string }).ELEVENLABS_API_KEY : undefined;
+  const windowUsername = typeof window !== 'undefined' ? (window as unknown as { ELEVENLABS_USERNAME?: string }).ELEVENLABS_USERNAME : undefined;
+  const windowPassword = typeof window !== 'undefined' ? (window as unknown as { ELEVENLABS_PASSWORD?: string }).ELEVENLABS_PASSWORD : undefined;
   
   // Determine which credentials to use
   const finalApiKey = apiKey || windowApiKey;

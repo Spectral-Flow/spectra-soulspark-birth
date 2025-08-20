@@ -51,7 +51,6 @@ export function SpectraFace({ emotionalState, className = "", size = 'md' }: Spe
 
   const breatheScale = 1 + (Math.sin(breatheState * 0.1) * 0.05 * baseIntensity);
   const irisColor = emotionalState.color;
-  const irisGlow = `drop-shadow(0 0 ${4 + emotionalState.intensity * 8}px ${irisColor})`;
 
   return (
     <div 

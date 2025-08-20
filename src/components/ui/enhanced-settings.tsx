@@ -6,17 +6,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Settings, 
-  Globe, 
-  Mic, 
   Brain, 
   Download, 
   Upload, 
@@ -24,14 +20,10 @@ import {
   Monitor, 
   Moon, 
   Sun, 
-  Volume2, 
-  VolumeX,
   Wifi,
   WifiOff,
-  Battery,
   Shield,
   Trash2,
-  RefreshCw,
   Info,
   Star
 } from 'lucide-react';
@@ -426,10 +418,10 @@ export const EnhancedSettings = ({ onClose, className }: EnhancedSettingsProps) 
               <span className="text-muted-foreground">Type:</span>
               <div className="font-medium">{mobileInfo.networkInfo.type}</div>
             </div>
-            {(mobileInfo.networkInfo as any).effectiveType && (
+            {mobileInfo.networkInfo.effectiveType && (
               <div>
                 <span className="text-muted-foreground">Speed:</span>
-                <div className="font-medium">{(mobileInfo.networkInfo as any).effectiveType}</div>
+                <div className="font-medium">{mobileInfo.networkInfo.effectiveType}</div>
               </div>
             )}
           </div>

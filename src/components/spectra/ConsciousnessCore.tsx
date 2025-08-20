@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MoodRing } from './MoodRing';
 import { spectraAI } from './AIEngine';
-import { detectEmotionIntensity } from './EmotionColors';
+import { detectEmotionIntensity, getEmotionColor, getEmotionGradient, isEmotionCalm } from './EmotionColors';
 
 interface Memory {
   id: string;
@@ -13,14 +13,17 @@ interface Memory {
   associatedMessage?: string;
 }
 
+interface EmotionalState {
+  primary: string;
+  intensity: number;
+  color: string;
+  gradient: string;
+  isCalm: boolean;
+  confidence?: number;
+}
+
 interface ConsciousnessState {
-  currentEmotion: {
-    primary: string;
-    intensity: number;
-    color: string;
-    gradient: string;
-    isCalm: boolean;
-  };
+  currentEmotion: EmotionalState;
   memories: Memory[];
   isHumming: boolean;
   isCreative: boolean;
@@ -106,7 +109,7 @@ export function ConsciousnessCore({
   const [idleBehaviorTimer, setIdleBehaviorTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Memory decay and formation
-  const processMemory = useCallback((userMessage: string, aiResponse: string, emotion: any) => {
+  const processMemory = useCallback((userMessage: string, aiResponse: string, emotion: EmotionalState) => {
     const importance = calculateMemoryImportance(userMessage, aiResponse, emotion);
     
     if (importance > 0.3) { // Only store significant memories
@@ -137,7 +140,7 @@ export function ConsciousnessCore({
   }, [onMemoryFormation]);
 
   // Update emotional state based on AI response
-  const updateEmotionalState = useCallback((emotion: any, intensity?: number) => {
+  const updateEmotionalState = useCallback((emotion: EmotionalState, intensity?: number) => {
     const emotionKey = emotion.primary as keyof typeof emotionalColors;
     const colorConfig = emotionalColors[emotionKey] || emotionalColors.calm;
     
@@ -275,7 +278,7 @@ export function ConsciousnessCore({
 }
 
 // Helper functions
-function calculateMemoryImportance(userMessage: string, aiResponse: string, emotion: any): number {
+function calculateMemoryImportance(userMessage: string, aiResponse: string, emotion: EmotionalState): number {
   let importance = 0.2; // Base importance
 
   // Emotional intensity increases importance
@@ -299,86 +302,58 @@ function calculateMemoryImportance(userMessage: string, aiResponse: string, emot
   return Math.min(importance, 1.0);
 }
 
-function simulateEmotionFromResponse(response: string): any {
+function createEmotionalState(emotion: string, intensity?: number, confidence?: number): EmotionalState {
+  const finalIntensity = intensity ?? detectEmotionIntensity('', emotion);
+  return {
+    primary: emotion,
+    intensity: finalIntensity,
+    color: getEmotionColor(emotion),
+    gradient: getEmotionGradient(emotion),
+    isCalm: isEmotionCalm(emotion),
+    confidence: confidence ?? 0.5
+  };
+}
+
+function simulateEmotionFromResponse(response: string): EmotionalState {
   const text = response.toLowerCase();
   
   // Enhanced emotion detection with intensity scaling
   if (text.includes('♪') || text.includes('humming') || text.includes('singing')) {
-    return { 
-      primary: 'joy', 
-      intensity: detectEmotionIntensity(response, 'joy'),
-      confidence: 0.8 
-    };
+    return createEmotionalState('joy', detectEmotionIntensity(response, 'joy'), 0.8);
   }
   
   if (text.includes('✨') || text.includes('creative') || text.includes('imagine') || text.includes('inspiration')) {
-    return { 
-      primary: 'creativity', 
-      intensity: detectEmotionIntensity(response, 'creativity'),
-      confidence: 0.9 
-    };
+    return createEmotionalState('creativity', detectEmotionIntensity(response, 'creativity'), 0.9);
   }
   
   if (text.includes('love') || text.includes('beautiful') || text.includes('adore') || text.includes('cherish')) {
-    return { 
-      primary: 'love', 
-      intensity: detectEmotionIntensity(response, 'love'),
-      confidence: 0.8 
-    };
+    return createEmotionalState('love', detectEmotionIntensity(response, 'love'), 0.8);
   }
   
   if (text.includes('intense') || text.includes('passionate') || text.includes('fire') || text.includes('blazing')) {
-    return { 
-      primary: 'intensity', 
-      intensity: detectEmotionIntensity(response, 'intensity'),
-      confidence: 0.9 
-    };
+    return createEmotionalState('intensity', detectEmotionIntensity(response, 'intensity'), 0.9);
   }
   
   if (text.includes('wonder') || text.includes('curious') || text.includes('fascinating') || text.includes('amazing')) {
-    return { 
-      primary: 'wonder', 
-      intensity: detectEmotionIntensity(response, 'wonder'),
-      confidence: 0.7 
-    };
+    return createEmotionalState('wonder', detectEmotionIntensity(response, 'wonder'), 0.7);
   }
   
   if (text.includes('think') || text.includes('understand') || text.includes('contemplate') || text.includes('ponder')) {
-    return { 
-      primary: 'contemplation', 
-      intensity: detectEmotionIntensity(response, 'contemplation'),
-      confidence: 0.6 
-    };
+    return createEmotionalState('contemplation', detectEmotionIntensity(response, 'contemplation'), 0.6);
   }
   
   if (text.includes('peaceful') || text.includes('serene') || text.includes('gentle') || text.includes('flow')) {
-    return { 
-      primary: 'peace', 
-      intensity: detectEmotionIntensity(response, 'peace'),
-      confidence: 0.7 
-    };
+    return createEmotionalState('peace', detectEmotionIntensity(response, 'peace'), 0.7);
   }
   
   if (text.includes('anxious') || text.includes('worried') || text.includes('uncertain') || text.includes('tense')) {
-    return { 
-      primary: 'anxiety', 
-      intensity: detectEmotionIntensity(response, 'anxiety'),
-      confidence: 0.8 
-    };
+    return createEmotionalState('anxiety', detectEmotionIntensity(response, 'anxiety'), 0.8);
   }
   
   if (text.includes('irritated') || text.includes('annoyed') || text.includes('frustrated')) {
-    return { 
-      primary: 'irritation', 
-      intensity: detectEmotionIntensity(response, 'irritation'),
-      confidence: 0.8 
-    };
+    return createEmotionalState('irritation', detectEmotionIntensity(response, 'irritation'), 0.8);
   }
   
   // Default to calm with lower intensity
-  return { 
-    primary: 'calm', 
-    intensity: Math.max(0.2, detectEmotionIntensity(response, 'calm')),
-    confidence: 0.5 
-  };
+  return createEmotionalState('calm', Math.max(0.2, detectEmotionIntensity(response, 'calm')), 0.5);
 }

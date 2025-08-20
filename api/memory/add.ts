@@ -31,19 +31,19 @@ class MemoryService {
     const memoryId = `memory_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const memory: Memory = {
       id: memoryId,
-      sessionId: data.sessionId,
+      ...(data.sessionId !== undefined && { sessionId: data.sessionId }),
       userMessage: data.userMessage || '',
       aiResponse: data.aiResponse || '',
       emotion: data.emotion || 'neutral',
       importance: data.importance || 0.5,
-      topics: data.topics || [],
-      embedding: data.embedding,
+      ...(data.topics !== undefined && { topics: data.topics }),
+      ...(data.embedding !== undefined && { embedding: data.embedding }),
       timestamp: new Date().toISOString(),
     };
 
     if (supabase) {
       // Store in Supabase
-      const { data: result, error } = await supabase
+      const { error } = await supabase
         .from('conversation_memories')
         .insert({
           memory_id: memoryId,

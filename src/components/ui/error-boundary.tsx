@@ -72,13 +72,120 @@ export class SpectraErrorBoundary extends Component<Props, State> {
 
   private reportError(error: Error, errorInfo: ErrorInfo) {
     // Example: Send to error tracking service
-    interface SentryGlobal {
-      captureException: (error: Error, context?: object) => void;
+// -----------------------------
+// 1️⃣ Interfaces
+// -----------------------------
+interface EmotionData {
+  happiness: number;
+  sadness: number;
+  anger: number;
+  surprise: number;
+  fear: number;
+}
+
+interface BasicEmotionData {
+  primary: string;
+  intensity: number;
+}
+
+interface ConsciousnessState {
+  currentEmotion: EmotionData;
+}
+
+// -----------------------------
+// 2️⃣ Spectra State
+// -----------------------------
+let spectraState: ConsciousnessState = {
+  currentEmotion: {
+    happiness: 0,
+    sadness: 0,
+    anger: 0,
+    surprise: 0,
+    fear: 0,
+  },
+};
+
+function updateEmotions(newData: Partial<EmotionData>) {
+  spectraState.currentEmotion = { ...spectraState.currentEmotion, ...newData };
+}
+
+function getPrimaryEmotion(): BasicEmotionData {
+  const entries = Object.entries(spectraState.currentEmotion) as [keyof EmotionData, number][];
+  const [primary, intensity] = entries.reduce((max, curr) => (curr[1] > max[1] ? curr : max), entries[0]);
+  return { primary, intensity };
+}
+
+// -----------------------------
+// 3️⃣ OpenRouter API Key
+// -----------------------------
+const windowApiKey = typeof window !== 'undefined'
+  ? (window as Record<string, unknown>).OPENROUTER_API_KEY as string | undefined
+  : undefined;
+
+const OPENROUTER_API_KEY = windowApiKey || process.env.OPENROUTER_API_KEY;
+
+if (!OPENROUTER_API_KEY) {
+  const error = new Error("OpenRouter API key not found. Set window.OPENROUTER_API_KEY or env variable.");
+  
+  // Optional Sentry reporting
+  if (typeof window !== 'undefined' && (window as Record<string, unknown>).Sentry) {
+    (window as Record<string, unknown> & { Sentry: { captureException: (error: Error, context?: Record<string, unknown>) => void } })
+      .Sentry.captureException(error, { context: "Spectra API Key Missing" });
+  }
+
+  throw error;
+}
+
+// -----------------------------
+// 4️⃣ OpenRouter Request
+// -----------------------------
+async function sendPromptToSpectra(userPrompt: string) {
+  const primaryEmotion = getPrimaryEmotion();
+
+  const messages = [
+    {
+      role: "system",
+      content: "You are Spectra, an insightful, poetic, and creative AI companion. Respond with warmth, clarity, and depth."
+    },
+    {
+      role: "user",
+      content: `${userPrompt}\n\nSpectra's current primary emotion: ${primaryEmotion.primary} (intensity: ${primaryEmotion.intensity.toFixed(2)})`
     }
-    
-    if (typeof window !== 'undefined' && (window as unknown as { Sentry?: SentryGlobal }).Sentry) {
-      const Sentry = (window as unknown as { Sentry: SentryGlobal }).Sentry;
-      Sentry.captureException(error, {
+  ];
+
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "nousresearch/deephermes-3-mistral-24b-preview",
+        messages,
+      }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    // Optional Sentry reporting
+    if (typeof window !== 'undefined' && (window as Record<string, unknown>).Sentry) {
+      (window as Record<string, unknown> & { Sentry: { captureException: (error: Error, context?: Record<string, unknown>) => void } })
+        .Sentry.captureException(err as Error, { context: "Spectra API Request Failed" });
+    }
+    throw err;
+  }
+}
+
+// -----------------------------
+// 5️⃣ Example Usage
+// -----------------------------
+updateEmotions({ happiness: 0.9, surprise: 0.5 });
+
+sendPromptToSpectra("Describe the world's tallest skyscraper as if you designed it.")
+  .then(res => console.log(res))
+  .catch(err => console.error(err));
         contexts: {
           react: {
             componentStack: errorInfo.componentStack

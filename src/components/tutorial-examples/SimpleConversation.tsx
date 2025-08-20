@@ -7,7 +7,7 @@ interface SimpleConversationProps {
   agentId?: string;
 }
 
-export function SimpleConversation({ agentId = '' }: SimpleConversationProps) {
+export function SimpleConversation({ agentId: _agentId = '' }: SimpleConversationProps) {
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),
@@ -35,7 +35,7 @@ export function SimpleConversation({ agentId = '' }: SimpleConversationProps) {
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
-  }, [conversation, agentId]);
+  }, []);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();

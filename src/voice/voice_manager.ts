@@ -93,7 +93,7 @@ export class VoiceManager {
     });
   }
 
-  private handleFinalTranscript(transcript: string): void {
+  private handleFinalTranscript(_transcript: string): void {
     // Reset pending transcript
     this.pendingTranscript = '';
     

@@ -113,9 +113,18 @@ export function createElevenLabsApiService(): ElevenLabsApiService | null {
   const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
   
   // Check for window variables (useful for testing)
-  const windowApiKey = typeof window !== 'undefined' ? (window as Record<string, unknown>).ELEVENLABS_API_KEY as string : undefined;
-  const windowUsername = typeof window !== 'undefined' ? (window as Record<string, unknown>).ELEVENLABS_USERNAME as string : undefined;
-  const windowPassword = typeof window !== 'undefined' ? (window as Record<string, unknown>).ELEVENLABS_PASSWORD as string : undefined;
+// Safely read OpenRouter API key from window (browser) or fallback to environment (Node.js)
+const windowApiKey = typeof window !== 'undefined' 
+  ? (window as Record<string, unknown>).OPENROUTER_API_KEY as string | undefined
+  : undefined;
+
+const apiKey = windowApiKey || process.env.OPENROUTER_API_KEY;
+
+if (!apiKey) {
+  throw new Error("OpenRouter API key is not defined. Set it in window.OPENROUTER_API_KEY or environment variable OPENROUTER_API_KEY.");
+}
+
+// Now you can use `apiKey` in your fetch or API requests
   
   // Determine which credentials to use
   const finalApiKey = apiKey || windowApiKey;

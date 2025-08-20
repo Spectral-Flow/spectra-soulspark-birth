@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRouter Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .container {
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 10px;
+            resize: vertical;
+        }
+        
+        .response {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            min-height: 50px;
+        }
+        
+        .error {
+            color: #ff6b6b;
+        }
+        
+        .success {
+            color: #51cf66;
+        }
+        
+        .info {
+            color: #74c0fc;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌟 OpenRouter Integration Test</h1>
+    
+    <div class="container">
+        <h2>Test OpenRouter API Integration</h2>
+        <p>This page tests the OpenRouter integration using the exact code from the problem statement.</p>
+        
+        <label for="message">Message:</label>
+        <textarea id="message" placeholder="Enter your message here...">Hello! How are you today?</textarea>
+        
+        <button onclick="testOpenRouterDirect()">Test Direct OpenRouter API</button>
+        <button onclick="testBackendAPI()">Test Backend API</button>
+        <button onclick="testVoiceBridge()">Test Enhanced Voice Bridge</button>
+        
+        <div id="response" class="response">Response will appear here...</div>
+    </div>
+    
+    <div class="container">
+        <h2>Configuration</h2>
+        <p>Make sure you have set the OPENROUTER_API_KEY environment variable on your backend.</p>
+        <p>The API will use the "@preset/spectra" model by default.</p>
+    </div>
+
+    <script>
+        // Test using the exact code from the problem statement
+        async function testOpenRouterDirect() {
+            const responseDiv = document.getElementById('response');
+            const messageText = document.getElementById('message').value;
+            
+            responseDiv.innerHTML = '<span class="info">Testing direct OpenRouter API...</span>';
+            
+            try {
+                // This is the exact code from the problem statement
+                const url = "https://openrouter.ai/api/v1/chat/completions";
+                const headers = {
+                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json"
+                };
+                const payload = {
+                    "model": "@preset/spectra",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": messageText || "Hello! How are you today?"
+                        }
+                    ]
+                };
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.innerHTML = `<span class="success">✅ Direct API Success:</span>\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    responseDiv.innerHTML = `<span class="error">❌ Direct API Error:</span>\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<span class="error">❌ Direct API Error:</span>\n${error.message}\n\nNote: Direct API calls require CORS setup and exposed API keys (not recommended for production)`;
+            }
+        }
+        
+        // Test the backend API endpoint
+        async function testBackendAPI() {
+            const responseDiv = document.getElementById('response');
+            const messageText = document.getElementById('message').value;
+            
+            responseDiv.innerHTML = '<span class="info">Testing backend API...</span>';
+            
+            try {
+                const response = await fetch('/api/openrouter/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: '@preset/spectra',
+                        messages: [
+                            {
+                                role: 'user',
+                                content: messageText || "Hello! How are you today?"
+                            }
+                        ]
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.innerHTML = `<span class="success">✅ Backend API Success:</span>\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    responseDiv.innerHTML = `<span class="error">❌ Backend API Error:</span>\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<span class="error">❌ Backend API Error:</span>\n${error.message}`;
+            }
+        }
+        
+        // Test the enhanced voice bridge
+        async function testVoiceBridge() {
+            const responseDiv = document.getElementById('response');
+            const messageText = document.getElementById('message').value;
+            
+            responseDiv.innerHTML = '<span class="info">Testing Enhanced Voice Bridge...</span>';
+            
+            try {
+                // Import the enhanced voice bridge
+                const { createEnhancedVoiceBridge } = await import('/src/voice/enhanced-voice-bridge.js');
+                
+                const voiceBridge = createEnhancedVoiceBridge({
+                    preferOpenRouter: true,
+                    preferBackend: true
+                });
+                
+                const response = await voiceBridge.chatCompletion([
+                    { role: 'user', content: messageText || "Hello! How are you today?" }
+                ], {
+                    model: '@preset/spectra',
+                    temperature: 0.7,
+                    max_tokens: 100
+                });
+                
+                if (response) {
+                    responseDiv.innerHTML = `<span class="success">✅ Voice Bridge Success:</span>\n${JSON.stringify(response, null, 2)}`;
+                } else {
+                    responseDiv.innerHTML = `<span class="error">❌ Voice Bridge Error:</span>\nNo response received`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<span class="error">❌ Voice Bridge Error:</span>\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

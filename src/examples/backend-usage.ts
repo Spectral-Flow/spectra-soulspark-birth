@@ -91,6 +91,36 @@ async function chatWithHuggingFace(message: string) {
   }
 }
 
+// Example 2b: Chat with OpenRouter models specifically  
+async function chatWithOpenRouter(message: string) {
+  try {
+    const messages = [
+      { role: 'user', content: message }
+    ];
+
+    // Use OpenRouter API directly
+    const response = await backendApi.openRouterChat(messages, {
+      model: '@preset/spectra',
+      temperature: 0.7,
+      max_tokens: 150,
+    });
+
+    const aiResponse = (response.data as { choices?: Array<{ message?: { content?: string } }> })?.choices?.[0]?.message?.content;
+    
+    if (aiResponse) {
+      console.log('OpenRouter AI Response:', aiResponse);
+      
+      // Speak the response
+      await speakText(aiResponse);
+    }
+
+    return aiResponse;
+  } catch (error) {
+    console.error('OpenRouter chat error:', error);
+    return 'Sorry, I encountered an error with OpenRouter.';
+  }
+}
+
 // Example 3: User session management
 async function createUserSession() {
   try {
@@ -231,6 +261,7 @@ export {
   speakText,
   chatWithAI,
   chatWithHuggingFace,
+  chatWithOpenRouter,
   createUserSession,
   continuePersistentConversation,
   checkServiceStatus,

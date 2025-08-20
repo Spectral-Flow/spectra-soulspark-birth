@@ -138,6 +138,14 @@ export class BackendApiClient {
     });
   }
 
+  // OpenRouter AI API
+  async openRouterChat(messages: any[], options?: any) {
+    return this.makeRequest('/openrouter/chat', {
+      method: 'POST',
+      body: JSON.stringify({ messages, ...options }),
+    });
+  }
+
   // Memory Management API
   async addMemory(data: {
     userMessage: string;

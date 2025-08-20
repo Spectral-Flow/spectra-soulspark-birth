@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    open: false,
+    strictPort: true,
   },
   plugins: [
     react(),
@@ -17,29 +19,62 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    'process.env': {}
+    'process.env': {},
+    // Add performance marker for monitoring
+    '__BUILD_TIME__': JSON.stringify(new Date().toISOString()),
   },
   build: {
     outDir: "dist",
     sourcemap: mode === 'development',
-    chunkSizeWarningLimit: 600, // Increase warning limit for large chunks
+    minify: mode === 'production' ? 'esbuild' : false,
+    target: 'es2020', // Modern target for better performance
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-tooltip'],
+          ui: [
+            '@radix-ui/react-dialog', 
+            '@radix-ui/react-popover', 
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-select'
+          ],
           voice: ['openai', '@elevenlabs/react'],
+          routing: ['react-router-dom'],
+          query: ['@tanstack/react-query'],
         },
+        // Optimize chunk loading
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
       // Exclude test files from production build
       external: mode === 'production' ? [
         /src\/voice\/test\.ts$/,
         /src\/voice\/streaming-test\.ts$/,
-        /src\/voice\/streaming-examples\.ts$/
+        /src\/voice\/streaming-examples\.ts$/,
+        /src\/examples\//,
       ] : undefined,
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: [
+      'react', 
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'lucide-react',
+    ],
+    exclude: ['@elevenlabs/react'], // Let this load dynamically
+  },
+  // Enable modern CSS features
+  css: {
+    devSourcemap: mode === 'development',
+  },
+  // Performance optimizations
+  esbuild: {
+    target: 'es2020',
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
   },
 }));

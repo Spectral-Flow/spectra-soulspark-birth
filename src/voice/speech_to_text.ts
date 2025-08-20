@@ -62,7 +62,7 @@ export class SpeechToTextEngine {
       this.recognition.interimResults = this.config.interimResults || true;
       this.recognition.lang = this.config.language || 'en-US';
       
-      this.recognition.onresult = (event) => {
+      this.recognition.onresult = (event: any) => {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           const transcript = result[0].transcript;
@@ -78,7 +78,7 @@ export class SpeechToTextEngine {
         }
       };
 
-      this.recognition.onerror = (event) => {
+      this.recognition.onerror = (event: any) => {
         if (this.onErrorCallback) {
           this.onErrorCallback(new Error(`Speech recognition error: ${event.error}`));
         }

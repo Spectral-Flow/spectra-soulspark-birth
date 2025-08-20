@@ -260,7 +260,7 @@ export class ElevenLabsVoiceService {
    * Play streaming audio for real-time playback
    * Uses Web Audio API with true chunk-by-chunk streaming
    */
-  // eslint-disable-next-line no-async-promise-executor
+   
   async playStreamingAudio(audioStream: ReadableStream<Uint8Array>): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
@@ -282,7 +282,7 @@ export class ElevenLabsVoiceService {
           try {
             // Try to decode this chunk as audio
             // For MP3 streams, we need complete frames, so we may need to buffer
-            const audioBuffer = await audioContext.decodeAudioData(chunk.buffer.slice());
+            const audioBuffer = await audioContext.decodeAudioData(chunk.buffer.slice() as ArrayBuffer);
             audioBufferQueue.push(audioBuffer);
             
             // Start playing if not already playing
@@ -584,7 +584,8 @@ export async function stream(audioStream: ReadableStream<Uint8Array>): Promise<v
     
     return new Promise<void>((resolve, reject) => {
       source.onended = () => resolve();
-      source.onerror = () => reject(new Error('Audio playback failed'));
+      // AudioBufferSourceNode doesn't have onerror, use addEventListener instead
+      source.addEventListener('error', () => reject(new Error('Audio playback failed')));
       source.start();
     });
   } finally {

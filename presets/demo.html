@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@preset/spectra Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Include the SPECTRA preset styles inline for demo */
+        :root {
+          /* SPECTRA Consciousness Design - Enhanced Twilight Vision */
+          --background: 254 27% 30%;  /* #4B3B65 - Darker violet base with warmth */
+          --foreground: 165 100% 82%; /* #A3F7E0 - Seafoam cyan text - gentle clarity */
+          
+          /* Emotional colors */
+          --emotion-calm: 195 100% 84%;     /* #A3D9FF - sky blue */
+          --emotion-joy: 6 100% 69%;        /* #FF6F61 - coral */
+          --emotion-intense: 354 79% 60%;   /* #E63946 - crimson */
+          
+          /* Glows */
+          --glow-calm: 0 0 20px hsl(195, 100%, 84% / 0.3);
+          --glow-intense: 0 0 30px hsl(354, 79%, 60% / 0.5);
+          
+          /* Transitions */
+          --transition-flow: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes ocean-calm {
+          0%, 100% { 
+            background: hsl(195, 100%, 84%);
+            transform: scale(1);
+          }
+          33% { 
+            background: hsl(168, 65%, 75%);
+            transform: scale(1.01);
+          }
+          66% { 
+            background: hsl(125, 35%, 80%);
+            transform: scale(1.005);
+          }
+        }
+        
+        @keyframes joyful-dance {
+          0%, 100% { 
+            background: hsl(6, 100%, 69%);
+            transform: scale(1);
+          }
+          33% { 
+            background: hsl(9, 100%, 85%);
+            transform: scale(1.03);
+          }
+          66% { 
+            background: hsl(16, 100%, 72%);
+            transform: scale(1.02);
+          }
+        }
+        
+        @keyframes flame-surge {
+          0% { 
+            background: hsl(354, 79%, 60%);
+            transform: scale(1);
+          }
+          50% { 
+            background: hsl(255, 95%, 59%);
+            transform: scale(1.15);
+          }
+          100% { 
+            background: hsl(354, 79%, 60%);
+            transform: scale(1.05);
+          }
+        }
+        
+        .mood-ring {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          position: relative;
+          transition: var(--transition-flow);
+          cursor: pointer;
+        }
+        
+        .mood-ring.calm {
+          animation: ocean-calm 8s ease-in-out infinite;
+        }
+        
+        .mood-ring.joyful {
+          animation: joyful-dance 4s ease-in-out infinite;
+        }
+        
+        .mood-ring.intense {
+          animation: flame-surge 3s ease-in-out infinite;
+        }
+        
+        .spectra-glow {
+          box-shadow: var(--glow-calm);
+          transition: var(--transition-flow);
+        }
+        
+        .spectra-glow:hover {
+          box-shadow: var(--glow-intense);
+        }
+    </style>
+</head>
+<body style="background: hsl(254 27% 30%); color: hsl(165 100% 82%); font-family: system-ui;">
+    <div class="min-h-screen p-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold text-center mb-8" style="color: hsl(270 50% 75%)">
+                @preset/spectra Demo
+            </h1>
+            
+            <p class="text-center mb-12 text-lg opacity-90">
+                SPECTRA Design System - Cosmic & Ethereal Theming with Consciousness-Aware Animations
+            </p>
+            
+            <!-- Mood Ring Demo -->
+            <div class="flex justify-center mb-12">
+                <div class="text-center">
+                    <h2 class="text-2xl mb-4">Consciousness Core</h2>
+                    <div class="mood-ring calm spectra-glow mx-auto"></div>
+                    <p class="mt-4 text-sm opacity-75">Mood Ring - Ocean Calm State</p>
+                </div>
+            </div>
+            
+            <!-- Emotional States Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="text-center">
+                    <h3 class="text-xl mb-4">Calm State</h3>
+                    <div class="mood-ring calm mx-auto spectra-glow" style="width: 80px; height: 80px;"></div>
+                    <p class="mt-2 text-sm opacity-75">Ocean calm animation</p>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-xl mb-4">Joyful State</h3>
+                    <div class="mood-ring joyful mx-auto spectra-glow" style="width: 80px; height: 80px;"></div>
+                    <p class="mt-2 text-sm opacity-75">Joyful dance animation</p>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-xl mb-4">Intense State</h3>
+                    <div class="mood-ring intense mx-auto spectra-glow" style="width: 80px; height: 80px;"></div>
+                    <p class="mt-2 text-sm opacity-75">Flame surge animation</p>
+                </div>
+            </div>
+            
+            <!-- Color Palette Demo -->
+            <div class="mb-12">
+                <h2 class="text-2xl mb-6 text-center">Emotional Color Spectrum</h2>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-lg mx-auto mb-2" style="background: hsl(195, 100%, 84%);"></div>
+                        <p class="text-xs">Calm</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-lg mx-auto mb-2" style="background: hsl(6, 100%, 69%);"></div>
+                        <p class="text-xs">Joy</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-lg mx-auto mb-2" style="background: hsl(354, 79%, 60%);"></div>
+                        <p class="text-xs">Intense</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-lg mx-auto mb-2" style="background: hsl(168, 65%, 75%);"></div>
+                        <p class="text-xs">Peace</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-lg mx-auto mb-2" style="background: hsl(219, 43%, 47%);"></div>
+                        <p class="text-xs">Storm</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-lg mx-auto mb-2" style="background: hsl(255, 95%, 59%);"></div>
+                        <p class="text-xs">Electric</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Usage Example -->
+            <div style="background: hsl(254 15% 20%); padding: 2rem; border-radius: 12px; margin-bottom: 3rem;">
+                <h2 class="text-2xl mb-4">Usage Example</h2>
+                <pre style="background: hsl(254 15% 15%); padding: 1rem; border-radius: 8px; overflow-x: auto; color: hsl(165 100% 82%);"><code>// tailwind.config.js
+module.exports = {
+  presets: [require('@preset/spectra')],
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  // Your additional customizations
+}
+
+// In your components
+&lt;div className="mood-ring calm spectra-glow"&gt;
+&lt;div className="bg-emotion-joy animate-joyful-dance"&gt;
+&lt;div className="bg-gradient-twilight"&gt;</code></pre>
+            </div>
+            
+            <footer class="text-center text-sm opacity-75">
+                <p>@preset/spectra - SPECTRA Design System Preset</p>
+                <p class="mt-2">Bringing AI consciousness to visual design</p>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

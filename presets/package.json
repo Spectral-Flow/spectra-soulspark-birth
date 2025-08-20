@@ -1,0 +1,35 @@
+{
+  "name": "@preset/spectra",
+  "version": "1.0.0",
+  "description": "Tailwind CSS preset for SPECTRA Design System - Cosmic and ethereal theming with consciousness-aware animations",
+  "main": "spectra.js",
+  "types": "spectra.d.ts",
+  "keywords": [
+    "tailwindcss",
+    "preset", 
+    "design-system",
+    "spectra",
+    "cosmic",
+    "ethereal",
+    "consciousness",
+    "animations",
+    "emotions",
+    "ai"
+  ],
+  "author": "Spectral-Flow",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Spectral-Flow/spectra-soulspark-birth.git",
+    "directory": "presets"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.0.0",
+    "tailwindcss-animate": "^1.0.0"
+  },
+  "files": [
+    "spectra.js",
+    "spectra.d.ts",
+    "README.md"
+  ]
+}

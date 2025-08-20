@@ -40,6 +40,7 @@ const SpectraChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [emotionalState, setEmotionalState] = useState<EmotionalState>({
     primary: 'curious',
     intensity: 0.7,
@@ -396,6 +397,32 @@ setVoiceManager(voiceInstance);
     }
   };
 
+  const simulateStreamingResponse = async (messageId: string, fullResponse: string, emotion: any) => {
+    // Simulate streaming by revealing text gradually
+    const words = fullResponse.split(' ');
+    const chunkSize = 2; // Words per chunk
+    let currentText = '';
+    
+    for (let i = 0; i < words.length; i += chunkSize) {
+      const chunk = words.slice(i, i + chunkSize).join(' ');
+      currentText += (currentText ? ' ' : '') + chunk;
+      
+      // Update the streaming message
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, content: currentText }
+          : msg
+      ));
+      
+      // Small delay to simulate real streaming
+      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 100));
+    }
+    
+    // Update emotional state when streaming completes
+    updateEmotionalState(emotion.primary, emotion.intensity);
+    setStreamingMessageId(null);
+  };
+
   const handleSendMessage = async () => {
     if (!currentInput.trim()) return;
 
@@ -414,17 +441,23 @@ setVoiceManager(voiceInstance);
     try {
       const { text: response, emotion } = await generateSpectraResponse(messageContent);
       
+      // Create streaming message with empty content initially
+      const streamingId = (Date.now() + 1).toString();
       const spectraMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: streamingId,
         type: 'spectra',
-        content: response,
+        content: '', // Start empty for streaming
         timestamp: new Date(),
         emotion: emotion.primary,
         memoryImportance: emotion.intensity * 5
       };
 
       setMessages(prev => [...prev, spectraMessage]);
-      updateEmotionalState(emotion.primary, emotion.intensity);
+      setIsTyping(false);
+      setStreamingMessageId(streamingId);
+      
+      // Start streaming simulation
+      await simulateStreamingResponse(streamingId, response, emotion);
       
       // Process and store conversation exchange in memory system
       try {
@@ -440,7 +473,7 @@ setVoiceManager(voiceInstance);
         // Continue without memory storage
       }
       
-      // TTS for SPECTRA's response with emotion
+      // TTS for SPECTRA's response with emotion (after streaming completes)
       try {
         speakText(response, emotion.primary);
       } catch (ttsError) {
@@ -462,8 +495,8 @@ setVoiceManager(voiceInstance);
       
       setMessages(prev => [...prev, errorMessage]);
       updateEmotionalState('calm', 0.3);
-    } finally {
       setIsTyping(false);
+      setStreamingMessageId(null);
     }
   };
 
@@ -920,6 +953,35 @@ setVoiceManager(voiceInstance);
                     />
                   </div>
                   <span className="text-xs text-muted-foreground ml-2">SPECTRA is thinking...</span>
+                </div>
+              </Card>
+            </div>
+          )}
+          
+          {/* Streaming Indicator */}
+          {streamingMessageId && (
+            <div className="flex gap-4 items-start animate-fade-in">
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                  boxShadow: `0 0 15px ${emotionalState.color}40`,
+                  animation: 'pulse 1.5s ease-in-out infinite'
+                }}
+              >
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <Card 
+                className="p-2 px-3 backdrop-blur-sm border-0"
+                style={{
+                  background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
+                  borderColor: `${emotionalState.color}30`,
+                  boxShadow: `0 4px 20px ${emotionalState.color}10`
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-3 animate-pulse" style={{ backgroundColor: emotionalState.color }} />
+                  <span className="text-xs text-muted-foreground">Streaming response...</span>
                 </div>
               </Card>
             </div>

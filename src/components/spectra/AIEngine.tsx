@@ -190,6 +190,62 @@ class SpectraAIEngine {
     
     return null;
   }
+
+  // Streaming AI response method for incremental message updates
+  async generateStreamingResponse(
+    input: string, 
+    context?: Record<string, unknown>,
+    onChunk?: (chunk: string) => void,
+    onEmotionUpdate?: (emotion: { primary: string; intensity: number }) => void
+  ): Promise<{ text: string; emotion: any }> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+
+    try {
+      // Analyze emotion early and update it
+      const emotion = this.analyzeEmotion(input);
+      if (onEmotionUpdate) {
+        onEmotionUpdate(emotion);
+      }
+
+      // For now, simulate streaming by breaking the response into chunks
+      const fullResponse = await this.generateWithFallback(input, context);
+      const words = fullResponse.split(' ');
+      
+      // Stream the response word by word
+      let streamedText = '';
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i] + (i < words.length - 1 ? ' ' : '');
+        streamedText += word;
+        
+        if (onChunk) {
+          onChunk(streamedText);
+        }
+        
+        // Simulate typing delay
+        await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 100));
+      }
+
+      return {
+        text: streamedText,
+        emotion
+      };
+    } catch (error) {
+      console.error('Streaming response error:', error);
+      const fallbackEmotion = { primary: 'calm', intensity: 0.3, confidence: 0.6 };
+      const fallbackText = "I'm having trouble processing that right now. Could you try again?";
+      
+      if (onChunk) {
+        onChunk(fallbackText);
+      }
+      
+      return {
+        text: fallbackText,
+        emotion: fallbackEmotion
+      };
+    }
+  }
 }
 
 // Export singleton instance

@@ -75,7 +75,52 @@ export class OpenAIVoiceService {
    */
   async playAudio(audioBuffer: ArrayBuffer): Promise<void> {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
+class SpectraAudio {
+  audioContext: AudioContext;
+
+  constructor() {
+    // Create an AudioContext with Safari fallback
+    this.audioContext = new (
+      window.AudioContext ||
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    )();
+
+    if (!this.audioContext) {
+      throw new Error("Web Audio API is not supported in this browser.");
+    }
+  }
+
+  // Play a simple tone for testing
+  playTone(frequency = 440, duration = 1) {
+    const oscillator = this.audioContext.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.value = frequency;
+
+    const gainNode = this.audioContext.createGain();
+    gainNode.gain.value = 0.1; // safe volume
+
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(this.audioContext.currentTime + duration);
+  }
+
+  // Example: use audio with Spectra's OpenRouter responses
+  async speakText(text: string) {
+    // Here you could integrate ElevenLabs or other TTS API
+    console.log(`Spectra would speak: "${text}"`);
+    // Placeholder for real TTS playback
+  }
+}
+
+// -----------------------------
+// Example Usage
+// -----------------------------
+const spectraAudio = new SpectraAudio();
+spectraAudio.playTone(523, 0.5); // play a quick C5 tone
+
+spectraAudio.speakText("Hello, I am Spectra, your AI companion.");
     }
 
     try {
@@ -206,15 +251,129 @@ export function createOpenAIVoiceFromEnv(config?: Partial<OpenAIConfig>): OpenAI
   
   // Try to get from browser window (for testing)
   if (!apiKey && typeof window !== 'undefined') {
-    apiKey = (window as Record<string, unknown>).OPENAI_API_KEY as string || (window as Record<string, unknown>).VITE_OPENAI_API_KEY as string;
+// -----------------------------
+// 1️⃣ Get API Keys Safely
+// -----------------------------
+function getApiKey(keyNames: string[]): string | undefined {
+  if (typeof window !== 'undefined') {
+    const win = window as Record<string, unknown>;
+    for (const name of keyNames) {
+      const val = win[name] as string | undefined;
+      if (val) return val;
+    }
+  }
+
+  // Fallback to environment variables (Node.js)
+  for (const name of keyNames) {
+    const val = process.env[name];
+    if (val) return val;
+  }
+
+  return undefined;
+}
+
+// -----------------------------
+// 2️⃣ Usage Examples
+// -----------------------------
+const OPENROUTER_API_KEY = getApiKey(['OPENROUTER_API_KEY']);
+const ELEVENLABS_API_KEY = getApiKey(['ELEVENLABS_API_KEY', 'VITE_ELEVENLABS_API_KEY']);
+const OPENAI_API_KEY = getApiKey(['OPENAI_API_KEY', 'VITE_OPENAI_API_KEY']);
+
+if (!OPENROUTER_API_KEY) throw new Error("OpenRouter API key not found.");
+if (!ELEVENLABS_API_KEY) throw new Error("ElevenLabs API key not found.");
+if (!OPENAI_API_KEY) throw new Error("OpenAI API key not found.");
+
+// -----------------------------
+// 3️⃣ Example: Using in a Fetch
+// -----------------------------
+async function testOpenRouter() {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "nousresearch/deephermes-3-mistral-24b-preview",
+      messages: [
+        { role: "system", content: "You are Spectra, a creative AI companion." },
+        { role: "user", content: "Hello, Spectra! Describe a futuristic cityscape." },
+      ],
+    }),
+  });
+
+  const data = await response.json();
+  console.log(data);
+}
+
+// Run test
+testOpenRouter().catch(console.error);
   }
   
   // Try to get from environment if available (Node.js/build time)
   if (!apiKey) {
     try {
-      apiKey = (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.VITE_OPENAI_API_KEY || 
-               (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.OPENAI_API_KEY;
-    } catch (e) {
+// -----------------------------
+// 1️⃣ Unified API Key Getter
+// -----------------------------
+function getApiKey(keyNames: string[]): string | undefined {
+  // 1️⃣ Browser (window)
+  if (typeof window !== 'undefined') {
+    const win = window as Record<string, unknown>;
+    for (const name of keyNames) {
+      const val = win[name] as string | undefined;
+      if (val) return val;
+    }
+  }
+
+  // 2️⃣ Node.js or universal (globalThis)
+  const globalEnv = (globalThis as { process?: { env?: Record<string, string> } }).process?.env;
+  if (globalEnv) {
+    for (const name of keyNames) {
+      const val = globalEnv[name];
+      if (val) return val;
+    }
+  }
+
+  return undefined;
+}
+
+// -----------------------------
+// 2️⃣ Example Keys
+// -----------------------------
+const OPENROUTER_API_KEY = getApiKey(['OPENROUTER_API_KEY']);
+const ELEVENLABS_API_KEY = getApiKey(['ELEVENLABS_API_KEY', 'VITE_ELEVENLABS_API_KEY']);
+const OPENAI_API_KEY = getApiKey(['OPENAI_API_KEY', 'VITE_OPENAI_API_KEY']);
+
+if (!OPENROUTER_API_KEY) throw new Error("OpenRouter API key not found.");
+if (!ELEVENLABS_API_KEY) throw new Error("ElevenLabs API key not found.");
+if (!OPENAI_API_KEY) throw new Error("OpenAI API key not found.");
+
+// -----------------------------
+// 3️⃣ Example Usage: OpenRouter Request
+// -----------------------------
+async function testOpenRouter() {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "nousresearch/deephermes-3-mistral-24b-preview",
+      messages: [
+        { role: "system", content: "You are Spectra, a creative AI companion." },
+        { role: "user", content: "Hello, Spectra! Describe a futuristic cityscape." },
+      ],
+    }),
+  });
+
+  const data = await response.json();
+  console.log(data);
+}
+
+// Run test
+testOpenRouter().catch(console.error);
       // Ignore if process is not available
     }
   }

@@ -26,7 +26,7 @@ type STTErrorCallback = (error: Error) => void;
 export class SpeechToTextEngine {
   private config: STTConfig;
   private isListening: boolean = false;
-  private recognition: any | null = null;
+  private recognition: unknown | null = null;
   private onResultCallback?: STTCallback;
   private onErrorCallback?: STTErrorCallback;
   private audioContext?: AudioContext;
@@ -54,17 +54,18 @@ export class SpeechToTextEngine {
 
   private initializeWebSpeechAPI(): void {
     // Fallback to Web Speech API if OpenAI not available
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
-      this.recognition.continuous = this.config.continuous || true;
-      this.recognition.interimResults = this.config.interimResults || true;
-      this.recognition.lang = this.config.language || 'en-US';
+      (this.recognition as any).continuous = this.config.continuous || true;
+      (this.recognition as any).interimResults = this.config.interimResults || true;
+      (this.recognition as any).lang = this.config.language || 'en-US';
       
-      this.recognition.onresult = (event: any) => {
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
+      (this.recognition as any).onresult = (event: unknown) => {
+        const speechEvent = event as any;
+        for (let i = speechEvent.resultIndex; i < speechEvent.results.length; i++) {
+          const result = speechEvent.results[i];
           const transcript = result[0].transcript;
           
           if (this.onResultCallback) {
@@ -78,13 +79,14 @@ export class SpeechToTextEngine {
         }
       };
 
-      this.recognition.onerror = (event: any) => {
+      (this.recognition as any).onerror = (event: unknown) => {
+        const errorEvent = event as any;
         if (this.onErrorCallback) {
-          this.onErrorCallback(new Error(`Speech recognition error: ${event.error}`));
+          this.onErrorCallback(new Error(`Speech recognition error: ${errorEvent.error}`));
         }
       };
 
-      this.recognition.onend = () => {
+      (this.recognition as any).onend = () => {
         this.isListening = false;
         // Auto-restart if in continuous mode
         if (this.config.continuous && this.isListening) {
@@ -117,7 +119,7 @@ export class SpeechToTextEngine {
       throw new Error('Speech recognition not available in this browser');
     }
 
-    this.recognition.start();
+    (this.recognition as any).start();
   }
 
   private async startOpenAIListening(): Promise<void> {
@@ -169,7 +171,7 @@ export class SpeechToTextEngine {
     this.isListening = false;
     
     if (this.recognition) {
-      this.recognition.stop();
+      (this.recognition as any).stop();
     }
 
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
@@ -197,9 +199,9 @@ export class SpeechToTextEngine {
     this.config = { ...this.config, ...newConfig };
     
     if (this.recognition) {
-      this.recognition.lang = this.config.language || 'en-US';
-      this.recognition.continuous = this.config.continuous || true;
-      this.recognition.interimResults = this.config.interimResults || true;
+      (this.recognition as any).lang = this.config.language || 'en-US';
+      (this.recognition as any).continuous = this.config.continuous || true;
+      (this.recognition as any).interimResults = this.config.interimResults || true;
     }
   }
 }

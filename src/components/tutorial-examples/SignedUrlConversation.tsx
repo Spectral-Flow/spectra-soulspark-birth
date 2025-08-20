@@ -15,7 +15,7 @@ export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationPro
     onError: (error) => console.error('Error:', error),
   });
 
-  const getSignedUrl = async (): Promise<string> => {
+  const getSignedUrl = useCallback(async (): Promise<string> => {
     const response = await fetch("/api/elevenlabs/signed-url", {
       method: 'POST',
       headers: {
@@ -30,7 +30,7 @@ export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationPro
     
     const { signed_url } = await response.json();
     return signed_url;
-  };
+  }, [agentId]);
 
   const startConversation = useCallback(async () => {
     try {
@@ -47,7 +47,7 @@ export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationPro
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
-  }, [conversation, agentId]);
+  }, [conversation, getSignedUrl]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();

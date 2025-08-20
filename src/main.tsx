@@ -5,6 +5,10 @@ import './index.css'
 // PWA Support
 import { registerServiceWorker } from './lib/mobile-support'
 
+// Initialize diagnostics system
+import './lib/diagnostics'
+import './lib/startup-diagnostics'
+
 // Initialize PWA features
 registerServiceWorker().catch(console.error);
 

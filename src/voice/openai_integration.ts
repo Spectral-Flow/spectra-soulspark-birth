@@ -252,7 +252,7 @@ export function createOpenAIVoiceFromEnv(config?: Partial<OpenAIConfig>): OpenAI
   // Try to get from browser window (for testing)
   if (!apiKey && typeof window !== 'undefined') {
     try {
-      apiKey = (window as Record<string, unknown>).OPENAI_API_KEY as string;
+      apiKey = (window as unknown as Record<string, unknown>).OPENAI_API_KEY as string;
     } catch {
       // Ignore if process is not available
     }

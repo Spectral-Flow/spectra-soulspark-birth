@@ -10,7 +10,7 @@ export default tseslint.config(
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022, // Updated to 2022
       globals: globals.browser,
     },
     plugins: {
@@ -23,8 +23,8 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "warn", // Changed from error to warning
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-explicit-any": "error", // Changed from warning to error
       "@typescript-eslint/no-empty-object-type": "off",
       "no-async-promise-executor": "off", // Allow for complex async operations
     },

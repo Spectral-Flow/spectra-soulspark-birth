@@ -4,8 +4,8 @@
  */
 
 import { backendApi, isBackendAvailable } from '@/lib/backend-api';
-import { createElevenLabsVoiceFromEnv } from './elevenlabs_integration';
-import { createOpenAIVoiceFromEnv } from './openai_integration';
+import { createElevenLabsVoiceFromEnv, ElevenLabsVoiceService } from './elevenlabs_integration';
+import { createOpenAIVoiceFromEnv, OpenAIVoiceService } from './openai_integration';
 
 interface VoiceConfig {
   preferBackend?: boolean;
@@ -16,11 +16,22 @@ interface VoiceConfig {
   fallbackToWebSpeech?: boolean;
 }
 
+interface TTSOptions {
+  voiceId?: string;
+  voice?: string;
+  model?: string;
+  stability?: number;
+  similarityBoost?: number;
+  style?: number;
+  speed?: number;
+  [key: string]: unknown;
+}
+
 interface TTSRequest {
   text: string;
   voice?: string;
   voiceId?: string;
-  options?: any;
+  options?: TTSOptions;
 }
 
 interface TTSResponse {
@@ -29,11 +40,52 @@ interface TTSResponse {
   service: 'backend-elevenlabs' | 'backend-openai' | 'backend-huggingface' | 'elevenlabs' | 'openai' | 'webspeech';
 }
 
+interface VoiceData {
+  voice_id: string;
+  name: string;
+  category?: string;
+  labels?: {
+    gender?: string;
+    age?: string;
+    accent?: string;
+    description?: string;
+  };
+}
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface ChatOptions {
+  model?: string;
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  [key: string]: unknown;
+}
+
+interface ChatResponse {
+  choices: Array<{
+    message: {
+      role: string;
+      content: string;
+    };
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
 export class EnhancedVoiceBridge {
   private config: VoiceConfig;
   private backendAvailable: boolean = false;
-  private elevenLabsService: any = null;
-  private openAIService: any = null;
+  private elevenLabsService: ElevenLabsVoiceService | null = null;
+  private openAIService: OpenAIVoiceService | null = null;
 
   constructor(config: VoiceConfig = {}) {
     this.config = {
@@ -105,7 +157,7 @@ export class EnhancedVoiceBridge {
     // Fallback to direct API services
     if (this.elevenLabsService && this.config.preferElevenLabs) {
       try {
-        const audioData = await this.elevenLabsService.textToSpeech(text, {
+        const audioData = await this.elevenLabsService.generateSpeech(text, {
           voiceId,
           ...options,
         });
@@ -121,7 +173,8 @@ export class EnhancedVoiceBridge {
 
     if (this.openAIService && this.config.preferOpenAI) {
       try {
-        const audioData = await this.openAIService.textToSpeech(text, { voice });
+        const openAIVoice = voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer' | undefined;
+        const audioData = await this.openAIService.generateSpeech(text, { voice: openAIVoice });
         
         return {
           audio: audioData,
@@ -154,12 +207,12 @@ export class EnhancedVoiceBridge {
   /**
    * Get available voices from backend or direct services
    */
-  async getVoices(): Promise<any[]> {
+  async getVoices(): Promise<VoiceData[]> {
     if (this.backendAvailable && this.config.preferBackend && this.config.preferElevenLabs) {
       try {
         const response = await backendApi.elevenLabsVoices();
         if (response.data && !response.error) {
-          return (response.data as { voices?: any[] }).voices || [];
+          return (response.data as { voices?: VoiceData[] }).voices || [];
         }
       } catch (error) {
         console.warn('Backend voices API failed:', error);
@@ -176,7 +229,13 @@ export class EnhancedVoiceBridge {
 
     // Fallback to Web Speech API voices
     if ('speechSynthesis' in window) {
-      return Array.from(speechSynthesis.getVoices());
+      return Array.from(speechSynthesis.getVoices()).map(voice => ({
+        voice_id: voice.voiceURI,
+        name: voice.name,
+        labels: {
+          gender: voice.name.toLowerCase().includes('female') ? 'female' : 'male',
+        }
+      }));
     }
 
     return [];
@@ -185,14 +244,14 @@ export class EnhancedVoiceBridge {
   /**
    * Chat completion via backend or direct OpenAI
    */
-  async chatCompletion(messages: any[], options: any = {}): Promise<any> {
+  async chatCompletion(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResponse | null> {
     if (this.backendAvailable && this.config.preferBackend) {
       // Try Hugging Face first if preferred
       if (this.config.preferHuggingFace) {
         try {
           const response = await backendApi.huggingFaceChat(messages, options);
           if (response.data && !response.error) {
-            return response.data;
+            return response.data as ChatResponse;
           }
         } catch (error) {
           console.warn('Backend Hugging Face chat API failed:', error);
@@ -203,23 +262,18 @@ export class EnhancedVoiceBridge {
       try {
         const response = await backendApi.openAIChat(messages, options);
         if (response.data && !response.error) {
-          return response.data;
+          return response.data as ChatResponse;
         }
       } catch (error) {
         console.warn('Backend OpenAI chat API failed:', error);
       }
     }
 
-    if (this.openAIService) {
-      try {
-        return await this.openAIService.chatCompletion(messages, options);
-      } catch (error) {
-        console.warn('Direct chat API failed:', error);
-        throw error;
-      }
-    }
+    // Note: Direct OpenAI chat completion not implemented in OpenAIVoiceService
+    // This service is primarily for TTS, not chat completion
+    console.warn('Direct OpenAI chat completion not available in voice service');
 
-    throw new Error('No chat completion service available');
+    return null;
   }
 
   /**

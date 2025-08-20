@@ -36,8 +36,8 @@ async function speakText(text: string) {
 async function chatWithAI(message: string) {
   try {
     const messages = [
-      { role: 'system', content: 'You are Spectra, an AI companion.' },
-      { role: 'user', content: message }
+      { role: 'system' as const, content: 'You are Spectra, an AI companion.' },
+      { role: 'user' as const, content: message }
     ];
 
     const response = await enhancedVoiceBridge.chatCompletion(messages, {
@@ -45,7 +45,7 @@ async function chatWithAI(message: string) {
       max_tokens: 150,
     });
 
-    const aiResponse = response.choices?.[0]?.message?.content;
+    const aiResponse = response?.choices?.[0]?.message?.content;
     
     if (aiResponse) {
       console.log('AI Response:', aiResponse);

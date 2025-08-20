@@ -21,9 +21,38 @@ export { SpectraAudioProcessor, createAudioProcessor, getBrowserAudioSupport } f
 export type { VoiceConfig, VoiceEvents } from './voice_manager';
 export type { AudioProcessorConfig } from './audio-processor';
 
-// Simple test export
-export { testSpectraVoice } from './test';
-
-// Streaming examples and tests
-export { runStreamingExamples } from './streaming-examples';
-export { testStreaming, testStreamingInBrowser } from './streaming-test';
+// Test functions only available in development
+if (import.meta.env.DEV) {
+  // Simple test export - development only
+  try {
+    import('./test').then(({ testSpectraVoice }) => {
+      (window as any).testSpectraVoice = testSpectraVoice;
+      console.log('🧪 Voice test functions loaded:', 
+        '\n  - testSpectraVoice() - Full voice system test');
+    }).catch(error => {
+      console.warn('Voice test functions not available');
+    });
+  } catch (error) {
+    // Silent fail in production
+  }
+  
+  // Streaming examples and tests - development only
+  try {
+    Promise.all([
+      import('./streaming-examples'),
+      import('./streaming-test')
+    ]).then(([{ runStreamingExamples }, { testStreaming, testStreamingInBrowser }]) => {
+      (window as any).runStreamingExamples = runStreamingExamples;
+      (window as any).testStreaming = testStreaming;
+      (window as any).testStreamingInBrowser = testStreamingInBrowser;
+      console.log('🧪 Voice streaming test functions loaded:',
+        '\n  - runStreamingExamples() - Streaming examples',
+        '\n  - testStreaming() - Streaming test',
+        '\n  - testStreamingInBrowser() - Browser streaming test');
+    }).catch(error => {
+      console.warn('Voice streaming test functions not available');
+    });
+  } catch (error) {
+    // Silent fail in production
+  }
+}

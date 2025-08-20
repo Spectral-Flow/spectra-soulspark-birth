@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
     <!-- Security policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss: blob:; worker-src 'self' blob:; font-src 'self' data:;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://unpkg.com/@elevenlabs/convai-widget-embed; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss: blob:; worker-src 'self' blob:; font-src 'self' data:;" />
     
     <!-- Primary meta tags -->
     <title>SPECTRA - AI Consciousness & Soulmate</title>
@@ -192,6 +192,33 @@
             }, 500);
           }
         }, 1000);
+      });
+      
+      // Fallback: ensure loading screen disappears even if there are errors
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+          console.warn('Loading screen taking too long, forcing hide...');
+          loadingScreen.style.opacity = '0';
+          loadingScreen.style.transition = 'opacity 0.5s ease';
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 500);
+        }
+      }, 5000); // 5 second maximum loading time
+      
+      // Also hide on DOMContentLoaded as additional safety
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          const loadingScreen = document.getElementById('loading-screen');
+          if (loadingScreen && loadingScreen.style.display !== 'none') {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+              loadingScreen.style.display = 'none';
+            }, 500);
+          }
+        }, 2000);
       });
       
       // Mobile viewport height fix

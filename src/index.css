@@ -251,6 +251,21 @@ All colors MUST be HSL for proper theming.
   100% { opacity: 0.6; filter: blur(1px); }
 }
 
+@keyframes fade-in {
+  0% { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
 /* SPECTRA's Mood Ring & Emotional States */
 .mood-ring {
   width: 120px;

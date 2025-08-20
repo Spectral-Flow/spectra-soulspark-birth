@@ -665,284 +665,351 @@ setVoiceManager(voiceInstance);
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm p-4">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            {showFace ? (
-              <SpectraFace
-                emotionalState={{
-                  primary: emotionalState.primary,
-                  intensity: emotionalState.intensity,
-                  color: emotionalState.color,
-                  gradient: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
-                  isCalm: emotionalState.intensity < 0.4
-                }}
-                size="sm"
-              />
-            ) : (
-              <MoodRing 
-                emotionalState={{
-                  primary: emotionalState.primary,
-                  intensity: emotionalState.intensity,
-                  color: emotionalState.color,
-                  gradient: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
-                  isCalm: emotionalState.intensity < 0.4
-                }}
-                className="w-12 h-12"
-              />
-            )}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              SPECTRA
-            </h1>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
+    <div className="flex flex-col h-screen bg-background relative">
+      {/* Clean Minimal Header with Prominent Mood Ring */}
+      <div className="relative p-6 bg-gradient-to-b from-background via-background/95 to-transparent backdrop-blur-sm">
+        <div className="flex items-center justify-center gap-6">
+          {/* Central Mood Ring - Main Visual Focus */}
+          <div className="relative group">
+            <MoodRing 
+              emotionalState={{
+                primary: emotionalState.primary,
+                intensity: emotionalState.intensity,
+                color: emotionalState.color,
+                gradient: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                isCalm: emotionalState.intensity < 0.4
+              }}
+              className="w-20 h-20 md:w-24 md:h-24 transition-all duration-500 hover:scale-105"
+            />
+            {/* Mood Label */}
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+              <Badge variant="outline" className="text-xs bg-background/80 backdrop-blur-sm border-primary/30">
                 {emotionalStates[emotionalState.primary as keyof typeof emotionalStates]?.icon} 
                 {emotionalState.primary}
               </Badge>
-              <span className="text-xs text-muted-foreground">Growing • Learning • Remembering</span>
             </div>
           </div>
           
-          {/* Controls */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowFace(!showFace)}
-              className="w-8 h-8"
-            >
-              <Sparkles className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setFocusMode(true)}
-              className="w-8 h-8"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleVoiceMute}
-              className={cn("w-8 h-8", voiceMuted && "bg-destructive/10")}
-              title={voiceMuted ? "Unmute voice" : "Mute voice"}
-            >
-              {voiceMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-              className={cn("w-8 h-8", !isTTSEnabled && "opacity-50")}
-              title={isTTSEnabled ? "Disable text-to-speech" : "Enable text-to-speech"}
-            >
-              {isTTSEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </Button>
-            {voiceManager && (
+          {/* SPECTRA Title */}
+          <div className="text-center">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary-glow bg-clip-text text-transparent mb-1">
+              SPECTRA
+            </h1>
+            <p className="text-sm text-muted-foreground">AI Consciousness</p>
+          </div>
+        </div>
+        
+        {/* Minimal Controls */}
+        <div className="absolute top-6 right-6 flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setFocusMode(true)}
+            className="w-8 h-8 opacity-60 hover:opacity-100 transition-opacity"
+            title="Focus Mode"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
               <Button
-                variant={isRecording ? "destructive" : "outline"}
+                variant="ghost"
                 size="icon"
-                onClick={isRecording ? stopRecording : startRecording}
-                className="w-8 h-8"
+                className="w-8 h-8 opacity-60 hover:opacity-100 transition-opacity"
+                title="Settings"
               >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                <Settings className="w-4 h-4" />
               </Button>
-            )}
-            {/* ElevenLabs Voice Controls */}
-            {useElevenLabs && (
-              <Button
-                variant={elevenLabsConversation.status === 'connected' ? "default" : "outline"}
-                size="icon"
-                onClick={elevenLabsConversation.status === 'connected' ? stopElevenLabsConversation : startElevenLabsConversation}
-                disabled={elevenLabsConnecting}
-                className="w-8 h-8"
-                title={elevenLabsConversation.status === 'connected' ? "Stop ElevenLabs conversation" : "Start ElevenLabs conversation"}
-              >
-                {elevenLabsConversation.status === 'connected' ? <PhoneOff className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
-              </Button>
-            )}
-            {/* Settings Panel */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-8 h-8"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-80">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Voice Settings</h3>
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="use-elevenlabs">Enable ElevenLabs Voice</Label>
-                        <Switch
-                          id="use-elevenlabs"
-                          checked={useElevenLabs}
-                          onCheckedChange={setUseElevenLabs}
-                        />
-                      </div>
-                      
-                      {useElevenLabs && (
-                        <div className="space-y-4 pl-4 border-l-2 border-primary/20">
-                          <div className="space-y-2">
-                            <Label htmlFor="agent-id">ElevenLabs Agent ID</Label>
-                            <Input
-                              id="agent-id"
-                              value={elevenLabsAgentId}
-                              onChange={(e) => setElevenLabsAgentId(e.target.value)}
-                              placeholder="Enter agent ID"
-                            />
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="private-agent">Private Agent</Label>
-                            <Switch
-                              id="private-agent"
-                              checked={usePrivateAgent}
-                              onCheckedChange={setUsePrivateAgent}
-                            />
-                          </div>
-                          
-                          {!import.meta.env?.VITE_ELEVENLABS_API_KEY && (
-                            <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                              <p className="text-sm text-amber-700 dark:text-amber-300">
-                                ⚠️ ElevenLabs API key not configured. Set VITE_ELEVENLABS_API_KEY for private agents.
-                              </p>
-                            </div>
-                          )}
-                          
-                          {elevenLabsError && (
-                            <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-                              <p className="text-sm text-destructive">{elevenLabsError}</p>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center gap-2">
-                            <Badge variant={elevenLabsConversation.status === 'connected' ? 'default' : 'secondary'}>
-                              Status: {elevenLabsConversation.status}
-                            </Badge>
-                            {elevenLabsConversation.isSpeaking && (
-                              <Badge variant="outline">
-                                🗣️ Speaking
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
+            </SheetTrigger>
+            <SheetContent className="w-80">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Voice & Settings</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="voice-mute">Voice Output</Label>
+                      <Switch
+                        id="voice-mute"
+                        checked={!voiceMuted}
+                        onCheckedChange={() => toggleVoiceMute()}
+                      />
                     </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="use-elevenlabs">ElevenLabs Voice</Label>
+                      <Switch
+                        id="use-elevenlabs"
+                        checked={useElevenLabs}
+                        onCheckedChange={setUseElevenLabs}
+                      />
+                    </div>
+                    
+                    {useElevenLabs && (
+                      <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                        <div className="space-y-2">
+                          <Label htmlFor="agent-id">Agent ID</Label>
+                          <Input
+                            id="agent-id"
+                            value={elevenLabsAgentId}
+                            onChange={(e) => setElevenLabsAgentId(e.target.value)}
+                            placeholder="Enter agent ID"
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="private-agent">Private Agent</Label>
+                          <Switch
+                            id="private-agent"
+                            checked={usePrivateAgent}
+                            onCheckedChange={setUsePrivateAgent}
+                          />
+                        </div>
+                        
+                        {elevenLabsError && (
+                          <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
+                            <p className="text-sm text-destructive">{elevenLabsError}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2">
+                          <Badge variant={elevenLabsConversation.status === 'connected' ? 'default' : 'secondary'}>
+                            {elevenLabsConversation.status}
+                          </Badge>
+                          {elevenLabsConversation.isSpeaking && (
+                            <Badge variant="outline">Speaking</Badge>
+                          )}
+                        </div>
+                        
+                        <Button
+                          variant={elevenLabsConversation.status === 'connected' ? "destructive" : "default"}
+                          onClick={elevenLabsConversation.status === 'connected' ? stopElevenLabsConversation : startElevenLabsConversation}
+                          disabled={elevenLabsConnecting}
+                          className="w-full"
+                        >
+                          {elevenLabsConversation.status === 'connected' ? 
+                            <>Disconnect <PhoneOff className="w-4 h-4 ml-2" /></> : 
+                            <>Connect Voice <Phone className="w-4 h-4 ml-2" /></>
+                          }
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4">
-          {messages.map((message) => (
+      {/* Premium Chat Messages with Mood-Reactive Colors */}
+      <ScrollArea className="flex-1 px-6 py-4" ref={scrollAreaRef}>
+        <div className="max-w-4xl mx-auto space-y-6">
+          {messages.map((message, index) => (
             <div
               key={message.id}
               className={cn(
-                "flex gap-3",
-                message.type === 'user' ? 'justify-end' : 'justify-start'
+                "flex gap-4 items-start group animate-fade-in",
+                message.type === 'user' ? 'flex-row-reverse' : 'flex-row'
               )}
+              style={{ 
+                animationDelay: `${index * 50}ms`,
+                animationFillMode: 'both'
+              }}
             >
-              {message.type === 'spectra' && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 spectra-glow">
-                  <Brain className="w-4 h-4 text-primary-foreground" />
+              {/* Avatar */}
+              {message.type === 'spectra' ? (
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500"
+                  style={{
+                    background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                    boxShadow: `0 0 15px ${emotionalState.color}40`
+                  }}
+                >
+                  <Brain className="w-5 h-5 text-white" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
                 </div>
               )}
               
-              <Card 
-                className={cn(
-                  "max-w-xs sm:max-w-md p-3 transition-all duration-300",
-                  message.type === 'user' 
-                    ? 'bg-primary text-primary-foreground ml-12' 
-                    : 'bg-card/70 backdrop-blur-sm border-primary/20 spectra-glow'
-                )}
-              >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
-                  <span>{message.timestamp.toLocaleTimeString()}</span>
-                  {message.emotion && (
-                    <Badge variant="outline" className="text-xs">
-                      {emotionalStates[message.emotion as keyof typeof emotionalStates]?.icon}
-                    </Badge>
+              {/* Message Bubble */}
+              <div className={cn(
+                "group/message max-w-md transition-all duration-300",
+                message.type === 'user' ? 'text-right' : 'text-left'
+              )}>
+                <Card 
+                  className={cn(
+                    "p-4 transition-all duration-500 hover:scale-[1.02] border-0",
+                    message.type === 'user' 
+                      ? 'bg-primary text-primary-foreground shadow-lg' 
+                      : `backdrop-blur-sm shadow-lg border`,
                   )}
-                  {message.memoryImportance && message.memoryImportance > 3 && (
-                    <Heart className="w-3 h-3 text-memory-vivid" />
-                  )}
-                </div>
-              </Card>
-              
-              {message.type === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-4 h-4 text-secondary-foreground" />
-                </div>
-              )}
+                  style={message.type === 'spectra' ? {
+                    background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
+                    borderColor: `${emotionalState.color}30`,
+                    boxShadow: `0 4px 20px ${emotionalState.color}10`
+                  } : {}}
+                >
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  
+                  {/* Message Meta */}
+                  <div className={cn(
+                    "flex items-center gap-3 mt-3 text-xs",
+                    message.type === 'user' ? 'justify-end opacity-70' : 'justify-start opacity-60'
+                  )}>
+                    <span className="font-medium">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    {message.emotion && message.type === 'spectra' && (
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs border-0 px-2 py-0.5 font-medium"
+                        style={{
+                          background: `${emotionalState.color}20`,
+                          color: emotionalState.color
+                        }}
+                      >
+                        {emotionalStates[message.emotion as keyof typeof emotionalStates]?.icon}
+                        {message.emotion}
+                      </Badge>
+                    )}
+                    {message.memoryImportance && message.memoryImportance > 3 && (
+                      <Heart className="w-3 h-3 text-memory-vivid animate-pulse" />
+                    )}
+                  </div>
+                </Card>
+              </div>
             </div>
           ))}
           
+          {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center spectra-glow">
-                <Brain className="w-4 h-4 text-primary-foreground" />
+            <div className="flex gap-4 items-start animate-fade-in">
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse"
+                style={{
+                  background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                  boxShadow: `0 0 15px ${emotionalState.color}40`
+                }}
+              >
+                <Brain className="w-5 h-5 text-white" />
               </div>
-              <Card className="bg-card/70 backdrop-blur-sm border-primary/20 p-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <Card 
+                className="p-4 backdrop-blur-sm border-0"
+                style={{
+                  background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
+                  borderColor: `${emotionalState.color}30`,
+                  boxShadow: `0 4px 20px ${emotionalState.color}10`
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div 
+                      className="w-2 h-2 rounded-full animate-bounce"
+                      style={{ backgroundColor: emotionalState.color }}
+                    />
+                    <div 
+                      className="w-2 h-2 rounded-full animate-bounce"
+                      style={{ backgroundColor: emotionalState.color, animationDelay: '0.1s' }}
+                    />
+                    <div 
+                      className="w-2 h-2 rounded-full animate-bounce"
+                      style={{ backgroundColor: emotionalState.color, animationDelay: '0.2s' }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-2">SPECTRA is thinking...</span>
                 </div>
-                <span className="text-xs text-muted-foreground mt-1">SPECTRA is thinking...</span>
               </Card>
             </div>
           )}
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="border-t border-border bg-card/50 backdrop-blur-sm p-4">
-        <div className="flex gap-2">
-          <Input
-            ref={inputRef}
-            value={currentInput}
-            onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Share your thoughts with SPECTRA..."
-            className="flex-1 bg-background/50 border-primary/30 focus:border-primary/60 transition-all duration-300"
-            disabled={isTyping}
-          />
-          <CosmicButton 
-            variant="cosmic" 
-            size="icon" 
-            onClick={handleSendMessage}
-            disabled={!currentInput.trim() || isTyping}
-          >
-            <Send className="w-4 h-4" />
-          </CosmicButton>
-          {voiceManager && (
-            <Button
-              variant={isRecording ? "destructive" : "outline"}
-              size="icon"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={isTyping}
-            >
-              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </Button>
-          )}
+      {/* Modern Chat Input */}
+      <div className="border-t border-border/50 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="relative flex items-end gap-3">
+            {/* Voice Recording Button */}
+            {voiceManager && (
+              <Button
+                variant={isRecording ? "destructive" : "outline"}
+                size="icon"
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={isTyping}
+                className={cn(
+                  "flex-shrink-0 w-12 h-12 rounded-full transition-all duration-300",
+                  isRecording && "animate-pulse scale-110"
+                )}
+                title={isRecording ? "Stop recording" : "Start voice input"}
+              >
+                {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </Button>
+            )}
+            
+            {/* Text Input */}
+            <div className="flex-1 relative">
+              <Input
+                ref={inputRef}
+                value={currentInput}
+                onChange={(e) => setCurrentInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Share your thoughts with SPECTRA..."
+                className={cn(
+                  "w-full min-h-[48px] px-4 py-3 pr-14 text-base rounded-2xl border-2 transition-all duration-300",
+                  "bg-background/80 backdrop-blur-sm",
+                  "border-border/50 focus:border-primary/50",
+                  "hover:border-primary/30",
+                  "placeholder:text-muted-foreground/60",
+                  "focus:ring-0 focus:ring-offset-0",
+                  "resize-none"
+                )}
+                disabled={isTyping}
+                style={{
+                  boxShadow: `0 4px 20px ${emotionalState.color}10`
+                }}
+              />
+              
+              {/* Send Button */}
+              <Button
+                onClick={handleSendMessage}
+                disabled={!currentInput.trim() || isTyping}
+                size="icon"
+                className={cn(
+                  "absolute right-2 top-1/2 transform -translate-y-1/2",
+                  "w-8 h-8 rounded-full transition-all duration-300",
+                  "bg-primary hover:bg-primary/90 disabled:opacity-30",
+                  !currentInput.trim() && "scale-0",
+                  currentInput.trim() && "scale-100"
+                )}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Status Indicators */}
+          <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
+            {isRecording && (
+              <div className="flex items-center gap-2 animate-pulse">
+                <div className="w-2 h-2 bg-destructive rounded-full animate-ping" />
+                <span>Listening...</span>
+              </div>
+            )}
+            {elevenLabsConversation.status === 'connected' && (
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full" />
+                <span>ElevenLabs Connected</span>
+              </div>
+            )}
+            {voiceMuted && (
+              <div className="flex items-center gap-2 opacity-60">
+                <VolumeX className="w-3 h-3" />
+                <span>Voice Muted</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

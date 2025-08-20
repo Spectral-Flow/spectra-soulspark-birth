@@ -3,7 +3,7 @@
  * Allows users to create and train custom voice models for Spectra
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,20 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Mic, 
-  MicOff, 
   Play, 
   Pause, 
   Square, 
   Trash2, 
-  Download, 
-  Upload, 
   Check, 
   X, 
-  Clock, 
-  Volume2,
   Brain,
   Sparkles,
-  Settings,
   User,
   Bot
 } from 'lucide-react';
@@ -38,7 +32,6 @@ import { cn } from '@/lib/utils';
 import { 
   voiceTrainingManager, 
   type VoiceProfile, 
-  type VoiceSample, 
   type TrainingProgress,
   TRAINING_SCRIPTS
 } from '@/lib/voice-training';
@@ -81,10 +74,23 @@ export const VoiceTrainingInterface = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
+  const loadProfiles = useCallback(() => {
+    const allProfiles = voiceTrainingManager.getProfiles();
+    setProfiles(allProfiles);
+    
+    // Update selected profile if it exists
+    if (selectedProfile) {
+      const updated = allProfiles.find(p => p.id === selectedProfile.id);
+      if (updated) {
+        setSelectedProfile(updated);
+      }
+    }
+  }, [selectedProfile]);
+
   // Load profiles on mount
   useEffect(() => {
     loadProfiles();
-  }, []);
+  }, [loadProfiles]);
 
   // Update recording duration
   useEffect(() => {
@@ -120,20 +126,7 @@ export const VoiceTrainingInterface = ({
 
       return () => clearInterval(interval);
     }
-  }, [selectedProfile]);
-
-  const loadProfiles = () => {
-    const allProfiles = voiceTrainingManager.getProfiles();
-    setProfiles(allProfiles);
-    
-    // Update selected profile if it exists
-    if (selectedProfile) {
-      const updated = allProfiles.find(p => p.id === selectedProfile.id);
-      if (updated) {
-        setSelectedProfile(updated);
-      }
-    }
-  };
+  }, [selectedProfile, loadProfiles]);
 
   const createNewProfile = () => {
     if (!newProfileName.trim()) return;
@@ -175,10 +168,10 @@ export const VoiceTrainingInterface = ({
     setActiveTab('training');
   };
 
-  const getTrainingScripts = () => {
+  const getTrainingScripts = useCallback(() => {
     if (!selectedProfile) return [];
     return TRAINING_SCRIPTS[selectedProfile.metadata.voiceCharacteristics.style] || TRAINING_SCRIPTS.conversational;
-  };
+  }, [selectedProfile]);
 
   const nextScript = () => {
     const scripts = getTrainingScripts();
@@ -264,7 +257,7 @@ export const VoiceTrainingInterface = ({
       const scripts = getTrainingScripts();
       setCurrentScript(scripts[0] || '');
     }
-  }, [selectedProfile]);
+  }, [selectedProfile, currentScript, getTrainingScripts]);
 
   const ProfilesTab = () => (
     <div className="space-y-4">

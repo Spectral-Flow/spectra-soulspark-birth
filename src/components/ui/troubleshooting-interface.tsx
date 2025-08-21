@@ -85,11 +85,13 @@ export function TroubleshootingInterface({ onClose: _onClose }: TroubleshootingP
     
     try {
       // Test voice system
-      (window as unknown as Record<string, unknown>).testSpectraVoice?.();
+      const testFn = (window as unknown as { testSpectraVoice?: () => void }).testSpectraVoice;
+      testFn?.();
       console.log('✅ Voice system test initiated');
       
       // Test API keys
-      (window as unknown as Record<string, unknown>).testApiKeys?.();
+      const apiTestFn = (window as unknown as { testApiKeys?: () => void }).testApiKeys;
+      apiTestFn?.();
       console.log('✅ API key test initiated');
       
       // Test backend
@@ -218,15 +220,15 @@ export function TroubleshootingInterface({ onClose: _onClose }: TroubleshootingP
         </TabsContent>
 
         <TabsContent value="services" className="space-y-4">
-          <ServiceDetailsPanel diagnosticReport={diagnosticReport} />
+          {diagnosticReport && <ServiceDetailsPanel diagnosticReport={diagnosticReport} />}
         </TabsContent>
 
         <TabsContent value="environment" className="space-y-4">
-          <EnvironmentPanel diagnosticReport={diagnosticReport} />
+          {diagnosticReport && <EnvironmentPanel diagnosticReport={diagnosticReport} />}
         </TabsContent>
 
         <TabsContent value="errors" className="space-y-4">
-          <ErrorsPanel diagnosticReport={diagnosticReport} />
+          {diagnosticReport && <ErrorsPanel diagnosticReport={diagnosticReport} />}
         </TabsContent>
 
         <TabsContent value="commands" className="space-y-4">
@@ -242,7 +244,7 @@ export function TroubleshootingInterface({ onClose: _onClose }: TroubleshootingP
 }
 
 function ServiceStatus({ name, status }: { name: string; status: ServiceStatus[keyof ServiceStatus] }) {
-  const isHealthy = status.available && (!Object.prototype.hasOwnProperty.call(status, 'apiKey') || status.apiKey);
+  const isHealthy = status.available && (!('apiKey' in status) || status.apiKey);
   
   return (
     <div className="flex items-center gap-2 p-2 rounded border">
@@ -282,7 +284,7 @@ function ServiceDetailsPanel({ diagnosticReport }: { diagnosticReport: Diagnosti
                 )}
               </div>
               
-              {Object.prototype.hasOwnProperty.call(status, 'apiKey') && (
+              {('apiKey' in status) && (
                 <div className="flex items-center gap-2">
                   <span className="font-medium">API Key:</span>
                   {status.apiKey ? (

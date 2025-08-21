@@ -80,17 +80,17 @@ export function testApiKeys() {
   
   // Check for ElevenLabs API key (prioritize VITE_ prefixed env vars)
   const elevenLabsKey = (typeof window !== 'undefined' && import.meta?.env?.VITE_ELEVENLABS_API_KEY) ||
-                        (typeof window !== 'undefined' && (window as Record<string, unknown>).ELEVENLABS_API_KEY) || 
-                        (typeof window !== 'undefined' && (window as Record<string, unknown>).VITE_ELEVENLABS_API_KEY);
+                        (typeof window !== 'undefined' && (window as unknown as { ELEVENLABS_API_KEY?: string }).ELEVENLABS_API_KEY) || 
+                        (typeof window !== 'undefined' && (window as unknown as { VITE_ELEVENLABS_API_KEY?: string }).VITE_ELEVENLABS_API_KEY);
   
   // Check for ElevenLabs username/password credentials
-  const elevenLabsUsername = (typeof window !== 'undefined' && (window as Record<string, unknown>).ELEVENLABS_USERNAME);
-  const elevenLabsPassword = (typeof window !== 'undefined' && (window as Record<string, unknown>).ELEVENLABS_PASSWORD);
+  const elevenLabsUsername = (typeof window !== 'undefined' && (window as unknown as { ELEVENLABS_USERNAME?: string }).ELEVENLABS_USERNAME);
+  const elevenLabsPassword = (typeof window !== 'undefined' && (window as unknown as { ELEVENLABS_PASSWORD?: string }).ELEVENLABS_PASSWORD);
   
   // Check for OpenAI API key (prioritize VITE_ prefixed env vars)
   const openAiKey = (typeof window !== 'undefined' && import.meta?.env?.VITE_OPENAI_API_KEY) ||
-                    (typeof window !== 'undefined' && (window as Record<string, unknown>).OPENAI_API_KEY) || 
-                    (typeof window !== 'undefined' && (window as Record<string, unknown>).VITE_OPENAI_API_KEY);
+                    (typeof window !== 'undefined' && (window as unknown as { OPENAI_API_KEY?: string }).OPENAI_API_KEY) || 
+                    (typeof window !== 'undefined' && (window as unknown as { VITE_OPENAI_API_KEY?: string }).VITE_OPENAI_API_KEY);
   
   console.log('🎵 ElevenLabs API Key:', elevenLabsKey ? '✅ Set' : '❌ Not found');
   console.log('👤 ElevenLabs Username:', elevenLabsUsername ? `✅ Set (${elevenLabsUsername})` : '❌ Not found');
@@ -117,9 +117,14 @@ export function testApiKeys() {
 
 // Browser globals for testing
 if (typeof window !== 'undefined') {
-  (window as Record<string, unknown>).testSpectraVoice = testSpectraVoice;
-  (window as Record<string, unknown>).testElevenLabsVoice = testElevenLabsVoice;
-  (window as Record<string, unknown>).testApiKeys = testApiKeys;
+  const globalWindow = window as unknown as {
+    testSpectraVoice: typeof testSpectraVoice;
+    testElevenLabsVoice: typeof testElevenLabsVoice;
+    testApiKeys: typeof testApiKeys;
+  };
+  globalWindow.testSpectraVoice = testSpectraVoice;
+  globalWindow.testElevenLabsVoice = testElevenLabsVoice;
+  globalWindow.testApiKeys = testApiKeys;
   
   console.log('🧪 Voice test functions loaded:');
   console.log('  - testSpectraVoice() - Full voice system test');

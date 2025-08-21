@@ -26,7 +26,7 @@ if (import.meta.env.DEV) {
   // Simple test export - development only
   try {
     import('./test').then(({ testSpectraVoice }) => {
-      (window as Record<string, unknown>).testSpectraVoice = testSpectraVoice;
+      (window as unknown as { testSpectraVoice: typeof testSpectraVoice }).testSpectraVoice = testSpectraVoice;
       console.log('🧪 Voice test functions loaded:', 
         '\n  - testSpectraVoice() - Full voice system test');
     }).catch(() => {
@@ -42,9 +42,14 @@ if (import.meta.env.DEV) {
       import('./streaming-examples'),
       import('./streaming-test')
     ]).then(([{ runStreamingExamples }, { testStreaming, testStreamingInBrowser }]) => {
-      (window as Record<string, unknown>).runStreamingExamples = runStreamingExamples;
-      (window as Record<string, unknown>).testStreaming = testStreaming;
-      (window as Record<string, unknown>).testStreamingInBrowser = testStreamingInBrowser;
+      const globalWindow = window as unknown as { 
+        runStreamingExamples: typeof runStreamingExamples;
+        testStreaming: typeof testStreaming;
+        testStreamingInBrowser: typeof testStreamingInBrowser;
+      };
+      globalWindow.runStreamingExamples = runStreamingExamples;
+      globalWindow.testStreaming = testStreaming;
+      globalWindow.testStreamingInBrowser = testStreamingInBrowser;
       console.log('🧪 Voice streaming test functions loaded:',
         '\n  - runStreamingExamples() - Streaming examples',
         '\n  - testStreaming() - Streaming test',

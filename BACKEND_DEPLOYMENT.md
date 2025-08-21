@@ -2,7 +2,7 @@
 
 ## 🏗️ Backend Architecture
 
-The SPECTRA application now includes a complete backend infrastructure that can be deployed on **Vercel** or **Supabase Edge Functions**. (Railway support has been removed and any Railway-specific config was archived.) The backend provides:
+The SPECTRA application now includes a complete backend infrastructure that can be deployed on **Vercel** or **Supabase Edge Functions**. The backend provides:
 
 - **Secure API Proxy**: Server-side handling of ElevenLabs and OpenAI API keys
 - **Authentication**: JWT-based user authentication system
@@ -48,8 +48,6 @@ The SPECTRA application now includes a complete backend infrastructure that can 
 3. **Deploy**
    - Automatic deployment on push to main branch
    - Backend APIs available at: `https://your-app.vercel.app/api/*`
-
-<!-- Railway deployment instructions removed. If you need Railway-specific deployment, archived documentation is available in the repo history or can be added to /archive/docs/ -->
 
 ### Option 3: Supabase Edge Functions
 
@@ -133,10 +131,6 @@ DATABASE_URL=postgresql://user:pass@host:port/db
 # Vercel
 VERCEL_ENV=production
 
-# Railway  
-RAILWAY_ENVIRONMENT=production
-PORT=3000
-
 # Development
 NODE_ENV=development
 ```
@@ -215,11 +209,6 @@ Response:
 - Function logs
 - Performance insights
 
-**Railway:**
-- Built-in metrics
-- Log streaming
-- Resource usage
-
 **Supabase:**
 - Edge function logs
 - Database performance
@@ -265,7 +254,6 @@ Response:
 
 3. **Check Logs**
    - Vercel: Dashboard → Functions → Logs
-   - Railway: Dashboard → Logs
    - Supabase: Dashboard → Edge Functions → Logs
 
 ## 🔐 Security Considerations
@@ -279,7 +267,6 @@ Response:
 ## 📈 Scaling & Performance
 
 - **Vercel**: Automatic scaling, edge deployment
-- **Railway**: Horizontal scaling available
 - **Supabase**: Global edge functions, automatic scaling
 - **Caching**: API responses can be cached
 - **CDN**: Static assets served via CDN

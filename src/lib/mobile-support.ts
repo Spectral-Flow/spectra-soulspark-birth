@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Mobile Application Support - Progressive Web App (PWA) Configuration
  * Optimizes Spectra for mobile devices with native-like experience
@@ -433,14 +433,19 @@ const showUpdateNotification = (): void => {
 };
 
 // React hooks for mobile features
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function usePWAInstall() {
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const installManager = new PWAInstallManager();
+  const installManagerRef = useRef<PWAInstallManager | null>(null);
 
   useEffect(() => {
+    if (!installManagerRef.current) {
+      installManagerRef.current = new PWAInstallManager();
+    }
+    const installManager = installManagerRef.current;
+    
     setCanInstall(installManager.canInstall());
     setIsInstalled(installManager.isInstalled());
 
@@ -448,7 +453,7 @@ export function usePWAInstall() {
     return unsubscribe;
   }, []);
 
-  const promptInstall = () => installManager.promptInstall();
+  const promptInstall = () => installManagerRef.current?.promptInstall();
 
   return { canInstall, isInstalled, promptInstall };
 }
@@ -458,9 +463,14 @@ export function useMobileOptimization() {
   const [networkInfo, setNetworkInfo] = useState<{ type: string; effectiveType?: string; downlink?: number; rtt?: number }>({ type: 'unknown' });
   const [batteryInfo, setBatteryInfo] = useState<{ level: number; charging: boolean } | null>(null);
   
-  const mobile = MobileOptimization.getInstance();
+  const mobileRef = useRef<MobileOptimization | null>(null);
 
   useEffect(() => {
+    if (!mobileRef.current) {
+      mobileRef.current = MobileOptimization.getInstance();
+    }
+    const mobile = mobileRef.current;
+    
     setOrientation(mobile.getOrientation());
     setNetworkInfo(mobile.getNetworkInfo());
     
@@ -481,15 +491,15 @@ export function useMobileOptimization() {
   }, []);
 
   return {
-    isMobile: mobile.isMobile(),
-    isIOS: mobile.isIOS(),
-    isAndroid: mobile.isAndroid(),
-    isTouchDevice: mobile.isTouchDevice(),
+    isMobile: mobileRef.current?.isMobile() ?? false,
+    isIOS: mobileRef.current?.isIOS() ?? false,
+    isAndroid: mobileRef.current?.isAndroid() ?? false,
+    isTouchDevice: mobileRef.current?.isTouchDevice() ?? false,
     orientation,
     networkInfo,
     batteryInfo,
-    vibrate: mobile.vibrate.bind(mobile),
-    getSafeAreaInsets: mobile.getSafeAreaInsets.bind(mobile)
+    vibrate: (pattern?: number | number[]) => mobileRef.current?.vibrate(pattern ?? 0),
+    getSafeAreaInsets: () => mobileRef.current?.getSafeAreaInsets() ?? { top: 0, right: 0, bottom: 0, left: 0 }
   };
 }
 

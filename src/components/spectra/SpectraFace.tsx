@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface EmotionalState {
@@ -15,7 +15,7 @@ interface SpectraFaceProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export function SpectraFace({ emotionalState, className = "", size = 'md' }: SpectraFaceProps) {
+export const SpectraFace = memo(function SpectraFace({ emotionalState, className = "", size = 'md' }: SpectraFaceProps) {
   const [blinkState, setBlinkState] = useState(false);
   const [breatheState, setBreathState] = useState(0);
 
@@ -230,4 +230,4 @@ export function SpectraFace({ emotionalState, className = "", size = 'md' }: Spe
       </div>
     </div>
   );
-}
+});

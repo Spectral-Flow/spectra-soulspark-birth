@@ -5,6 +5,7 @@
 
 interface SystemInfo {
   browser: string;
+  version: string;
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
   platform: string;
   language: string;

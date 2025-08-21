@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
 interface EmotionalState {
   primary: string;
@@ -13,7 +13,7 @@ interface MoodRingProps {
   className?: string;
 }
 
-export function MoodRing({ emotionalState, className = "" }: MoodRingProps) {
+export const MoodRing = memo(function MoodRing({ emotionalState, className = "" }: MoodRingProps) {
   const [pulseClass, setPulseClass] = useState('');
 
   useEffect(() => {
@@ -104,4 +104,4 @@ export function MoodRing({ emotionalState, className = "" }: MoodRingProps) {
       />
     </div>
   );
-}
+});

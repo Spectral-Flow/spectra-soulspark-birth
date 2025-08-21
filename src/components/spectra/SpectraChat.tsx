@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -1122,4 +1122,4 @@ setVoiceManager(voiceInstance);
   );
 };
 
-export default SpectraChat;
+export default memo(SpectraChat);

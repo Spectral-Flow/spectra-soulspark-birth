@@ -88,5 +88,5 @@ export function testStreamingInBrowser(): void {
 
 // Make it available globally for browser testing
 if (typeof window !== 'undefined') {
-  (window as any).testElevenLabsStreaming = testStreamingInBrowser;
+  (window as Record<string, unknown>).testElevenLabsStreaming = testStreamingInBrowser;
 }

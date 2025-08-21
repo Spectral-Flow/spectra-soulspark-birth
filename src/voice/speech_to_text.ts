@@ -5,6 +5,47 @@ import { OpenAIVoiceService, createOpenAIVoiceFromEnv } from './openai_integrati
  * Handles voice input using OpenAI Realtime API or Whisper fallback
  */
 
+// Speech Recognition interfaces for better typing
+interface SpeechRecognitionResultItem {
+  confidence: number;
+  transcript: string;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResultItem;
+  [index: number]: SpeechRecognitionResultItem;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  readonly error: string;
+  readonly message: string;
+}
+
+interface SpeechRecognitionInterface extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: ((event: Event) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
 interface STTConfig {
   apiKey?: string;
   language?: string;
@@ -26,7 +67,7 @@ type STTErrorCallback = (error: Error) => void;
 export class SpeechToTextEngine {
   private config: STTConfig;
   private isListening: boolean = false;
-  private recognition: unknown | null = null;
+  private recognition: SpeechRecognitionInterface | null = null;
   private onResultCallback?: STTCallback;
   private onErrorCallback?: STTErrorCallback;
   private audioContext?: AudioContext;
@@ -54,18 +95,22 @@ export class SpeechToTextEngine {
 
   private initializeWebSpeechAPI(): void {
     // Fallback to Web Speech API if OpenAI not available
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as unknown as {
+      SpeechRecognition?: new() => SpeechRecognitionInterface;
+      webkitSpeechRecognition?: new() => SpeechRecognitionInterface;
+    }).SpeechRecognition || (window as unknown as {
+      webkitSpeechRecognition?: new() => SpeechRecognitionInterface;
+    }).webkitSpeechRecognition;
     
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
-      (this.recognition as any).continuous = this.config.continuous || true;
-      (this.recognition as any).interimResults = this.config.interimResults || true;
-      (this.recognition as any).lang = this.config.language || 'en-US';
+      this.recognition.continuous = this.config.continuous || true;
+      this.recognition.interimResults = this.config.interimResults || true;
+      this.recognition.lang = this.config.language || 'en-US';
       
-      (this.recognition as any).onresult = (event: unknown) => {
-        const speechEvent = event as any;
-        for (let i = speechEvent.resultIndex; i < speechEvent.results.length; i++) {
-          const result = speechEvent.results[i];
+      this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
           const transcript = result[0].transcript;
           
           if (this.onResultCallback) {
@@ -79,14 +124,13 @@ export class SpeechToTextEngine {
         }
       };
 
-      (this.recognition as any).onerror = (event: unknown) => {
-        const errorEvent = event as any;
+      this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         if (this.onErrorCallback) {
-          this.onErrorCallback(new Error(`Speech recognition error: ${errorEvent.error}`));
+          this.onErrorCallback(new Error(`Speech recognition error: ${event.error}`));
         }
       };
 
-      (this.recognition as any).onend = () => {
+      this.recognition.onend = () => {
         this.isListening = false;
         // Auto-restart if in continuous mode
         if (this.config.continuous && this.isListening) {
@@ -119,7 +163,7 @@ export class SpeechToTextEngine {
       throw new Error('Speech recognition not available in this browser');
     }
 
-    (this.recognition as any).start();
+    this.recognition.start();
   }
 
   private async startOpenAIListening(): Promise<void> {
@@ -171,7 +215,7 @@ export class SpeechToTextEngine {
     this.isListening = false;
     
     if (this.recognition) {
-      (this.recognition as any).stop();
+      this.recognition.stop();
     }
 
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
@@ -199,9 +243,9 @@ export class SpeechToTextEngine {
     this.config = { ...this.config, ...newConfig };
     
     if (this.recognition) {
-      (this.recognition as any).lang = this.config.language || 'en-US';
-      (this.recognition as any).continuous = this.config.continuous || true;
-      (this.recognition as any).interimResults = this.config.interimResults || true;
+      this.recognition.lang = this.config.language || 'en-US';
+      this.recognition.continuous = this.config.continuous || true;
+      this.recognition.interimResults = this.config.interimResults || true;
     }
   }
 }

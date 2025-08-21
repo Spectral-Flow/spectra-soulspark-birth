@@ -26,13 +26,13 @@ if (import.meta.env.DEV) {
   // Simple test export - development only
   try {
     import('./test').then(({ testSpectraVoice }) => {
-      (window as any).testSpectraVoice = testSpectraVoice;
+      (window as Record<string, unknown>).testSpectraVoice = testSpectraVoice;
       console.log('🧪 Voice test functions loaded:', 
         '\n  - testSpectraVoice() - Full voice system test');
-    }).catch(error => {
+    }).catch(() => {
       console.warn('Voice test functions not available');
     });
-  } catch (error) {
+  } catch {
     // Silent fail in production
   }
   
@@ -42,17 +42,17 @@ if (import.meta.env.DEV) {
       import('./streaming-examples'),
       import('./streaming-test')
     ]).then(([{ runStreamingExamples }, { testStreaming, testStreamingInBrowser }]) => {
-      (window as any).runStreamingExamples = runStreamingExamples;
-      (window as any).testStreaming = testStreaming;
-      (window as any).testStreamingInBrowser = testStreamingInBrowser;
+      (window as Record<string, unknown>).runStreamingExamples = runStreamingExamples;
+      (window as Record<string, unknown>).testStreaming = testStreaming;
+      (window as Record<string, unknown>).testStreamingInBrowser = testStreamingInBrowser;
       console.log('🧪 Voice streaming test functions loaded:',
         '\n  - runStreamingExamples() - Streaming examples',
         '\n  - testStreaming() - Streaming test',
         '\n  - testStreamingInBrowser() - Browser streaming test');
-    }).catch(error => {
+    }).catch(() => {
       console.warn('Voice streaming test functions not available');
     });
-  } catch (error) {
+  } catch {
     // Silent fail in production
   }
 }

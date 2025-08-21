@@ -29,7 +29,7 @@ interface RuntimeVersions {
   webGPU?: boolean;
 }
 
-interface ServiceStatus {
+export interface ServiceStatus {
   elevenlabs: {
     available: boolean;
     apiKey: boolean;
@@ -54,7 +54,7 @@ interface ServiceStatus {
   };
 }
 
-interface DiagnosticReport {
+export interface DiagnosticReport {
   timestamp: string;
   version: string;
   systemInfo: SystemInfo;

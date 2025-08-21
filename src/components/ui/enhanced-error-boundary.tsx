@@ -13,10 +13,9 @@ import {
   RefreshCw, 
   Bug, 
   Copy, 
-  Terminal,
-  ExternalLink
+  Terminal
 } from 'lucide-react';
-import { diagnostics } from '@/lib/diagnostics';
+import { diagnostics, type DiagnosticReport } from '@/lib/diagnostics';
 
 interface Props {
   children: ReactNode;
@@ -29,7 +28,7 @@ interface State {
   error: Error | null;
   errorInfo: ErrorInfo | null;
   errorId: string;
-  diagnosticReport: any;
+  diagnosticReport: DiagnosticReport | null;
 }
 
 export class EnhancedErrorBoundary extends Component<Props, State> {
@@ -168,7 +167,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
         `**Backend**: ${diagnosticReport.serviceStatus.backend.available ? '✅' : '❌'}`,
         '',
         '## Environment Variables',
-        ...Object.entries(diagnosticReport.environmentVariables).map(([key, value]: [string, any]) => 
+        ...Object.entries(diagnosticReport.environmentVariables).map(([key, value]: [string, unknown]) => 
           `**${key}**: ${value ? '✅' : '❌'}`
         ),
       ] : ['Diagnostic report not available'],

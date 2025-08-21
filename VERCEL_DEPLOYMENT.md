@@ -35,7 +35,7 @@ VITE_ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 VITE_OPENAI_API_KEY=your_openai_api_key_here
 
 # Optional: Default ElevenLabs agent
-VITE_ELEVENLABS_AGENT_ID=agent_2201k2z83ad3egas4vbks6jsnye1
+VITE_ELEVENLABS_AGENT_ID=agent_3001k351jqn1ex4tvqp9tj7srxqh
 ```
 
 **Note:** The app works without API keys using Web Speech API fallback.

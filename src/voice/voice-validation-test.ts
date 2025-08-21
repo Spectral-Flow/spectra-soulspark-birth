@@ -95,7 +95,7 @@ async function testSpectraVoiceSystem() {
 
 // Make available globally for testing
 if (typeof window !== 'undefined') {
-  (window as any).testSpectraVoiceSystem = testSpectraVoiceSystem;
+  (window as unknown as { testSpectraVoiceSystem: typeof testSpectraVoiceSystem }).testSpectraVoiceSystem = testSpectraVoiceSystem;
 }
 
 export { testSpectraVoiceSystem };

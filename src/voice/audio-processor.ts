@@ -53,7 +53,7 @@ export class SpectraAudioProcessor {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -101,7 +101,7 @@ export class SpectraAudioProcessor {
         supported: true,
         fallbackAvailable: true
       };
-    } catch (error) {
+    } catch {
       return {
         supported: false,
         reason: 'Error checking AudioWorklet compatibility',
@@ -207,7 +207,7 @@ export class SpectraAudioProcessor {
         if (this.workletNode) {
           try {
             this.workletNode.disconnect();
-          } catch (e) {
+          } catch {
             // Ignore cleanup errors
           }
           this.workletNode = null;

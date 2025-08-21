@@ -1,8 +1,9 @@
 import type { Config } from "tailwindcss";
+import spectraPreset from "./presets/spectra.js";
 
 export default {
 	// Use the SPECTRA design system preset
-	presets: [require("./presets/spectra.js")],
+	presets: [spectraPreset],
 	
 	// Additional content paths specific to this project
 	content: [

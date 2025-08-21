@@ -314,7 +314,7 @@ export class ElevenLabsVoiceService {
             if (!isPlaying) {
               playNextBuffer();
             }
-          } catch (error) {
+          } catch {
             // Chunk might not be a complete audio frame, continue buffering
             console.debug('Chunk not complete audio frame, buffering...');
           }
@@ -409,7 +409,7 @@ export class ElevenLabsVoiceService {
                   if (!isPlaying) {
                     playNextBuffer();
                   }
-                } catch (error) {
+                } catch {
                   // Keep buffering if we can't decode yet
                   console.debug('Buffering more chunks for complete audio frame...');
                 }

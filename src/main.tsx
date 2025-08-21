@@ -14,7 +14,7 @@ import './lib/startup-diagnostics'
 registerServiceWorker().catch(console.error);
 
 // Initialize i18n system
-import { i18n } from './lib/i18n'
+import './lib/i18n'
 
 // Set up global error handling
 window.addEventListener('error', (event) => {

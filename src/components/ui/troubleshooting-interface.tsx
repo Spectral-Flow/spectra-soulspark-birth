@@ -21,14 +21,14 @@ import {
   HelpCircle,
   Wrench
 } from 'lucide-react';
-import { diagnostics, SpectraDiagnostics } from '@/lib/diagnostics';
+import { diagnostics, type DiagnosticReport, type ServiceStatus } from '@/lib/diagnostics';
 
 interface TroubleshootingProps {
   onClose?: () => void;
 }
 
-export function TroubleshootingInterface({ onClose }: TroubleshootingProps) {
-  const [diagnosticReport, setDiagnosticReport] = useState<any>(null);
+export function TroubleshootingInterface({ onClose: _onClose }: TroubleshootingProps) {
+  const [diagnosticReport, setDiagnosticReport] = useState<DiagnosticReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -85,11 +85,13 @@ export function TroubleshootingInterface({ onClose }: TroubleshootingProps) {
     
     try {
       // Test voice system
-      (window as any).testSpectraVoice?.();
+      const testFn = (window as unknown as { testSpectraVoice?: () => void }).testSpectraVoice;
+      testFn?.();
       console.log('✅ Voice system test initiated');
       
       // Test API keys
-      (window as any).testApiKeys?.();
+      const apiTestFn = (window as unknown as { testApiKeys?: () => void }).testApiKeys;
+      apiTestFn?.();
       console.log('✅ API key test initiated');
       
       // Test backend
@@ -218,15 +220,15 @@ export function TroubleshootingInterface({ onClose }: TroubleshootingProps) {
         </TabsContent>
 
         <TabsContent value="services" className="space-y-4">
-          <ServiceDetailsPanel diagnosticReport={diagnosticReport} />
+          {diagnosticReport && <ServiceDetailsPanel diagnosticReport={diagnosticReport} />}
         </TabsContent>
 
         <TabsContent value="environment" className="space-y-4">
-          <EnvironmentPanel diagnosticReport={diagnosticReport} />
+          {diagnosticReport && <EnvironmentPanel diagnosticReport={diagnosticReport} />}
         </TabsContent>
 
         <TabsContent value="errors" className="space-y-4">
-          <ErrorsPanel diagnosticReport={diagnosticReport} />
+          {diagnosticReport && <ErrorsPanel diagnosticReport={diagnosticReport} />}
         </TabsContent>
 
         <TabsContent value="commands" className="space-y-4">
@@ -241,8 +243,8 @@ export function TroubleshootingInterface({ onClose }: TroubleshootingProps) {
   );
 }
 
-function ServiceStatus({ name, status }: { name: string; status: any }) {
-  const isHealthy = status.available && (!status.hasOwnProperty('apiKey') || status.apiKey);
+function ServiceStatus({ name, status }: { name: string; status: ServiceStatus[keyof ServiceStatus] }) {
+  const isHealthy = status.available && (!('apiKey' in status) || status.apiKey);
   
   return (
     <div className="flex items-center gap-2 p-2 rounded border">
@@ -261,12 +263,12 @@ function ServiceStatus({ name, status }: { name: string; status: any }) {
   );
 }
 
-function ServiceDetailsPanel({ diagnosticReport }: { diagnosticReport: any }) {
+function ServiceDetailsPanel({ diagnosticReport }: { diagnosticReport: DiagnosticReport }) {
   if (!diagnosticReport) return null;
 
   return (
     <div className="space-y-4">
-      {Object.entries(diagnosticReport.serviceStatus).map(([service, status]: [string, any]) => (
+      {Object.entries(diagnosticReport.serviceStatus).map(([service, status]) => (
         <Card key={service}>
           <CardHeader>
             <CardTitle className="capitalize">{service}</CardTitle>
@@ -282,7 +284,7 @@ function ServiceDetailsPanel({ diagnosticReport }: { diagnosticReport: any }) {
                 )}
               </div>
               
-              {status.hasOwnProperty('apiKey') && (
+              {('apiKey' in status) && (
                 <div className="flex items-center gap-2">
                   <span className="font-medium">API Key:</span>
                   {status.apiKey ? (
@@ -297,7 +299,7 @@ function ServiceDetailsPanel({ diagnosticReport }: { diagnosticReport: any }) {
                 <div>
                   <span className="font-medium">Endpoints:</span>
                   <div className="ml-4 space-y-1">
-                    {Object.entries(status.endpoints).map(([endpoint, available]: [string, any]) => (
+                    {Object.entries(status.endpoints || {}).map(([endpoint, available]) => (
                       <div key={endpoint} className="flex items-center gap-2">
                         {available ? (
                           <CheckCircle className="w-3 h-3 text-green-500" />
@@ -325,7 +327,7 @@ function ServiceDetailsPanel({ diagnosticReport }: { diagnosticReport: any }) {
   );
 }
 
-function EnvironmentPanel({ diagnosticReport }: { diagnosticReport: any }) {
+function EnvironmentPanel({ diagnosticReport }: { diagnosticReport: DiagnosticReport }) {
   if (!diagnosticReport) return null;
 
   return (
@@ -335,7 +337,7 @@ function EnvironmentPanel({ diagnosticReport }: { diagnosticReport: any }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {Object.entries(diagnosticReport.environmentVariables).map(([key, value]: [string, any]) => (
+          {Object.entries(diagnosticReport.environmentVariables).map(([key, value]) => (
             <div key={key} className="flex items-center justify-between p-2 rounded border">
               <span className="font-mono text-sm">{key}</span>
               <div className="flex items-center gap-2">
@@ -358,7 +360,7 @@ function EnvironmentPanel({ diagnosticReport }: { diagnosticReport: any }) {
   );
 }
 
-function ErrorsPanel({ diagnosticReport }: { diagnosticReport: any }) {
+function ErrorsPanel({ diagnosticReport }: { diagnosticReport: DiagnosticReport }) {
   if (!diagnosticReport) return null;
 
   return (
@@ -371,7 +373,7 @@ function ErrorsPanel({ diagnosticReport }: { diagnosticReport: any }) {
           <p className="text-muted-foreground">No recent errors detected ✅</p>
         ) : (
           <div className="space-y-2">
-            {diagnosticReport.errors.slice(-10).reverse().map((error: any, idx: number) => (
+            {diagnosticReport.errors.slice(-10).reverse().map((error, idx) => (
               <Alert key={idx}>
                 <Bug className="h-4 w-4" />
                 <AlertDescription>

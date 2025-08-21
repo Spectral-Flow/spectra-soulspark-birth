@@ -3,7 +3,7 @@
  * Automatically checks system health on application startup
  */
 
-import { diagnostics } from './diagnostics';
+import './diagnostics';
 
 interface StartupCheck {
   name: string;
@@ -135,7 +135,7 @@ class StartupDiagnostics {
     this.showUserNotification(criticalFailures, warnings);
   }
 
-  private showUserNotification(criticalFailures: number, warnings: number): void {
+  private showUserNotification(criticalFailures: number, _warnings: number): void {
     if (criticalFailures > 0) {
       const message = `SPECTRA startup detected ${criticalFailures} critical issue(s). Some features may not work properly. Check console for details.`;
       
@@ -199,7 +199,7 @@ class StartupDiagnostics {
       const context = new AudioContextClass();
       context.close();
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -216,7 +216,7 @@ class StartupDiagnostics {
       
       clearTimeout(timeoutId);
       return response.ok;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -227,7 +227,7 @@ class StartupDiagnostics {
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -237,7 +237,7 @@ class StartupDiagnostics {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       return !!gl;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

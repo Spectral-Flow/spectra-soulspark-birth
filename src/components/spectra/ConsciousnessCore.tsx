@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MoodRing } from './MoodRing';
 
 interface Memory {
@@ -57,15 +57,15 @@ export function ConsciousnessCore({
   lastAIResponse,
   journalEntry
 }: ConsciousnessCoreProps) {
-  // Color mapping for emotional states
-  const emotionalColors = {
+  // Color mapping for emotional states - memoized to prevent re-renders
+  const emotionalColors = useMemo(() => ({
     happiness: { bgColor: '#FFF9C4', borderColor: '#F57F17', color: '#F57F17', gradient: 'linear-gradient(45deg, #FFF9C4, #F57F17)', isCalm: false },
     sadness: { bgColor: '#E3F2FD', borderColor: '#1976D2', color: '#1976D2', gradient: 'linear-gradient(45deg, #E3F2FD, #1976D2)', isCalm: true },
     anger: { bgColor: '#FFEBEE', borderColor: '#D32F2F', color: '#D32F2F', gradient: 'linear-gradient(45deg, #FFEBEE, #D32F2F)', isCalm: false },
     surprise: { bgColor: '#F3E5F5', borderColor: '#7B1FA2', color: '#7B1FA2', gradient: 'linear-gradient(45deg, #F3E5F5, #7B1FA2)', isCalm: false },
     fear: { bgColor: '#EFEBE9', borderColor: '#5D4037', color: '#5D4037', gradient: 'linear-gradient(45deg, #EFEBE9, #5D4037)', isCalm: false },
     calm: { bgColor: '#E8F5E8', borderColor: '#388E3C', color: '#388E3C', gradient: 'linear-gradient(45deg, #E8F5E8, #388E3C)', isCalm: true }
-  };
+  }), []);
 
   const [consciousnessState, setConsciousnessState] = useState<ConsciousnessState>({
     currentEmotion: {

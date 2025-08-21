@@ -1,15 +1,78 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createLogger } from './utils/logger.js';
-import { 
-  handlePreflight, 
-  sendSuccess, 
-  sendError,
-  generateRequestId,
-  getApiKey,
-  fetchWithTimeout
-} from './utils/common.js';
 
-const logger = createLogger('health');
+// Import utilities with absolute path for better compatibility
+const logger = { 
+  info: (msg, ctx, reqId) => console.log(JSON.stringify({ level: 'info', service: 'health', message: msg, context: ctx, requestId: reqId, timestamp: new Date().toISOString() })),
+  error: (msg, err, ctx, reqId) => console.log(JSON.stringify({ level: 'error', service: 'health', message: msg, error: err?.message, context: ctx, requestId: reqId, timestamp: new Date().toISOString() })),
+  warn: (msg, ctx, reqId) => console.log(JSON.stringify({ level: 'warn', service: 'health', message: msg, context: ctx, requestId: reqId, timestamp: new Date().toISOString() }))
+};
+
+const generateRequestId = () => `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+const setCorsHeaders = (res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
+  res.setHeader('Access-Control-Max-Age', '86400');
+};
+
+const handlePreflight = (req, res) => {
+  if (req.method === 'OPTIONS') {
+    setCorsHeaders(res);
+    res.status(200).end();
+    return true;
+  }
+  return false;
+};
+
+const sendError = (res, status, error, message, details, requestId) => {
+  setCorsHeaders(res);
+  const errorResponse = {
+    error,
+    message,
+    details,
+    timestamp: new Date().toISOString(),
+    requestId
+  };
+  logger.error(`API Error: ${error}`, undefined, { status, details }, requestId);
+  res.status(status).json(errorResponse);
+};
+
+const sendSuccess = (res, data, status = 200, requestId) => {
+  setCorsHeaders(res);
+  logger.info('API Success', { status }, requestId);
+  res.status(status).json(data);
+};
+
+const getApiKey = (keyName, required = true) => {
+  const key = process.env[keyName];
+  if (!key && required) {
+    logger.error(`Missing required API key: ${keyName}`);
+    return null;
+  }
+  if (key && key.startsWith('mock_') && process.env.NODE_ENV === 'production') {
+    logger.warn(`Mock API key detected in production: ${keyName}`);
+    return null;
+  }
+  return key || null;
+};
+
+const fetchWithTimeout = async (url, options = {}, timeoutMs = 30000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
 
 /**
  * Enhanced health check endpoint with service monitoring

@@ -47,6 +47,7 @@
     "@hookform/resolvers": "^5.2.1",
     "@huggingface/hub": "^2.4.1",
     "@huggingface/inference": "^4.7.1",
+    "@openai/agents": "^0.0.17",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

@@ -74,61 +74,24 @@ export class OpenAIVoiceService {
    * Play audio buffer
    */
   async playAudio(audioBuffer: ArrayBuffer): Promise<void> {
+    // Ensure we have an AudioContext (with Safari webkit fallback)
     if (!this.audioContext) {
-class SpectraAudio {
-  audioContext: AudioContext;
-
-  constructor() {
-    // Create an AudioContext with Safari fallback
-    this.audioContext = new (
-      window.AudioContext ||
-      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    )();
-
-    if (!this.audioContext) {
-      throw new Error("Web Audio API is not supported in this browser.");
-    }
-  }
-
-  // Play a simple tone for testing
-  playTone(frequency = 440, duration = 1) {
-    const oscillator = this.audioContext.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.value = frequency;
-
-    const gainNode = this.audioContext.createGain();
-    gainNode.gain.value = 0.1; // safe volume
-
-    oscillator.connect(gainNode);
-    gainNode.connect(this.audioContext.destination);
-
-    oscillator.start();
-    oscillator.stop(this.audioContext.currentTime + duration);
-  }
-
-  // Example: use audio with Spectra's OpenRouter responses
-  async speakText(text: string) {
-    // Here you could integrate ElevenLabs or other TTS API
-    console.log(`Spectra would speak: "${text}"`);
-    // Placeholder for real TTS playback
-  }
-}
-
-// -----------------------------
-// Example Usage
-// -----------------------------
-const spectraAudio = new SpectraAudio();
-spectraAudio.playTone(523, 0.5); // play a quick C5 tone
-
-spectraAudio.speakText("Hello, I am Spectra, your AI companion.");
+      const A = (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }).AudioContext
+        || (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!A) {
+        throw new Error('Web Audio API is not available in this environment');
+      }
+      this.audioContext = new A();
     }
 
     try {
-      const audioBufferDecoded = await this.audioContext.decodeAudioData(audioBuffer);
-      const source = this.audioContext.createBufferSource();
-      source.buffer = audioBufferDecoded;
-      source.connect(this.audioContext.destination);
-      
+  // audioContext is guaranteed to be set above
+  const audioContext = this.audioContext!;
+  const audioBufferDecoded = await audioContext.decodeAudioData(audioBuffer.slice(0));
+  const source = audioContext.createBufferSource();
+  source.buffer = audioBufferDecoded;
+  source.connect(audioContext.destination);
+
       return new Promise((resolve, reject) => {
         source.onended = () => resolve();
         source.addEventListener('error', () => reject(new Error('Audio playback failed')));

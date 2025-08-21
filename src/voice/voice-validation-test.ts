@@ -16,8 +16,9 @@ async function testSpectraVoiceSystem() {
     const data = await response.json();
     console.log('   ✅ Backend Status:', data.status);
     console.log('   📊 Services:', data.services);
-  } catch (error) {
-    console.log('   ❌ Backend Health Check Failed:', error);
+  } catch (err) {
+    const error = err as Error | undefined;
+    console.log('   ❌ Backend Health Check Failed:', error?.message ?? String(err));
     allTestsPassed = false;
   }
   
@@ -31,8 +32,9 @@ async function testSpectraVoiceSystem() {
     } else {
       console.log('   ⚠️ Voices API Status:', response.status);
     }
-  } catch (error) {
-    console.log('   ❌ ElevenLabs API Failed:', error);
+  } catch (err) {
+    const error = err as Error | undefined;
+    console.log('   ❌ ElevenLabs API Failed:', error?.message ?? String(err));
     allTestsPassed = false;
   }
   
@@ -54,8 +56,9 @@ async function testSpectraVoiceSystem() {
     } else {
       console.log('   ⚠️ TTS Status:', response.status, response.statusText);
     }
-  } catch (error) {
-    console.log('   ❌ TTS Test Failed:', error);
+  } catch (err) {
+    const error = err as Error | undefined;
+    console.log('   ❌ TTS Test Failed:', error?.message ?? String(err));
     allTestsPassed = false;
   }
   
@@ -71,8 +74,9 @@ async function testSpectraVoiceSystem() {
     if (!hasElevenLabsKey && !hasOpenAIKey) {
       console.log('   ⚠️ No API keys configured - using fallback voice systems');
     }
-  } catch (error) {
-    console.log('   ❌ Environment Check Failed:', error);
+  } catch (err) {
+    const error = err as Error | undefined;
+    console.log('   ❌ Environment Check Failed:', error?.message ?? String(err));
   }
   
   // Summary
@@ -91,7 +95,7 @@ async function testSpectraVoiceSystem() {
 
 // Make available globally for testing
 if (typeof window !== 'undefined') {
-  window.testSpectraVoiceSystem = testSpectraVoiceSystem;
+  (window as any).testSpectraVoiceSystem = testSpectraVoiceSystem;
 }
 
 export { testSpectraVoiceSystem };

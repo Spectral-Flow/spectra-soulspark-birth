@@ -123,8 +123,8 @@ export async function sessionMemoryExample() {
     // Get memory context for response generation
     const context = await memoryManager.getMemoryContext(message.user, sessionId);
     
-    // Simulate AI response based on context
-    const aiResponse = generateContextualResponse(message, context, i);
+  // Simulate AI response based on context
+  const aiResponse = generateContextualResponse(message.user, context, i);
     
     // Process the exchange
     await memoryManager.processConversationExchange(

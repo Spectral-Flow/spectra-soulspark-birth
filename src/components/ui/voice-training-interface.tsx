@@ -307,10 +307,10 @@ export const VoiceTrainingInterface = ({
             />
           </div>
           
-          <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-4">
             <div>
               <Label>Gender</Label>
-              <Select value={newProfileGender} onValueChange={(value: string) => setNewProfileGender(value)}>
+              <Select value={newProfileGender} onValueChange={(value) => setNewProfileGender(value as 'male' | 'female' | 'neutral')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -324,7 +324,7 @@ export const VoiceTrainingInterface = ({
             
             <div>
               <Label>Age</Label>
-              <Select value={newProfileAge} onValueChange={(value: string) => setNewProfileAge(value)}>
+              <Select value={newProfileAge} onValueChange={(value) => setNewProfileAge(value as 'young' | 'adult' | 'mature')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -338,7 +338,7 @@ export const VoiceTrainingInterface = ({
             
             <div>
               <Label>Style</Label>
-              <Select value={newProfileStyle} onValueChange={(value: string) => setNewProfileStyle(value)}>
+              <Select value={newProfileStyle} onValueChange={(value) => setNewProfileStyle(value as 'conversational' | 'narration' | 'expressive' | 'calm')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

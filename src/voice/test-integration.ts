@@ -3,6 +3,23 @@
  * Comprehensive validation of ElevenLabs + Vercel integration
  */
 
+// Top-level helper interfaces to avoid using `any` in casts
+interface WindowWithSpectra extends Window {
+  ELEVENLABS_API_KEY?: string;
+  OPENAI_API_KEY?: string;
+  spectraPerformance?: { summary: () => Record<string, unknown> };
+  // Allow flexible function signatures for testing helpers
+  testSpectraVoiceSystem?: (...args: unknown[]) => Promise<unknown>;
+  testApiKeyConfiguration?: (...args: unknown[]) => unknown;
+  demoVoiceFeatures?: (...args: unknown[]) => Promise<unknown>;
+}
+
+interface MemoryContextLike {
+  relevantMemories?: unknown[];
+  recentMemories?: unknown[];
+  sessionContext?: unknown[];
+}
+
 // Voice System Health Check
 async function testSpectraVoiceSystem() {
   console.log('🧪 SPECTRA Voice System Integration Test');
@@ -15,7 +32,8 @@ async function testSpectraVoiceSystem() {
     const isBackendAvailable = healthResponse.ok;
     console.log(`   ✅ Backend API: ${isBackendAvailable ? 'Available' : 'Unavailable'}`);
   } catch (error) {
-    console.log(`   ⚠️ Backend API: Unavailable (${error.message})`);
+      const err = error as Error | undefined;
+      console.log(`   ⚠️ Backend API: Unavailable (${err?.message ?? String(error)})`);
   }
 
   // Test 2: ElevenLabs API Routes
@@ -43,19 +61,26 @@ async function testSpectraVoiceSystem() {
       console.log(`   ⚠️ TTS API: ${ttsResponse.status} ${ttsResponse.statusText}`);
     }
   } catch (error) {
-    console.log(`   ❌ ElevenLabs API: Error - ${error.message}`);
+      const err = error as Error | undefined;
+      console.log(`   ❌ ElevenLabs API: Error - ${err?.message ?? String(error)}`);
   }
 
   // Test 3: Voice Bridge System
   console.log('\n3. 🌉 Testing Enhanced Voice Bridge...');
   try {
-    const { enhancedVoiceBridge } = await import('/src/voice/enhanced-voice-bridge');
+      const { enhancedVoiceBridge } = await import('@/voice/enhanced-voice-bridge');
     
     // Test service status
     const status = await enhancedVoiceBridge.getServiceStatus();
     console.log('   📊 Service Status:');
     console.log(`      - Backend Available: ${status.backendAvailable}`);
-    console.log(`      - Services: ${status.services.join(', ')}`);
+    // status.services may be an object of available services; list enabled ones
+    const enabledServices = Array.isArray(status.services)
+      ? status.services
+      : Object.entries(status.services || {})
+          .filter(([, available]) => Boolean(available))
+          .map(([name]) => name);
+    console.log(`      - Services: ${enabledServices.join(', ')}`);
     
     // Test voice synthesis (short test)
     try {
@@ -65,21 +90,23 @@ async function testSpectraVoiceSystem() {
       });
       console.log('   ✅ Voice Synthesis: Working');
     } catch (voiceError) {
-      console.log(`   ⚠️ Voice Synthesis: ${voiceError.message}`);
+        const err = voiceError as Error | undefined;
+        console.log(`   ⚠️ Voice Synthesis: ${err?.message ?? String(voiceError)}`);
     }
   } catch (error) {
-    console.log(`   ❌ Voice Bridge: ${error.message}`);
+      const err = error as Error | undefined;
+      console.log(`   ❌ Voice Bridge: ${err?.message ?? String(error)}`);
   }
 
   // Test 4: ElevenLabs React Integration
   console.log('\n4. ⚛️ Testing ElevenLabs React Integration...');
   try {
-    // Check if the ElevenLabs React hooks are available
-    const { useConversation } = await import('@elevenlabs/react');
-    console.log('   ✅ ElevenLabs React SDK: Available');
+  // Check if the ElevenLabs React hooks are available
+  await import('@elevenlabs/react');
+  console.log('   ✅ ElevenLabs React SDK: Available');
     
     // Test API service
-    const { createElevenLabsApiService } = await import('/src/components/elevenlabs/api');
+  const { createElevenLabsApiService } = await import('@/components/elevenlabs/api');
     const apiService = createElevenLabsApiService();
     
     if (apiService) {
@@ -88,7 +115,8 @@ async function testSpectraVoiceSystem() {
       console.log('   ⚠️ ElevenLabs API Service: No API key configured');
     }
   } catch (error) {
-    console.log(`   ❌ ElevenLabs React: ${error.message}`);
+      const err = error as Error | undefined;
+      console.log(`   ❌ ElevenLabs React: ${err?.message ?? String(error)}`);
   }
 
   // Test 5: Environment Configuration
@@ -102,35 +130,49 @@ async function testSpectraVoiceSystem() {
   console.log(`   Debug Mode: ${hasDebugMode ? 'Enabled' : 'Disabled'}`);
   
   // Test window-based API keys (development only)
+  interface WindowWithSpectra extends Window {
+    ELEVENLABS_API_KEY?: string;
+    OPENAI_API_KEY?: string;
+    spectraPerformance?: { summary: () => Record<string, unknown> };
+    testSpectraVoiceSystem?: () => Promise<boolean>;
+  }
+
   const hasWindowKeys = typeof window !== 'undefined' && 
-    (window.ELEVENLABS_API_KEY || window.OPENAI_API_KEY);
+      ((window as unknown as WindowWithSpectra).ELEVENLABS_API_KEY || (window as unknown as WindowWithSpectra).OPENAI_API_KEY);
   console.log(`   Window API Keys: ${hasWindowKeys ? 'Present (Dev Mode)' : 'None (Secure Mode) ✅'}`);
 
   // Test 6: Memory Integration
   console.log('\n6. 🧠 Testing Memory Integration...');
   try {
-    const { memoryManager } = await import('/src/lib/memory-manager');
+      const { memoryManager } = await import('@/lib/memory-manager');
     console.log('   ✅ Memory Manager: Available');
     
     // Test memory context (lightweight)
-    const context = await memoryManager.getMemoryContext('test', 5);
-    console.log(`   📚 Memory Context: ${context.memories.length} memories available`);
+    const context = (await memoryManager.getMemoryContext('test', 'test-session', true)) as MemoryContextLike;
+    // Log available parts of the context safely
+    const keys = Object.keys(context || {});
+    console.log(`   📚 Memory Context keys: ${keys.join(', ')}`);
+    if (Array.isArray(context.relevantMemories)) {
+      console.log(`   📚 Relevant: ${context.relevantMemories.length}`);
+    }
   } catch (error) {
-    console.log(`   ❌ Memory Integration: ${error.message}`);
+      const err = error as Error | undefined;
+      console.log(`   ❌ Memory Integration: ${err?.message ?? String(error)}`);
   }
 
   // Test 7: Performance Monitoring
   console.log('\n7. 📈 Performance Monitoring...');
   try {
-    if (typeof window !== 'undefined' && window.spectraPerformance) {
-      const perfSummary = window.spectraPerformance.summary();
+    if (typeof window !== 'undefined' && (window as unknown as WindowWithSpectra).spectraPerformance) {
+      const perfSummary = (window as unknown as WindowWithSpectra).spectraPerformance!.summary();
       console.log('   ✅ Performance Monitoring: Active');
       console.log(`   📊 Summary: ${Object.keys(perfSummary).length} metrics tracked`);
     } else {
       console.log('   ⚠️ Performance Monitoring: Not initialized');
     }
   } catch (error) {
-    console.log(`   ❌ Performance Monitoring: ${error.message}`);
+      const err = error as Error | undefined;
+      console.log(`   ❌ Performance Monitoring: ${err?.message ?? String(error)}`);
   }
 
   console.log('\n🎉 Test Complete!');
@@ -164,8 +206,8 @@ function testApiKeyConfiguration() {
 
   // Check window fallbacks (development)
   if (typeof window !== 'undefined') {
-    const windowEL = window.ELEVENLABS_API_KEY;
-    const windowOAI = window.OPENAI_API_KEY;
+  const windowEL = (window as unknown as WindowWithSpectra).ELEVENLABS_API_KEY;
+  const windowOAI = (window as unknown as WindowWithSpectra).OPENAI_API_KEY;
     
     if (windowEL || windowOAI) {
       console.log('\nDevelopment Window Variables:');
@@ -186,8 +228,7 @@ async function demoVoiceFeatures() {
   console.log('=============================\n');
 
   try {
-    const { enhancedVoiceBridge } = await import('/src/voice/enhanced-voice-bridge');
-    
+    await import('@/voice/enhanced-voice-bridge');
     console.log('🌟 Available Features:');
     console.log('   1. Text-to-Speech with emotion detection');
     console.log('   2. Streaming voice synthesis');
@@ -203,15 +244,16 @@ async function demoVoiceFeatures() {
     
     console.log('\n🚀 Try saying: "Hello SPECTRA, how are you?" in the main chat!');
   } catch (error) {
-    console.log(`❌ Demo setup error: ${error.message}`);
+      const err = error as Error | undefined;
+      console.log(`❌ Demo setup error: ${err?.message ?? String(error)}`);
   }
 }
 
 // Export for global access
 if (typeof window !== 'undefined') {
-  window.testSpectraVoiceSystem = testSpectraVoiceSystem;
-  window.testApiKeyConfiguration = testApiKeyConfiguration;
-  window.demoVoiceFeatures = demoVoiceFeatures;
+  (window as unknown as WindowWithSpectra).testSpectraVoiceSystem = testSpectraVoiceSystem;
+  (window as unknown as WindowWithSpectra).testApiKeyConfiguration = testApiKeyConfiguration as unknown as () => void;
+  (window as unknown as WindowWithSpectra).demoVoiceFeatures = demoVoiceFeatures as unknown as () => Promise<void>;
 }
 
 // Auto-run basic check

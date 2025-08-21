@@ -1,0 +1,15 @@
+{
+  "name": "mcp-servers",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "install-all": "(cd github && npm install) && (cd playwright && npm install) && (cd huggingface && npm install)",
+    "start-all": "concurrently \"cd github && npm start\" \"cd playwright && npm start\" \"cd huggingface && npm start\"",
+    "start-github": "cd github && npm start",
+    "start-playwright": "cd playwright && npm start",
+    "start-huggingface": "cd huggingface && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

@@ -88,6 +88,17 @@ async function testAPI() {
       },
     },
     {
+      name: 'OpenRouter Chat (@preset/spectra)',
+      path: '/api/openrouter/chat',
+      method: 'POST',
+      body: {
+        messages: [{ role: 'user', content: 'Hello! How are you today?' }],
+        model: '@preset/spectra',
+        temperature: 0.7,
+        max_tokens: 100,
+      },
+    },
+    {
       name: 'Session Creation',
       path: '/api/sessions',
       method: 'POST',

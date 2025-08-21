@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRouter API Test - SPECTRA</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #64ffda;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0bec5;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #37474f;
+            border-radius: 6px;
+            background-color: #263238;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #64ffda, #00bcd4);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .response {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .success {
+            background-color: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4caf50;
+            color: #a5d6a7;
+        }
+        
+        .error {
+            background-color: rgba(244, 67, 54, 0.1);
+            border: 1px solid #f44336;
+            color: #ef9a9a;
+        }
+        
+        .loading {
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            color: #ffecb3;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid #64ffda;
+            color: #64ffda;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: rgba(100, 255, 218, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌌 OpenRouter API Test - SPECTRA</h1>
+        
+        <form id="chatForm">
+            <div class="form-group">
+                <label for="model">Model:</label>
+                <select id="model">
+                    <option value="@preset/spectra">@preset/spectra (Default)</option>
+                    <option value="openai/gpt-3.5-turbo">OpenAI GPT-3.5 Turbo</option>
+                    <option value="openai/gpt-4">OpenAI GPT-4</option>
+                    <option value="anthropic/claude-2">Anthropic Claude 2</option>
+                    <option value="google/palm-2-chat-bison">Google PaLM 2</option>
+                    <option value="meta-llama/llama-2-70b-chat">Meta Llama 2 70B</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <div class="example-buttons">
+                    <button type="button" class="example-btn" onclick="setExample('Hello! How are you today?')">Hello</button>
+                    <button type="button" class="example-btn" onclick="setExample('What is your name and what can you do?')">Intro</button>
+                    <button type="button" class="example-btn" onclick="setExample('Explain quantum computing in simple terms.')">Explain</button>
+                    <button type="button" class="example-btn" onclick="setExample('Write a short poem about consciousness.')">Creative</button>
+                </div>
+                <textarea id="message" placeholder="Enter your message here..." required>Hello! How are you today?</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="temperature">Temperature (0-1):</label>
+                <input type="number" id="temperature" min="0" max="1" step="0.1" value="0.7">
+            </div>
+            
+            <div class="form-group">
+                <label for="maxTokens">Max Tokens:</label>
+                <input type="number" id="maxTokens" min="1" max="4000" value="1000">
+            </div>
+            
+            <button type="submit" id="sendBtn">Send Message</button>
+        </form>
+        
+        <div id="response" class="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('chatForm');
+        const responseDiv = document.getElementById('response');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function setExample(text) {
+            document.getElementById('message').value = text;
+        }
+
+        function showResponse(content, type) {
+            responseDiv.textContent = content;
+            responseDiv.className = `response ${type}`;
+            responseDiv.style.display = 'block';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const model = document.getElementById('model').value;
+            const message = document.getElementById('message').value;
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const maxTokens = parseInt(document.getElementById('maxTokens').value);
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            showResponse('Sending request to OpenRouter API...', 'loading');
+            
+            try {
+                const response = await fetch('/api/openrouter/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: message
+                            }
+                        ],
+                        temperature,
+                        max_tokens: maxTokens
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Format the successful response
+                    let formattedResponse = `✅ Success!\n\n`;
+                    formattedResponse += `Model: ${model}\n`;
+                    formattedResponse += `Status: ${response.status}\n\n`;
+                    
+                    if (data.choices && data.choices[0] && data.choices[0].message) {
+                        formattedResponse += `Response:\n${data.choices[0].message.content}\n\n`;
+                    }
+                    
+                    formattedResponse += `Full Response:\n${JSON.stringify(data, null, 2)}`;
+                    
+                    showResponse(formattedResponse, 'success');
+                } else {
+                    // Format the error response
+                    let errorResponse = `❌ Error ${response.status}\n\n`;
+                    errorResponse += `Error: ${data.error || 'Unknown error'}\n`;
+                    if (data.details) {
+                        errorResponse += `Details: ${data.details}\n`;
+                    }
+                    if (data.message) {
+                        errorResponse += `Message: ${data.message}\n`;
+                    }
+                    
+                    errorResponse += `\nFull Response:\n${JSON.stringify(data, null, 2)}`;
+                    
+                    showResponse(errorResponse, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(`❌ Network Error:\n${error.message}`, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send Message';
+            }
+        });
+
+        // Test the endpoint immediately when page loads
+        window.addEventListener('load', () => {
+            console.log('🌌 SPECTRA OpenRouter API Test Page Loaded');
+            console.log('This page tests the /api/openrouter/chat endpoint');
+            console.log('It should work exactly like the Python script in the problem statement');
+        });
+    </script>
+</body>
+</html>

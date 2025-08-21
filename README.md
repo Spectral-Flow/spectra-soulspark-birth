@@ -85,7 +85,7 @@ await enhancedVoiceBridge.textToSpeech({ text: "Hello, I'm SPECTRA!" });
 
 ### Backend Infrastructure
 - **Serverless API** with secure proxy endpoints
-- **Multi-platform deployment**: Vercel, Railway, Supabase
+- **Multi-platform deployment**: Vercel, Supabase
 - **JWT Authentication** with session management
 - **Database Integration** for conversation persistence
 
@@ -171,8 +171,6 @@ console.log('Available services:', status.services);
 ```bash
 npm i -g vercel && vercel --prod
 ```
-
-<!-- Railway support removed for this project; use Vercel or Supabase. Railway commands and config were archived. -->
 
 ### Supabase Edge Functions
 

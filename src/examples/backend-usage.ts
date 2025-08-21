@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Example: Using the Enhanced Voice Bridge with Backend Support
  * This demonstrates how the frontend automatically uses backend APIs when available

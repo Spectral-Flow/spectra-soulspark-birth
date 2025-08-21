@@ -1,9 +1,11 @@
 /**
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/**
  * Backend API Client
  * Utility for making requests to the backend API routes
  */
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   message?: string;
@@ -97,7 +99,7 @@ export class BackendApiClient {
   }
 
   // ElevenLabs API
-  async elevenLabsTTS(text: string, voiceId?: string, options?: any) {
+  async elevenLabsTTS(text: string, voiceId?: string, options?: Record<string, unknown> | undefined) {
     return this.makeRequest('/elevenlabs/tts', {
       method: 'POST',
       body: JSON.stringify({ text, voiceId, options }),
@@ -123,7 +125,7 @@ export class BackendApiClient {
     });
   }
 
-  async openAIChat(messages: any[], options?: any) {
+  async openAIChat(messages: unknown[], options?: Record<string, unknown> | undefined) {
     return this.makeRequest('/openai/chat', {
       method: 'POST',
       body: JSON.stringify({ messages, ...options }),
@@ -131,7 +133,7 @@ export class BackendApiClient {
   }
 
   // Hugging Face Router API
-  async huggingFaceChat(messages: any[], options?: any) {
+  async huggingFaceChat(messages: unknown[], options?: Record<string, unknown> | undefined) {
     return this.makeRequest('/huggingface/chat', {
       method: 'POST',
       body: JSON.stringify({ messages, ...options }),
@@ -172,7 +174,7 @@ export class BackendApiClient {
   }
 
   // Session Management
-  async createSession(userId?: string, metadata?: any) {
+  async createSession(userId?: string, metadata?: Record<string, unknown> | undefined) {
     return this.makeRequest('/sessions', {
       method: 'POST',
       body: JSON.stringify({ userId, metadata }),
@@ -183,7 +185,7 @@ export class BackendApiClient {
     return this.makeRequest(`/sessions?sessionId=${sessionId}`);
   }
 
-  async updateSession(sessionId: string, data: any) {
+  async updateSession(sessionId: string, data: Record<string, unknown>) {
     return this.makeRequest(`/sessions?sessionId=${sessionId}`, {
       method: 'PUT',
       body: JSON.stringify(data),

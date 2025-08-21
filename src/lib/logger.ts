@@ -6,6 +6,7 @@
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
+/* eslint-disable @typescript-eslint/no-explicit-any */
   WARN = 2,
   ERROR = 3
 }

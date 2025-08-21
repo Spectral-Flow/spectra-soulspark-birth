@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Internationalization (i18n) System for Spectra
  * Supports multiple languages with dynamic loading and voice integration

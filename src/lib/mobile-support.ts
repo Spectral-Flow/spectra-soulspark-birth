@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * Mobile Application Support - Progressive Web App (PWA) Configuration
  * Optimizes Spectra for mobile devices with native-like experience

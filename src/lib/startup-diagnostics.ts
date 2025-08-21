@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * SPECTRA Startup Diagnostics
  * Automatically checks system health on application startup

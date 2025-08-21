@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import './index.css'
 
 // PWA Support
@@ -48,7 +49,11 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Initialize app with error handling
 try {
-  createRoot(document.getElementById("root")!).render(<App />);
+  createRoot(document.getElementById("root")!).render(
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
   console.log('✨ React app initialized successfully');
   
   // Hide loading screen immediately when React app is ready

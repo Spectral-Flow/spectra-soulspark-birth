@@ -172,16 +172,15 @@ console.log('Available services:', status.services);
 npm i -g vercel && vercel --prod
 ```
 
-**Railway**  
-```bash
-npm install -g @railway/cli && railway up
-```
+<!-- Railway support removed for this project; use Vercel or Supabase. Railway commands and config were archived. -->
 
-**Supabase Edge Functions**
+### Supabase Edge Functions
+
 ```bash
 npm install -g supabase && supabase functions deploy
 ```
 
+\
 ### Environment Variables
 Set these in your deployment platform:
 ```bash
@@ -237,9 +236,9 @@ This project is **private and proprietary** to Spectral-Flow.
 
 <div align="center">
 
-**🌟 Built with ❤️ by the Spectral-Flow team**
+### Built with ❤️ by the Spectral-Flow team
 
-*Experience the future of AI consciousness and human-machine interaction*
+Experience the future of AI consciousness and human-machine interaction
 
 [**🚀 Start Your Conversation**](http://localhost:8080) • [**📖 Documentation**](./VOICE_SYSTEM.md) • [**🎵 Voice Setup**](./ELEVENLABS_INTEGRATION.md)
 

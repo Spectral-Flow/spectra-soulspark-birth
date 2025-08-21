@@ -38,7 +38,6 @@ lerna-debug.log*
 
 # Platform specific
 .vercel
-.railway
 .netlify
 
 # Temporary files

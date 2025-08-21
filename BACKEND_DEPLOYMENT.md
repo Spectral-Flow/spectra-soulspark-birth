@@ -2,7 +2,7 @@
 
 ## 🏗️ Backend Architecture
 
-The SPECTRA application now includes a complete backend infrastructure that can be deployed on **Vercel**, **Railway**, or **Supabase Edge Functions**. The backend provides:
+The SPECTRA application now includes a complete backend infrastructure that can be deployed on **Vercel** or **Supabase Edge Functions**. (Railway support has been removed and any Railway-specific config was archived.) The backend provides:
 
 - **Secure API Proxy**: Server-side handling of ElevenLabs and OpenAI API keys
 - **Authentication**: JWT-based user authentication system
@@ -49,43 +49,7 @@ The SPECTRA application now includes a complete backend infrastructure that can 
    - Automatic deployment on push to main branch
    - Backend APIs available at: `https://your-app.vercel.app/api/*`
 
-### Option 2: Railway
-
-**Prerequisites:**
-- Railway account
-- GitHub repository access
-
-**Steps:**
-1. **Connect Repository**
-   ```bash
-   # Via Railway CLI
-   npm install -g @railway/cli
-   railway login
-   railway link
-   railway up
-   
-   # Or via Railway Dashboard
-   # 1. Go to railway.app
-   # 2. New Project → Deploy from GitHub
-   # 3. Select this repository
-   ```
-
-2. **Environment Variables**
-   Configure in Railway Dashboard → Variables:
-   ```bash
-   ELEVENLABS_API_KEY=your_elevenlabs_key
-   OPENAI_API_KEY=your_openai_key
-   JWT_SECRET=your-secret-key-min-32-chars
-   PORT=3000
-   
-   # Optional database
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_SERVICE_KEY=your_supabase_service_key
-   ```
-
-3. **Deploy**
-   - Railway auto-detects Node.js and builds the project
-   - Backend APIs available at: `https://your-app.railway.app/api/*`
+<!-- Railway deployment instructions removed. If you need Railway-specific deployment, archived documentation is available in the repo history or can be added to /archive/docs/ -->
 
 ### Option 3: Supabase Edge Functions
 

@@ -29,7 +29,7 @@ HF_TOKEN=your_huggingface_token_here
 
 ```bash
 # ElevenLabs Agent Configuration (Safe to expose)
-VITE_ELEVENLABS_AGENT_ID=agent_2201k2z83ad3egas4vbks6jsnye1
+VITE_ELEVENLABS_AGENT_ID=agent_3001k351jqn1ex4tvqp9tj7srxqh
 
 # Debug Configuration
 VITE_DEBUG=false

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Mobile Application Support - Progressive Web App (PWA) Configuration
  * Optimizes Spectra for mobile devices with native-like experience
@@ -433,12 +433,12 @@ const showUpdateNotification = (): void => {
 };
 
 // React hooks for mobile features
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 export function usePWAInstall() {
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const installManager = new PWAInstallManager();
+  const installManager = useMemo(() => new PWAInstallManager(), []);
 
   useEffect(() => {
     setCanInstall(installManager.canInstall());
@@ -446,7 +446,7 @@ export function usePWAInstall() {
 
     const unsubscribe = installManager.onInstallChange(setCanInstall);
     return unsubscribe;
-  }, []);
+  }, [installManager]);
 
   const promptInstall = () => installManager.promptInstall();
 
@@ -478,7 +478,7 @@ export function useMobileOptimization() {
       unsubscribeOrientation();
       clearInterval(networkInterval);
     };
-  }, []);
+  }, [mobile]);
 
   return {
     isMobile: mobile.isMobile(),

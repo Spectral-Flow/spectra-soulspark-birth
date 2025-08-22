@@ -76,7 +76,7 @@ const testWithDifferentModels = async () => {
       } else {
         console.log(`✅ Success with ${model}!`);
         if (response.data && typeof response.data === 'object' && 'choices' in response.data) {
-          const choices = response.data.choices as Array<{ message: { content: string } }>;
+          const choices = response.data.choices;
           if (choices && choices[0] && choices[0].message) {
             console.log('Response:', choices[0].message.content.substring(0, 100) + '...');
           }

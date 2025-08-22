@@ -4,7 +4,7 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createLogger } from './logger.js';
+import { createLogger } from './logger';
 
 const logger = createLogger('api-utils');
 

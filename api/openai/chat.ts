@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createLogger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger';
 import { 
   handlePreflight, 
   sendSuccess, 
@@ -9,7 +9,7 @@ import {
   fetchWithTimeout,
   validateRequired,
   applyRateLimit
-} from '../utils/common.js';
+} from '../utils/common';
 
 const logger = createLogger('openai-chat');
 

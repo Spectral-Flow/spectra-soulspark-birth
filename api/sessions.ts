@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createLogger } from './utils/logger.js';
+import { createLogger } from './utils/logger';
 import { 
   handlePreflight, 
   sendSuccess, 
@@ -7,7 +7,7 @@ import {
   generateRequestId,
   applyRateLimit,
   validateRequired
-} from './utils/common.js';
+} from './utils/common';
 
 const logger = createLogger('sessions');
 

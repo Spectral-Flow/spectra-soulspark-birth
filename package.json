@@ -40,9 +40,22 @@
     "test:api": "node scripts/test-api.js",
     "health-check": "npm run type-check && npm run lint && npm run build",
     "deps:update": "npm update && npm audit",
-    "deps:check": "npm outdated"
+    "deps:check": "npm outdated",
+    "mobile:build": "npm run build && npx cap sync",
+    "mobile:run:android": "npm run mobile:build && npx cap run android",
+    "mobile:open:android": "npx cap open android",
+    "mobile:sync": "npx cap sync",
+    "mobile:setup": "node -e \"console.log('📱 Use scripts/build-mobile.sh (Linux/Mac) or scripts/build-mobile.bat (Windows) for guided setup')\"",
+    "apk:build": "npm run mobile:build && cd android && ./gradlew assembleDebug",
+    "apk:release": "npm run mobile:build && cd android && ./gradlew assembleRelease",
+    "mobile:clean": "npx cap clean android && npm run clean"
   },
   "dependencies": {
+    "@capacitor/device": "^7.0.2",
+    "@capacitor/haptics": "^7.0.2",
+    "@capacitor/network": "^7.0.2",
+    "@capacitor/splash-screen": "^7.0.2",
+    "@capacitor/status-bar": "^7.0.2",
     "@elevenlabs/react": "^0.5.0",
     "@hookform/resolvers": "^5.2.1",
     "@huggingface/hub": "^2.4.1",
@@ -103,6 +116,9 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
     "@eslint/js": "^9.33.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/cors": "^2.8.19",

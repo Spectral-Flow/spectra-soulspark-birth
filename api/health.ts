@@ -47,11 +47,11 @@ const sendSuccess = (res, data, status = 200, requestId) => {
 const getApiKey = (keyName, required = true) => {
   const key = process.env[keyName];
   if (!key && required) {
-    logger.error(`Missing required API key: ${keyName}`);
+    logger.error(`Missing required API key: ${keyName}`, undefined, {}, undefined);
     return null;
   }
   if (key && key.startsWith('mock_') && process.env.NODE_ENV === 'production') {
-    logger.warn(`Mock API key detected in production: ${keyName}`);
+    logger.warn(`Mock API key detected in production: ${keyName}`, {}, undefined);
     return null;
   }
   return key || null;

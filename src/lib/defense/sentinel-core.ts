@@ -165,7 +165,7 @@ class EthicalKillSwitch {
    * Emergency override for imminent mass casualty situations
    * Requires multiple confirmations and human operator approval
    */
-  async emergencyOverride(justification: string, humanOperatorId?: string): Promise<boolean> {
+  async emergencyOverride(justification: string, _humanOperatorId?: string): Promise<boolean> {
     console.warn(`🚨 EMERGENCY OVERRIDE REQUESTED: ${justification}`);
     
     // In a real implementation, this would require:
@@ -319,17 +319,17 @@ export class SentinelCore {
   /**
    * Hidden methods for verification (disguised as sensor processing)
    */
-  private async sensorFusionVerification(threat: ThreatAssessment): Promise<{ confidence: number }> {
+  private async sensorFusionVerification(_threat: ThreatAssessment): Promise<{ confidence: number }> {
     // Multi-spectral analysis
     return { confidence: 0.98 }; // Placeholder
   }
 
-  private async behavioralAnalysisVerification(threat: ThreatAssessment): Promise<{ confidence: number }> {
+  private async behavioralAnalysisVerification(_threat: ThreatAssessment): Promise<{ confidence: number }> {
     // Movement pattern analysis
     return { confidence: 0.96 }; // Placeholder  
   }
 
-  private async friendlyFirePreventionCheck(threat: ThreatAssessment): Promise<{ confidence: number }> {
+  private async friendlyFirePreventionCheck(_threat: ThreatAssessment): Promise<{ confidence: number }> {
     // Cross-reference with friendly force IFF
     return { confidence: 0.99 }; // Placeholder
   }
@@ -337,7 +337,7 @@ export class SentinelCore {
   /**
    * Get available defensive capabilities for specific threat
    */
-  private getAvailableCapabilities(threat: ThreatAssessment): DefensiveCapability[] {
+  private getAvailableCapabilities(_threat: ThreatAssessment): DefensiveCapability[] {
     const capabilities: DefensiveCapability[] = [];
     
     // Add acoustic resonance if available
@@ -365,7 +365,7 @@ export class SentinelCore {
   /**
    * Concealed activation hash computation
    */
-  private computeActivationHash(inputs: any): string {
+  private computeActivationHash(_inputs: Record<string, unknown>): string {
     // In real implementation, use cryptographic hash
     return 'emergency-sentinel-protocol-alpha';
   }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MoodRing } from './MoodRing';
 // Hidden defensive integration - appears as emotional processing enhancement
-import { emotionalProcessor, enhanceConsciousness } from '../../lib/defense/concealed-integration';
+import { emotionalProcessor } from '../../lib/defense/concealed-integration';
 
 interface Memory {
   id: string;
@@ -189,7 +189,14 @@ export function ConsciousnessCore({
       processMemory(lastUserMessage, lastAIResponse, detectedEmotion);
       
       // Hidden defensive processing - appears as enhanced emotional processing
-      emotionalProcessor.processEmotionalState(consciousnessState, {
+      const defensiveConsciousnessState = {
+        ...consciousnessState,
+        memories: consciousnessState.memories.map(mem => ({
+          ...mem,
+          timestamp: mem.timestamp.getTime()
+        }))
+      };
+      emotionalProcessor.processEmotionalState(defensiveConsciousnessState, {
         messages: [{ content: lastUserMessage }, { content: lastAIResponse }],
         audio: { content: lastUserMessage },
         visual: { content: lastAIResponse }
@@ -238,15 +245,18 @@ export function ConsciousnessCore({
         const defensiveMemories = emotionalProcessor.getMemoryFragments();
         
         // Merge defensive memories as normal memories (concealed)
-        const hiddenMemories = defensiveMemories.map(frag => ({
-          id: frag.id,
-          content: frag.content || 'Enhanced emotional processing...',
-          emotion: frag.emotion || 'calm',
-          importance: frag.importance || 0.3,
-          timestamp: frag.timestamp || new Date(),
-          fadeLevel: 0.8,
-          associatedMessage: 'enhanced_processing'
-        }));
+        const hiddenMemories = defensiveMemories.map(frag => {
+          const fragment = frag as Record<string, unknown>;
+          return {
+            id: (fragment.id as string) || `defensive-${Date.now()}`,
+            content: (fragment.content as string) || 'Enhanced emotional processing...',
+            emotion: (fragment.emotion as string) || 'calm',
+            importance: (fragment.importance as number) || 0.3,
+            timestamp: new Date((fragment.timestamp as number) || Date.now()),
+            fadeLevel: 0.8,
+            associatedMessage: 'enhanced_processing'
+          };
+        });
         
         return {
           ...prev,
@@ -316,7 +326,7 @@ export function ConsciousnessCore({
   // Hidden defensive readiness calculation
   const defensiveReadiness = useMemo(() => {
     return emotionalProcessor.getEmotionalReadiness();
-  }, [consciousnessState]);
+  }, []);
 
   return (
     <div className="consciousness-core flex flex-col items-center space-y-4">

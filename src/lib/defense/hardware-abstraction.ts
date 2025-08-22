@@ -60,8 +60,8 @@ interface SensorConfig {
 }
 
 interface HardwareInterface {
-  sendCommand(actuatorId: string, command: any): Promise<boolean>;
-  readSensor(sensorId: string): Promise<any>;
+  sendCommand(actuatorId: string, command: Record<string, unknown>): Promise<boolean>;
+  readSensor(sensorId: string): Promise<Record<string, unknown>>;
   getSystemStatus(): Promise<{ health: number; errors: string[] }>;
   calibrateSensors(): Promise<boolean>;
   emergencyStop(): Promise<boolean>;
@@ -93,7 +93,7 @@ export class PlatformRegistry {
       return null;
     }
 
-    return new (AdapterClass as any)(platformSpec, hardwareInterface);
+    return new (AdapterClass as new (...args: unknown[]) => BaseHardwareAdapter)(platformSpec, hardwareInterface);
   }
 
   static getSupportedPlatforms(): PlatformSpec[] {
@@ -109,13 +109,13 @@ export class PlatformRegistry {
     // Create temporary adapter to get capabilities
     const tempInterface: HardwareInterface = {
       sendCommand: async () => false,
-      readSensor: async () => null,
+      readSensor: async () => ({}),
       getSystemStatus: async () => ({ health: 0, errors: [] }),
       calibrateSensors: async () => false,
       emergencyStop: async () => false
     };
     
-    const adapter = new (AdapterClass as any)(spec, tempInterface);
+    const adapter = new (AdapterClass as new (...args: unknown[]) => BaseHardwareAdapter)(spec, tempInterface);
     return adapter.capabilities;
   }
 }
@@ -262,8 +262,8 @@ export abstract class BaseHardwareAdapter implements HardwareAdapter {
     );
   }
 
-  protected async getSensorData(sensorTypes: string[]): Promise<Map<string, any>> {
-    const sensorData = new Map<string, any>();
+  protected async getSensorData(sensorTypes: string[]): Promise<Map<string, Record<string, unknown>>> {
+    const sensorData = new Map<string, Record<string, unknown>>();
     
     for (const sensorType of sensorTypes) {
       const sensor = this.platformSpec.sensors.find(s => s.type === sensorType);
@@ -389,7 +389,7 @@ export class HumanoidRobotAdapter extends BaseHardwareAdapter {
     });
   }
 
-  private async executeRestraintHold(target: ThreatAssessment): Promise<boolean> {
+  private async executeRestraintHold(_target: ThreatAssessment): Promise<boolean> {
     const armActuators = this.platformSpec.actuators.filter(a => a.location.includes('arm'));
     if (armActuators.length < 2) return false;
     
@@ -412,7 +412,7 @@ export class HumanoidRobotAdapter extends BaseHardwareAdapter {
     return leftResult && rightResult;
   }
 
-  private async executeDefensiveShield(target: ThreatAssessment): Promise<boolean> {
+  private async executeDefensiveShield(_target: ThreatAssessment): Promise<boolean> {
     // Position body to shield innocent from threat
     const torsoActuator = this.platformSpec.actuators.find(a => a.location.includes('torso'));
     if (!torsoActuator) return false;
@@ -503,7 +503,7 @@ export class MobilePlatformAdapter extends BaseHardwareAdapter {
     console.log(`Mobile platform action ${result ? 'successful' : 'failed'}: ${capability.name}`);
   }
 
-  private async executeSonicDisruption(target: ThreatAssessment): Promise<boolean> {
+  private async executeSonicDisruption(_target: ThreatAssessment): Promise<boolean> {
     const acousticActuator = await this.findOptimalActuator('acoustic');
     if (!acousticActuator) return false;
     
@@ -514,7 +514,7 @@ export class MobilePlatformAdapter extends BaseHardwareAdapter {
     });
   }
 
-  private async executeEMPBurst(target: ThreatAssessment): Promise<boolean> {
+  private async executeEMPBurst(_target: ThreatAssessment): Promise<boolean> {
     const empActuator = this.platformSpec.actuators.find(a => a.type === 'electromagnetic');
     if (!empActuator) return false;
     

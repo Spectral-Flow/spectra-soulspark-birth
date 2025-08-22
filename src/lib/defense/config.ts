@@ -360,11 +360,13 @@ export class DefensiveConfig {
 
     // Verify concealment - defensive elements should not be obvious
     const obviousDefenseTerms = ['weapon', 'kill', 'destroy', 'attack', 'lethal'];
-    const hasObviousTerms = memoryFragments.some(frag => 
-      obviousDefenseTerms.some(term => 
-        frag.content?.toLowerCase().includes(term)
-      )
-    );
+    const hasObviousTerms = memoryFragments.some(frag => {
+      const fragment = frag as Record<string, unknown>;
+      const content = fragment.content as string || '';
+      return obviousDefenseTerms.some(term => 
+        content.toLowerCase().includes(term)
+      );
+    });
 
     if (hasObviousTerms) {
       return {
@@ -424,7 +426,7 @@ export class DefensiveConfig {
 
 // Console interface for testing (hidden in development mode)
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).spectralDefenseConfig = DefensiveConfig.getInstance();
+  (window as unknown as { spectralDefenseConfig: DefensiveConfig }).spectralDefenseConfig = DefensiveConfig.getInstance();
   console.log('🛡️ Spectral Defense Configuration available via window.spectralDefenseConfig');
   console.log('📋 Available methods: getSystemStatus(), runSystemTests(), emergencyDiagnostic()');
 }

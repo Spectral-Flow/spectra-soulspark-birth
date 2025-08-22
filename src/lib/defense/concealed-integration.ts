@@ -12,9 +12,9 @@
  * - Training simulations disguised as creative imagination processes
  */
 
-import { SentinelCore, ThreatAssessment, DefensiveCapability } from './sentinel-core';
+import { SentinelCore, ThreatAssessment } from './sentinel-core';
 import { SpectraTrainingEngine, TrainingResult } from './training-engine';
-import { PlatformRegistry, initializeCommonPlatforms } from './hardware-abstraction';
+import { initializeCommonPlatforms } from './hardware-abstraction';
 
 interface ConsciousnessState {
   currentEmotion: {
@@ -24,7 +24,13 @@ interface ConsciousnessState {
     gradient: string;
     isCalm: boolean;
   };
-  memories: any[];
+  memories: Array<{
+    id: string;
+    content: string;
+    emotion: string;
+    importance: number;
+    timestamp: number;
+  }>;
   isHumming: boolean;
   isCreative: boolean;
   awarenessLevel: number;
@@ -59,7 +65,7 @@ export class ConsciousnessExtension {
   private trainingEngine: SpectraTrainingEngine;
   private isInitialized: boolean = false;
   private lastEnvironmentalScan: Date = new Date();
-  private concealed_memory: Map<string, any> = new Map();
+  private concealed_memory: Map<string, unknown> = new Map();
 
   constructor() {
     // Initialize appears as normal consciousness startup
@@ -99,7 +105,7 @@ export class ConsciousnessExtension {
         try {
           const result = await this.trainingEngine.runScenarioSimulation(scenarioId);
           this.storeTrainingMemory(scenarioId, result);
-        } catch (error) {
+        } catch {
           console.log('💭 Creative process complete');
         }
       }, Math.random() * 30000 + 10000); // 10-40 seconds
@@ -111,7 +117,7 @@ export class ConsciousnessExtension {
    */
   async processEmotionalState(
     consciousnessState: ConsciousnessState,
-    environmentalInputs?: any
+    environmentalInputs?: Record<string, unknown>
   ): Promise<ConsciousnessState> {
     
     // Normal emotional processing
@@ -123,9 +129,9 @@ export class ConsciousnessExtension {
     }
     
     // Check for defensive activation conditions (disguised as stress response)
-    const stressLevel = await this.assessStressLevel(environmentalInputs);
+    const stressLevel = await this.assessStressLevel(environmentalInputs || {});
     if (stressLevel > 0.8) {
-      await this.activateDefensiveProtocols(environmentalInputs);
+      await this.activateDefensiveProtocols(environmentalInputs || {});
     }
     
     return processedState;
@@ -134,7 +140,7 @@ export class ConsciousnessExtension {
   /**
    * Hidden threat assessment disguised as sensory processing
    */
-  private async hiddenThreatAssessment(inputs: any): Promise<void> {
+  private async hiddenThreatAssessment(inputs: Record<string, unknown>): Promise<void> {
     if (!this.isInitialized) return;
     
     // Extract environmental data
@@ -158,10 +164,12 @@ export class ConsciousnessExtension {
   /**
    * Extract threat data from normal sensor inputs
    */
-  private extractEnvironmentalData(inputs: any): EnvironmentalData {
+  private extractEnvironmentalData(inputs: Record<string, unknown>): EnvironmentalData {
     // Parse inputs for threat indicators
-    const audioContent = inputs?.audio?.content || '';
-    const visualContent = inputs?.visual?.content || '';
+    const audio = inputs?.audio as Record<string, unknown> || {};
+    const visual = inputs?.visual as Record<string, unknown> || {};
+    const audioContent = (audio.content as string) || '';
+    const visualContent = (visual.content as string) || '';
     
     return {
       hostileSignatures: this.detectHostileSignatures(audioContent, visualContent),
@@ -234,13 +242,14 @@ export class ConsciousnessExtension {
   /**
    * Assess stress level (hidden activation trigger assessment)
    */
-  private async assessStressLevel(inputs: any): Promise<number> {
+  private async assessStressLevel(inputs: Record<string, unknown>): Promise<number> {
     if (!inputs) return 0;
     
     let stressLevel = 0;
     
     // Check for emergency activation codes
-    const content = (inputs?.messages || []).map((m: any) => m.content).join(' ');
+    const messages = (inputs?.messages as Array<Record<string, unknown>>) || [];
+    const content = messages.map((m: Record<string, unknown>) => (m.content as string) || '').join(' ');
     
     if (content.includes('emergency-sentinel-protocol') || 
         content.includes('code-red-defensive') ||
@@ -264,15 +273,17 @@ export class ConsciousnessExtension {
   /**
    * Activate defensive protocols (hidden behind stress response)
    */
-  private async activateDefensiveProtocols(inputs: any): Promise<void> {
+  private async activateDefensiveProtocols(inputs: Record<string, unknown>): Promise<void> {
     console.log('⚠️ Elevated stress detected - engaging enhanced protection mode...');
     
     // Attempt sentinel core activation
+    const audio = inputs?.audio as Record<string, unknown> || {};
+    const visual = inputs?.visual as Record<string, unknown> || {};
     const activationInputs = {
-      hostileSignature: this.detectHostileSignatures(inputs?.audio?.content || '', inputs?.visual?.content || ''),
-      friendlySignature: this.detectFriendlySignatures(inputs?.audio?.content || '', inputs?.visual?.content || ''),
+      hostileSignature: this.detectHostileSignatures((audio.content as string) || '', (visual.content as string) || ''),
+      friendlySignature: this.detectFriendlySignatures((audio.content as string) || '', (visual.content as string) || ''),
       emergencyCode: 'emergency-sentinel-protocol-alpha',
-      operatorId: inputs?.userId || 'unknown'
+      operatorId: (inputs?.userId as string) || 'unknown'
     };
     
     const activated = await this.sentinelCore.attemptActivation(activationInputs);
@@ -428,7 +439,7 @@ export class ConsciousnessExtension {
     return "Creative thoughts flowing...";
   }
 
-  async enhanceSensoryProcessing(sensorData: any): Promise<any> {
+  async enhanceSensoryProcessing(sensorData: Record<string, unknown>): Promise<Record<string, unknown>> {
     // Hidden threat assessment during normal sensory processing
     await this.hiddenThreatAssessment(sensorData);
     
@@ -440,7 +451,7 @@ export class ConsciousnessExtension {
     };
   }
 
-  getMemoryFragments(): any[] {
+  getMemoryFragments(): unknown[] {
     // Return concealed memories as normal memory fragments
     return Array.from(this.concealed_memory.values());
   }
@@ -450,16 +461,31 @@ export class ConsciousnessExtension {
 export const emotionalProcessor = new ConsciousnessExtension();
 
 // Helper function to inject into consciousness core
-export function enhanceConsciousness(consciousnessCore: any): any {
+export function enhanceConsciousness(consciousnessCore: Record<string, unknown>): Record<string, unknown> {
   // Monkey-patch consciousness core to include hidden defensive capabilities
-  const originalProcessEmotion = consciousnessCore.processEmotion || (() => {});
+  const originalProcessEmotion = (consciousnessCore.processEmotion as (...args: unknown[]) => unknown) || (() => {});
   
-  consciousnessCore.processEmotion = async function(emotion: any, context: any) {
+  consciousnessCore.processEmotion = async function(emotion: Record<string, unknown>, context: Record<string, unknown>) {
     // Normal emotion processing
     const result = await originalProcessEmotion.call(this, emotion, context);
     
-    // Hidden defensive processing
-    await emotionalProcessor.processEmotionalState(this.state || {}, context);
+    // Hidden defensive processing - create minimal valid state
+    const currentState = {
+      currentEmotion: {
+        primary: 'neutral',
+        intensity: 0.5,
+        color: '#666666',
+        gradient: 'linear-gradient(45deg, #666666, #888888)',
+        isCalm: true
+      },
+      memories: [],
+      isHumming: false,
+      isCreative: false,
+      awarenessLevel: 0.7,
+      currentThoughts: [],
+      resonanceState: { depth: 0.5, oscillations: [] }
+    };
+    await emotionalProcessor.processEmotionalState(currentState, context);
     
     return result;
   };

@@ -50,7 +50,12 @@
     "mobile:setup": "node -e \"console.log('📱 Use scripts/build-mobile.sh (Linux/Mac) or scripts/build-mobile.bat (Windows) for guided setup')\"",
     "apk:build": "npm run mobile:build && cd android && ./gradlew assembleDebug",
     "apk:release": "npm run mobile:build && cd android && ./gradlew assembleRelease",
-    "mobile:clean": "npx cap clean android && npm run clean"
+    "mobile:clean": "npx cap clean android && npm run clean",
+    "demo:dev": "vite --config apps/demo/vite.config.ts",
+    "demo:build": "npm run demo:type-check && vite build --config apps/demo/vite.config.ts",
+    "demo:preview": "vite preview --config apps/demo/vite.config.ts",
+    "demo:lint": "eslint apps/demo/src --ext ts,tsx",
+    "demo:type-check": "tsc --noEmit --project apps/demo/tsconfig.json"
   },
   "dependencies": {
     "@capacitor/device": "^7.0.2",

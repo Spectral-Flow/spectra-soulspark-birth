@@ -1,0 +1,33 @@
+{
+  "name": "elysia-6333-stewardess",
+  "description": "Elysia - Your community. Your connection. Your concierge.",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config apps/demo/vite.config.ts",
+    "build": "npm run type-check && vite build --config apps/demo/vite.config.ts",
+    "preview": "vite preview --config apps/demo/vite.config.ts",
+    "lint": "eslint apps/demo/src --ext ts,tsx",
+    "lint:fix": "eslint apps/demo/src --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit --project apps/demo/tsconfig.json",
+    "test": "echo \"Tests will be added here\""
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.540.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react-swc": "^4.0.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6"
+  }
+}

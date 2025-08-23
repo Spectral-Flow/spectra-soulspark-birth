@@ -27,6 +27,7 @@
 - **API Keys** (optional but recommended):
   - [ElevenLabs API Key](https://elevenlabs.io/) for premium voice features
   - [OpenAI API Key](https://platform.openai.com/) for enhanced AI capabilities
+- **For Mobile APK**: Android Studio and Android SDK (see [MOBILE_SETUP.md](MOBILE_SETUP.md))
 
 ### Installation
 
@@ -48,6 +49,33 @@ cp .env.example .env
 # Start development server
 npm run dev
 ```
+
+### 📱 Mobile App
+
+SPECTRA is available as a native mobile app for Android:
+
+#### Quick Mobile Access (No Setup Required)
+1. Visit the app URL on your Android device
+2. Tap the browser menu and select "Add to Home Screen"
+3. Install as a PWA for near-native experience
+
+#### Full Native APK (Requires Android Development Setup)
+```bash
+# Install dependencies and build
+npm install
+npm run mobile:build
+
+# Use guided setup helper
+scripts/build-mobile.sh    # Linux/Mac
+scripts/build-mobile.bat   # Windows
+
+# Or build directly (requires Android SDK)
+npm run apk:build
+```
+
+📍 **APK Location**: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+For detailed mobile setup instructions, see **[MOBILE_SETUP.md](MOBILE_SETUP.md)**
 
 🎉 **Visit** `http://localhost:8080` **to start your conversation with SPECTRA!**
 

@@ -38,6 +38,8 @@
     "dev:backend": "vercel dev",
     "build:vercel": "npm run build",
     "test:api": "node scripts/test-api.js",
+    "test:safety": "node scripts/test-safety.cjs",
+    "context:recover": "node scripts/context-recovery.cjs",
     "health-check": "npm run type-check && npm run lint && npm run build",
     "deps:update": "npm update && npm audit",
     "deps:check": "npm outdated",

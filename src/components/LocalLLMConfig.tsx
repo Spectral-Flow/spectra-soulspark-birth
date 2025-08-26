@@ -4,34 +4,48 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Badge } from "../ui/badge";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Badge } from "./ui/badge";
 import { AlertCircle, CheckCircle, Wifi, WifiOff } from "lucide-react";
 
+interface LLMConfig {
+  endpoint: string;
+  model: string;
+  apiType: string;
+  apiKey: string;
+}
+
+interface TestStatus {
+  success: boolean;
+  message: string;
+  models?: string[];
+}
+
 export function LocalLLMConfig() {
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<LLMConfig>({
     endpoint: localStorage.getItem('localLLM_endpoint') || 'http://192.168.1.100:11434',
     model: localStorage.getItem('localLLM_model') || 'llama2',
     apiType: localStorage.getItem('localLLM_apiType') || 'ollama',
     apiKey: localStorage.getItem('localLLM_apiKey') || ''
   });
 
-  const [testStatus, setTestStatus] = useState(null);
+  const [testStatus, setTestStatus] = useState<TestStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [availableModels, setAvailableModels] = useState([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
 
   // Save config to localStorage when it changes
   useEffect(() => {
     Object.keys(config).forEach(key => {
-      localStorage.setItem(`localLLM_${key}`, config[key]);
+      const configKey = key as keyof LLMConfig;
+      localStorage.setItem(`localLLM_${key}`, config[configKey]);
     });
   }, [config]);
 
-  const updateConfig = (key, value) => {
+  const updateConfig = (key: keyof LLMConfig, value: string) => {
     setConfig(prev => ({ ...prev, [key]: value }));
   };
 
@@ -65,9 +79,10 @@ export function LocalLLMConfig() {
         });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setTestStatus({
         success: false,
-        message: `Network error: ${error.message}`
+        message: `Network error: ${errorMessage}`
       });
     } finally {
       setIsLoading(false);
@@ -114,7 +129,7 @@ export function LocalLLMConfig() {
             id="endpoint"
             placeholder="http://192.168.1.100:11434"
             value={config.endpoint}
-            onChange={(e) => updateConfig('endpoint', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateConfig('endpoint', e.target.value)}
           />
           <p className="text-sm text-muted-foreground">
             Use your phone's IP address and the LLM server port
@@ -125,7 +140,7 @@ export function LocalLLMConfig() {
         {/* API Type Selection */}
         <div className="space-y-2">
           <Label htmlFor="apiType">API Type</Label>
-          <Select value={config.apiType} onValueChange={(value) => updateConfig('apiType', value)}>
+          <Select value={config.apiType} onValueChange={(value: string) => updateConfig('apiType', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select API type" />
             </SelectTrigger>
@@ -147,7 +162,7 @@ export function LocalLLMConfig() {
             id="model"
             placeholder="llama2"
             value={config.model}
-            onChange={(e) => updateConfig('model', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateConfig('model', e.target.value)}
           />
           {availableModels.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
@@ -173,7 +188,7 @@ export function LocalLLMConfig() {
             type="password"
             placeholder="Leave empty if not required"
             value={config.apiKey}
-            onChange={(e) => updateConfig('apiKey', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateConfig('apiKey', e.target.value)}
           />
           <p className="text-sm text-muted-foreground">
             Only needed if your local LLM requires authentication

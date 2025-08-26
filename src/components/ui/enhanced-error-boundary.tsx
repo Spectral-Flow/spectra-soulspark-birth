@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { diagnostics, type DiagnosticReport } from '@/lib/diagnostics';
 
-interface Props {
+export interface Props {
   children: ReactNode;
   fallbackComponent?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
@@ -313,22 +313,6 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
-}
-
-// Convenience wrapper for easier usage
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<Props, 'children'>
-) {
-  const WrappedComponent = (props: P) => (
-    <EnhancedErrorBoundary {...errorBoundaryProps}>
-      <Component {...props} />
-    </EnhancedErrorBoundary>
-  );
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
-  return WrappedComponent;
 }
 
 export default EnhancedErrorBoundary;

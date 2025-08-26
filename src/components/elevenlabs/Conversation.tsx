@@ -10,6 +10,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mic, MicOff, Phone, PhoneOff, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createElevenLabsApiService } from './api';
+import { memoryManager } from '@/lib/memory-manager';
+import { logVoice, logError } from '@/lib/logger';
 
 interface ConversationError {
   message?: string;
@@ -36,21 +38,44 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
 
   const conversation = useConversation({
     onConnect: () => {
-      console.log('Connected to ElevenLabs Conversational AI');
+      logVoice('Connected to ElevenLabs Conversational AI');
       setIsConnecting(false);
       setError(null);
       setRetryCount(0); // Reset retry count on successful connection
     },
     onDisconnect: () => {
-      console.log('Disconnected from ElevenLabs Conversational AI');
+      logVoice('Disconnected from ElevenLabs Conversational AI');
       setIsConnecting(false);
     },
-    onMessage: (message) => {
-      console.log('ElevenLabs Message:', message);
-      // TODO: Integrate with Spectra's conversation history
+    onMessage: async (message: any) => {
+      logVoice('ElevenLabs Message received', message);
+      
+      // Integrate with Spectra's conversation history
+      try {
+        // Store the conversation exchange in memory
+        // The message structure from ElevenLabs may vary, so we handle it generically
+        const messageText = message.message || message.text || JSON.stringify(message);
+        const source = message.source || 'agent';
+        
+        if (source === 'user') {
+          // User message - store for processing when we get AI response
+          // For now, just log it
+          logVoice('User message captured', messageText);
+        } else if (source === 'agent') {
+          // AI response - create a memory entry
+          await memoryManager.processConversationExchange(
+            'ElevenLabs conversation', // user message placeholder
+            messageText, // AI response
+            'neutral', // emotion placeholder
+            0.7 // importance score
+          );
+        }
+      } catch (error) {
+        logError('ElevenLabs', 'Failed to save conversation to memory', error);
+      }
     },
     onError: (error) => {
-      console.error('ElevenLabs Conversation Error:', error);
+      logError('ElevenLabs', 'Conversation Error', error);
       const errorMessage = typeof error === 'string' 
         ? error 
         : (error as ConversationError)?.message || 'An error occurred with the conversation';

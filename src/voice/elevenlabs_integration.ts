@@ -3,6 +3,8 @@
  * Handles ElevenLabs TTS API integration with Spectra voice model
  */
 
+import { logVoice, logError, logger } from '@/lib/logger';
+
 interface ElevenLabsConfig {
   apiKey: string;
   voiceId?: string;
@@ -60,7 +62,7 @@ export class ElevenLabsVoiceService {
     try {
       await this.findSpectraVoice();
     } catch (error) {
-      console.warn('Failed to initialize ElevenLabs service, continuing without voice support:', error);
+      logError('ElevenLabs', 'Failed to initialize ElevenLabs service, continuing without voice support', error);
       // Don't throw error to prevent breaking the app
       // Set a fallback state that indicates ElevenLabs is not available
       this.spectraVoiceId = null;
@@ -81,7 +83,7 @@ export class ElevenLabsVoiceService {
 
       if (spectraVoice) {
         this.spectraVoiceId = spectraVoice.voice_id;
-        console.log(`✨ Found Spectra voice: ${spectraVoice.name} (${spectraVoice.voice_id})`);
+        logVoice(`Found Spectra voice: ${spectraVoice.name} (${spectraVoice.voice_id})`);
       } else {
         // Fallback to a feminine voice if Spectra is not available
         const feminineVoice = voices.find((voice: VoiceData) => 
@@ -101,7 +103,7 @@ export class ElevenLabsVoiceService {
         }
       }
     } catch (error) {
-      console.warn('Error finding Spectra voice, ElevenLabs may not be available:', error);
+      logError('ElevenLabs', 'Error finding Spectra voice, ElevenLabs may not be available', error);
       // Set null to indicate ElevenLabs is not available
       this.spectraVoiceId = null;
     }

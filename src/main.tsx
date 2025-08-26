@@ -10,15 +10,20 @@ import { registerServiceWorker } from './lib/mobile-support'
 import './lib/diagnostics'
 import './lib/startup-diagnostics'
 
+// Import logger
+import { logger } from './lib/logger'
+
 // Initialize PWA features
-registerServiceWorker().catch(console.error);
+registerServiceWorker().catch((error) => {
+  logger.error('PWA', 'Service worker registration failed', error);
+});
 
 // Initialize i18n system
 import './lib/i18n'
 
 // Set up global error handling
 window.addEventListener('error', (event) => {
-  console.error('Global error:', event.error);
+  logger.error('Global', 'Unhandled error', event.error);
   // Ensure loading screen disappears even on errors
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen && loadingScreen.style.display !== 'none') {
@@ -33,7 +38,7 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
+  logger.error('Global', 'Unhandled promise rejection', event.reason);
   // Ensure loading screen disappears even on promise rejections
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen && loadingScreen.style.display !== 'none') {
@@ -54,7 +59,7 @@ try {
       <App />
     </ErrorBoundary>
   );
-  console.log('✨ React app initialized successfully');
+  logger.info('App', 'React app initialized successfully');
   
   // Hide loading screen immediately when React app is ready
   const loadingScreen = document.getElementById('loading-screen');
@@ -66,7 +71,7 @@ try {
     }, 500);
   }
 } catch (error) {
-  console.error('Failed to initialize React app:', error);
+  logger.error('App', 'Failed to initialize React app', error);
   
   // Show error message to user
   const root = document.getElementById("root");

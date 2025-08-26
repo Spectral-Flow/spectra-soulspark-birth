@@ -368,7 +368,8 @@ export class ElevenLabsVoiceService {
 
                 try {
                   // Decode and play the remaining audio
-                  const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
+                  // Create a proper copy of the ArrayBuffer to avoid memory sharing issues
+                  const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer.slice());
                   audioBufferQueue.push(audioBuffer);
                   
                   if (!isPlaying) {
@@ -402,7 +403,8 @@ export class ElevenLabsVoiceService {
                 }
 
                 try {
-                  const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
+                  // Create a proper copy of the ArrayBuffer to avoid memory sharing issues
+                  const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer.slice());
                   audioBufferQueue.push(audioBuffer);
                   chunks.length = 0; // Clear processed chunks
                   
@@ -593,7 +595,8 @@ export async function stream(audioStream: ReadableStream<Uint8Array>): Promise<v
     }
 
     // Decode and play the complete audio
-    const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer);
+    // Create a proper copy of the ArrayBuffer to avoid memory sharing issues
+    const audioBuffer = await audioContext.decodeAudioData(combinedBuffer.buffer.slice());
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(audioContext.destination);

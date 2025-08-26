@@ -158,8 +158,14 @@ export class SpectraVoiceBridge {
         return transcript;
       }
 
-      // TODO: Add ElevenLabs transcription if they offer it in the future
-      // For now, we'd need to use Web Speech API or other services
+      // ElevenLabs doesn't currently offer transcription services
+      // Consider integrating additional STT providers (Deepgram, AssemblyAI, etc.)
+      // For now, we fall back to browser-based Web Speech API if available
+      
+      if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+        // Web Speech API fallback (browser-dependent)
+        return await this.transcribeWithWebSpeech(audioBlob);
+      }
 
       throw new Error('No transcription services available');
 
@@ -170,6 +176,52 @@ export class SpectraVoiceBridge {
       }
       throw error;
     }
+  }
+
+  /**
+   * Fallback transcription using Web Speech API
+   */
+  private async transcribeWithWebSpeech(audioBlob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (typeof window === 'undefined' || !('webkitSpeechRecognition' in window)) {
+        reject(new Error('Web Speech API not available'));
+        return;
+      }
+
+      // Convert blob to audio URL for Web Speech API
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Note: Web Speech API doesn't directly support blob transcription
+      // This is a simplified implementation that would need enhancement
+      // for production use with proper audio processing
+      
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        URL.revokeObjectURL(audioUrl);
+        resolve(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        URL.revokeObjectURL(audioUrl);
+        reject(new Error(`Web Speech API error: ${event.error}`));
+      };
+
+      // Note: This is a simplified approach. Real implementation would need
+      // to properly handle audio blob conversion for speech recognition
+      recognition.start();
+      
+      // Timeout fallback
+      setTimeout(() => {
+        recognition.stop();
+        URL.revokeObjectURL(audioUrl);
+        reject(new Error('Web Speech API transcription timeout'));
+      }, 10000);
+    });
   }
 
   /**

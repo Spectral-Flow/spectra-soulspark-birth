@@ -5,6 +5,7 @@
 
 import { SpeechToTextEngine, createSpeechToText } from './speech_to_text';
 import { TextToSpeechEngine, createTextToSpeech } from './text_to_speech';
+import { logVoice, logError } from '@/lib/logger';
 
 export interface VoiceConfig {
   sttConfig?: {
@@ -86,7 +87,7 @@ export class VoiceManager {
     });
 
     this.sttEngine.onError((error) => {
-      console.error('Voice input error:', error);
+      logError('VoiceManager', 'Voice input error', error);
       if (this.events.onError) {
         this.events.onError(error);
       }
@@ -121,9 +122,9 @@ export class VoiceManager {
         this.events.onVoiceActivity(true);
       }
 
-      console.log('🎤 Spectra is listening...');
+      logVoice('Spectra started listening');
     } catch (error) {
-      console.error('Failed to start listening:', error);
+      logError('VoiceManager', 'Failed to start listening', error);
       if (this.events.onError) {
         this.events.onError(error as Error);
       }
@@ -140,7 +141,7 @@ export class VoiceManager {
       this.events.onVoiceActivity(false);
     }
 
-    console.log('🎤 Spectra stopped listening');
+    logVoice('Spectra stopped listening');
   }
 
   async speak(text: string, emotion?: string): Promise<void> {
@@ -172,10 +173,10 @@ export class VoiceManager {
         setTimeout(() => this.startListening(), 500); // Small delay to avoid audio overlap
       }
 
-      console.log('🔊 Spectra spoke:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
+      logVoice('Spectra spoke', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
     } catch (error) {
       this.isSpeaking = false;
-      console.error('Failed to speak:', error);
+      logError('VoiceManager', 'Failed to speak', error);
       if (this.events.onError) {
         this.events.onError(error as Error);
       }
@@ -192,7 +193,7 @@ export class VoiceManager {
       this.events.onSpeechEnd();
     }
 
-    console.log('🔊 Spectra stopped speaking');
+    logVoice('Spectra stopped speaking');
   }
 
   // Control Methods
@@ -203,9 +204,9 @@ export class VoiceManager {
     if (this.isMuted) {
       this.stopListening();
       this.stopSpeaking();
-      console.log('🔇 Voice muted');
+      logVoice('Voice muted');
     } else {
-      console.log('🔊 Voice unmuted');
+      logVoice('Voice unmuted');
     }
 
     return this.isMuted;
@@ -283,7 +284,7 @@ export class VoiceManager {
   destroy(): void {
     this.stopListening();
     this.stopSpeaking();
-    console.log('🎭 Voice manager destroyed');
+    logVoice('Voice manager destroyed');
   }
 }
 

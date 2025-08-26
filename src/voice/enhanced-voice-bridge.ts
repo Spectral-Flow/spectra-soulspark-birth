@@ -6,6 +6,7 @@
 import { backendApi, isBackendAvailable } from '@/lib/backend-api';
 import { createElevenLabsVoiceFromEnv, ElevenLabsVoiceService } from './elevenlabs_integration';
 import { createOpenAIVoiceFromEnv, OpenAIVoiceService } from './openai_integration';
+import { logVoice, logError } from '@/lib/logger';
 
 interface VoiceConfig {
   preferBackend?: boolean;
@@ -134,7 +135,7 @@ export class EnhancedVoiceBridge {
             };
           }
         } catch (error) {
-          console.warn('Backend ElevenLabs TTS failed:', error);
+          logError('EnhancedVoiceBridge', 'Backend ElevenLabs TTS failed', error);
         }
       }
 
@@ -202,6 +203,38 @@ export class EnhancedVoiceBridge {
       error: 'No available TTS service',
       service: 'webspeech',
     };
+  }
+
+  /**
+   * Streaming Text-to-Speech with automatic service selection
+   * Returns a ReadableStream for real-time audio playback
+   */
+  async streamTextToSpeech(request: TTSRequest): Promise<ReadableStream<Uint8Array> | null> {
+    const { text, voiceId, options } = request;
+
+    // Check if streaming is enabled
+    if (!this.config.enableStreaming) {
+      return null;
+    }
+
+    // Try ElevenLabs streaming first (most optimized for streaming)
+    if (this.elevenLabsService && this.config.preferElevenLabs) {
+      try {
+        const stream = await this.elevenLabsService.generateStreamingSpeech(text, {
+          voiceId,
+          ...options,
+        });
+        
+        return stream;
+      } catch (error) {
+        logError('EnhancedVoiceBridge', 'ElevenLabs streaming TTS failed', error);
+      }
+    }
+
+    // OpenAI doesn't support streaming TTS, so return null
+    // Web Speech API doesn't support streaming either
+    
+    return null;
   }
 
   /**

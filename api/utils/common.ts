@@ -250,3 +250,20 @@ export async function fetchWithTimeout(
     throw error;
   }
 }
+
+// Default export for backend integrity check
+export default {
+  generateRequestId,
+  setCorsHeaders,
+  handlePreflight,
+  sendError,
+  sendSuccess,
+  validateRequired,
+  validateText,
+  sanitizeText,
+  defaultRateLimiter,
+  strictRateLimiter,
+  applyRateLimit,
+  getApiKey,
+  fetchWithTimeout
+};

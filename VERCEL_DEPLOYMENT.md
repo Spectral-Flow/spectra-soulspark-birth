@@ -182,6 +182,7 @@ vercel dev
 - Check Node.js version matches `.nvmrc` (18.19.0)
 - Verify all dependencies are in `package.json`
 - Check for TypeScript errors: `npm run type-check`
+- Remove `NODE_ENV=production` from `.env` file (Vite sets this automatically)
 
 **Voice Features Not Working**
 - Verify API keys are set in Vercel environment variables
@@ -191,6 +192,12 @@ vercel dev
 **Routing Issues**
 - Ensure `vercel.json` is properly configured for SPA
 - Check that all routes are handled client-side
+
+**Environment Variable Issues**
+- Don't set `NODE_ENV=production` in .env files for Vite projects
+- Vercel automatically sets NODE_ENV during deployment
+- Use backend environment variables for sensitive keys
+- Use VITE_ prefix only for client-safe variables
 
 **Performance Issues**
 - Enable Vercel Analytics to identify bottlenecks

@@ -112,3 +112,11 @@ export function createLogger(serviceName: string): Logger {
 
 // Default logger instance
 export const logger = createLogger('api');
+
+// Default export for backend integrity check
+export default {
+  LogLevel,
+  Logger,
+  createLogger,
+  logger
+};

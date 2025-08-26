@@ -58,19 +58,33 @@ const response = await queryLLM('Hello Spectra', 'openai', {
 const response = await queryLLM('Hello Spectra', 'openrouter', { 
   model: 'microsoft/dialoGPT-medium' 
 });
+
+// Local LLM (running on your phone/device)
+const response = await queryLLM('Hello Spectra', 'local', { 
+  endpoint: 'http://192.168.1.100:11434',  // Your phone's IP
+  model: 'llama2',
+  apiType: 'ollama'
+});
 ```
 
 ### Advanced Features
 ```js
-import { batchQueryLLM, getServiceStatus } from './llm_integrations/llm_client.js';
+import { batchQueryLLM, getServiceStatus, testLocalLLMConnection } from './llm_integrations/llm_client.js';
 
 // Check service availability
 const status = getServiceStatus();
 console.log('Available services:', status);
 
+// Test local LLM connection
+const localTest = await testLocalLLMConnection('http://192.168.1.100:11434', 'ollama');
+if (localTest.success) {
+  console.log('✅ Local LLM connected:', localTest.models);
+}
+
 // Batch processing
 const prompts = ['Hello', 'How are you?', 'What is AI?'];
-const responses = await batchQueryLLM(prompts, 'huggingface', {
+const responses = await batchQueryLLM(prompts, 'local', {
+  endpoint: 'http://192.168.1.100:11434',
   batchSize: 2,
   batchDelay: 1000
 });

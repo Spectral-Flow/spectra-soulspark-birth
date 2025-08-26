@@ -68,6 +68,12 @@ export function getServiceConfig() {
       apiKey: process.env.OPENROUTER_API_KEY,
       model: process.env.OPENROUTER_MODEL || 'microsoft/dialoGPT-medium'
     },
+    local: {
+      endpoint: process.env.LOCAL_LLM_ENDPOINT || 'http://localhost:11434',
+      model: process.env.LOCAL_LLM_MODEL || 'llama2',
+      apiType: process.env.LOCAL_LLM_API_TYPE || 'ollama',
+      apiKey: process.env.LOCAL_LLM_API_KEY || null
+    },
     elevenlabs: {
       apiKey: process.env.ELEVENLABS_API_KEY,
       agentId: process.env.VITE_ELEVENLABS_AGENT_ID

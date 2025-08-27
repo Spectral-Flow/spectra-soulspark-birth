@@ -208,9 +208,14 @@ npm install -g supabase && supabase functions deploy
 
 \
 ### Environment Variables
-Set these in your deployment platform:
+
+For **production deployments**, use **GitHub Secrets** for secure API key management:
+
+> 🔐 **[GitHub Secrets Setup Guide](./docs/GITHUB_SECRETS_SETUP.md)** - Complete security configuration
+
+For **local development**, set these in your `.env` file:
 ```bash
-# Client-side (for development)
+# Client-side (for development only)
 VITE_ELEVENLABS_API_KEY=your_elevenlabs_key
 VITE_OPENAI_API_KEY=your_openai_key
 
@@ -220,12 +225,19 @@ OPENAI_API_KEY=your_openai_key
 JWT_SECRET=your-secret-key-min-32-chars
 ```
 
+**Security Features:**
+- ✅ **GitHub Actions Integration** - Automatic CI/CD with secure secrets
+- ✅ **Vercel Environment Sync** - Secrets automatically configured in deployment
+- ✅ **Secret Scanning** - Prevents accidental API key commits
+- ✅ **Environment Separation** - Different secrets for development/production
+
 > 📖 **Complete deployment guide**: [BACKEND_DEPLOYMENT.md](./BACKEND_DEPLOYMENT.md)
 
 ## 📚 Documentation
 
 - **[Voice System Guide](./VOICE_SYSTEM.md)** - Comprehensive voice integration documentation
 - **[Backend Setup](./BACKEND_DEPLOYMENT.md)** - Complete deployment guide for all platforms  
+- **[GitHub Secrets Setup](./docs/GITHUB_SECRETS_SETUP.md)** - Secure API key management with GitHub Actions
 - **[Notes Feature](./NOTES_FEATURE.md)** - Persistent note-taking with Supabase integration
 - **[Memory System](./MEMORY_SYSTEM_SUMMARY.md)** - Dynamic conversation memory implementation
 - **[Project Summary](./PROJECT_SUMMARY.md)** - Complete feature overview and achievements

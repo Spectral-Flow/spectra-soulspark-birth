@@ -39,6 +39,7 @@
     "build:vercel": "npm run build",
     "test:api": "node scripts/test-api.js",
     "test:local-llm": "node test-local-llm.js",
+    "test:azure-openai": "node test-azure-openai.js",
     "test:safety": "node scripts/test-safety.cjs",
     "context:recover": "node scripts/context-recovery.cjs",
     "health-check": "npm run type-check && npm run lint && npm run build",

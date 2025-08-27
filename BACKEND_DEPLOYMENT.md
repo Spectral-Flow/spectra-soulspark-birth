@@ -38,6 +38,13 @@ The SPECTRA application now includes a complete backend infrastructure that can 
    # Required for backend functionality
    ELEVENLABS_API_KEY=your_elevenlabs_key
    OPENAI_API_KEY=your_openai_key
+   
+   # Azure OpenAI (alternative to OpenAI)
+   AZURE_OPENAI_API_KEY=your_azure_openai_key
+   AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+   AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+   AZURE_OPENAI_API_VERSION=2024-12-01-preview
+   
    JWT_SECRET=your-secret-key-min-32-chars
    
    # Optional - for database features

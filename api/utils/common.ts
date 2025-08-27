@@ -64,11 +64,11 @@ export function sendError(
   
   const errorResponse: ApiError = {
     error,
-    message,
-    details,
-    timestamp: new Date().toISOString(),
-    requestId
+    timestamp: new Date().toISOString()
   };
+  if (message !== undefined) errorResponse.message = message;
+  if (details !== undefined) errorResponse.details = details;
+  if (requestId !== undefined) errorResponse.requestId = requestId;
 
   logger.error(`API Error: ${error}`, undefined, { status, details }, requestId);
   

@@ -61,48 +61,56 @@ class Logger {
   }
 
   error(message: string, error?: Error, context?: Record<string, unknown>, requestId?: string): void {
-    this.log({
+    const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: LogLevel.ERROR,
       service: this.serviceName,
-      message,
-      context,
-      error,
-      requestId
-    });
+      message
+    };
+    if (context !== undefined) logEntry.context = context;
+    if (error !== undefined) logEntry.error = error;
+    if (requestId !== undefined) logEntry.requestId = requestId;
+    
+    this.log(logEntry);
   }
 
   warn(message: string, context?: Record<string, unknown>, requestId?: string): void {
-    this.log({
+    const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: LogLevel.WARN,
       service: this.serviceName,
-      message,
-      context,
-      requestId
-    });
+      message
+    };
+    if (context !== undefined) logEntry.context = context;
+    if (requestId !== undefined) logEntry.requestId = requestId;
+    
+    this.log(logEntry);
   }
 
   info(message: string, context?: Record<string, unknown>, requestId?: string): void {
-    this.log({
+    const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: LogLevel.INFO,
       service: this.serviceName,
-      message,
-      context,
-      requestId
-    });
+      message
+    };
+    if (context !== undefined) logEntry.context = context;
+    if (requestId !== undefined) logEntry.requestId = requestId;
+    
+    this.log(logEntry);
   }
 
   debug(message: string, context?: Record<string, unknown>, requestId?: string): void {
-    this.log({
+    const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: LogLevel.DEBUG,
       service: this.serviceName,
-      message,
-      context,
-      requestId
-    });
+      message
+    };
+    if (context !== undefined) logEntry.context = context;
+    if (requestId !== undefined) logEntry.requestId = requestId;
+    
+    this.log(logEntry);
   }
 }
 

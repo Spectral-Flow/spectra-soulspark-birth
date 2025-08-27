@@ -47,15 +47,16 @@ export function Conversation({ agentId: defaultAgentId = '', className }: Conver
       logVoice('Disconnected from ElevenLabs Conversational AI');
       setIsConnecting(false);
     },
-    onMessage: async (message: any) => {
+    onMessage: async (message: unknown) => {
       logVoice('ElevenLabs Message received', message);
       
       // Integrate with Spectra's conversation history
       try {
         // Store the conversation exchange in memory
         // The message structure from ElevenLabs may vary, so we handle it generically
-        const messageText = message.message || message.text || JSON.stringify(message);
-        const source = message.source || 'agent';
+        const messageObj = message as Record<string, unknown>;
+        const messageText = String(messageObj.message || messageObj.text || JSON.stringify(message));
+        const source = String(messageObj.source || 'agent');
         
         if (source === 'user') {
           // User message - store for processing when we get AI response

@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle, Code, ExternalLink, Play, Settings } from 'lucide-react';
 import { SimpleConversation } from './SimpleConversation';
 import { SignedUrlConversation } from './SignedUrlConversation';
+import { Conversation as TutorialConversation } from './TutorialConversation';
+import { WorkingConversation } from './WorkingConversation';
 
 export function NextJSTutorial() {
   const [agentId, setAgentId] = useState(import.meta.env.VITE_ELEVENLABS_AGENT_ID || '');
@@ -337,6 +339,36 @@ export default function Home() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Create Environment Variables</CardTitle>
+              <CardDescription>
+                Create a <code>.env.local</code> file in your project root
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-lg">
+                <pre className="text-sm overflow-x-auto">
+                  <code>{`ELEVENLABS_API_KEY=your-api-key-here
+NEXT_PUBLIC_AGENT_ID=your-agent-id-here`}</code>
+                </pre>
+              </div>
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-semibold text-amber-800">Important Security Notes:</p>
+                    <ul className="mt-2 space-y-1 text-amber-700">
+                      <li>• Make sure to add <code>.env.local</code> to your <code>.gitignore</code> file</li>
+                      <li>• Never expose your API key in the client-side code</li>
+                      <li>• Always keep it secure on the server</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Create an API Route</CardTitle>
               <CardDescription>
                 Create a new file <code>app/api/get-signed-url/route.ts</code>
@@ -380,37 +412,44 @@ export async function GET() {
             <CardHeader>
               <CardTitle>Update the Conversation Component</CardTitle>
               <CardDescription>
-                Modify your conversation component to fetch and use the signed URL
+                Modify your <code>conversation.tsx</code> to fetch and use the signed URL
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="bg-muted p-4 rounded-lg">
                 <pre className="text-sm overflow-x-auto">
-                  <code>{`const getSignedUrl = async (): Promise<string> => {
-  const response = await fetch("/api/get-signed-url");
-  if (!response.ok) {
-    throw new Error(\`Failed to get signed url: \${response.statusText}\`);
-  }
-  const { signedUrl } = await response.json();
-  return signedUrl;
-};
+                  <code>{`// ... existing imports ...
 
-const startConversation = useCallback(async () => {
-  try {
-    // Request microphone permission
-    await navigator.mediaDevices.getUserMedia({ audio: true });
+export function Conversation() {
+  // ... existing conversation setup ...
+  const getSignedUrl = async (): Promise<string> => {
+    const response = await fetch("/api/get-signed-url");
+    if (!response.ok) {
+      throw new Error(\`Failed to get signed url: \${response.statusText}\`);
+    }
+    const { signedUrl } = await response.json();
+    return signedUrl;
+  };
 
-    const signedUrl = await getSignedUrl();
+  const startConversation = useCallback(async () => {
+    try {
+      // Request microphone permission
+      await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    // Start the conversation with your signed url
-    await conversation.startSession({
-      signedUrl,
-    });
+      const signedUrl = await getSignedUrl();
 
-  } catch (error) {
-    console.error('Failed to start conversation:', error);
-  }
-}, [conversation]);`}</code>
+      // Start the conversation with your signed url
+      await conversation.startSession({
+        signedUrl,
+      });
+
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    }
+  }, [conversation]);
+
+  // ... rest of the component ...
+}`}</code>
                 </pre>
               </div>
               <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
@@ -418,7 +457,7 @@ const startConversation = useCallback(async () => {
                   <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
                   <div className="text-sm text-amber-700">
                     <p className="font-semibold">Note:</p>
-                    <p>Signed URLs expire after a short period. In production, implement proper error handling and URL refresh logic.</p>
+                    <p>Signed URLs expire after a short period. However, any conversations initiated before expiration will continue uninterrupted. In a production environment, implement proper error handling and URL refresh logic for starting new conversations.</p>
                   </div>
                 </div>
               </div>
@@ -451,24 +490,36 @@ const startConversation = useCallback(async () => {
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle>Basic Conversation</CardTitle>
+                <CardTitle>Tutorial Code Example</CardTitle>
                 <CardDescription>
-                  Simple agent ID-based conversation
+                  Exact component from the tutorial (display only)
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SimpleConversation agentId={agentId} />
+                <TutorialConversation />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Signed URL Conversation</CardTitle>
+                <CardTitle>Working Example</CardTitle>
                 <CardDescription>
-                  Authenticated conversation for private agents
+                  Fully functional conversation with signed URL
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WorkingConversation agentId={agentId} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Alternative Implementation</CardTitle>
+                <CardDescription>
+                  Original signed URL conversation
                 </CardDescription>
               </CardHeader>
               <CardContent>

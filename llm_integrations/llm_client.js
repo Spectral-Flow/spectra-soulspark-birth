@@ -6,7 +6,7 @@
  */
 
 import { HfInference } from '@huggingface/inference';
-import OpenAI from 'openai';
+import OpenAI, { AzureOpenAI } from 'openai';
 import axios from 'axios';
 
 // Initialize SDKs with environment variables
@@ -18,10 +18,18 @@ const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 
+const azureOpenai = process.env.AZURE_OPENAI_API_KEY
+  ? new AzureOpenAI({
+      apiKey: process.env.AZURE_OPENAI_API_KEY,
+      apiVersion: process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview',
+      endpoint: process.env.AZURE_OPENAI_ENDPOINT
+    })
+  : null;
+
 /**
  * Universal LLM query function with multiple provider support
  * @param {string} prompt - The input prompt
- * @param {string} provider - 'huggingface', 'openai', 'openrouter', or 'local'
+ * @param {string} provider - 'huggingface', 'openai', 'azure-openai', 'openrouter', or 'local'
  * @param {object} options - Configuration options
  * @returns {Promise<any>} LLM response
  */
@@ -73,6 +81,29 @@ export async function queryLLM(prompt, provider = 'huggingface', options = {}) {
     } catch (error) {
       console.error('OpenAI API error:', error);
       throw new Error(`OpenAI request failed: ${error.message}`);
+    }
+
+  } else if (provider === 'azure-openai') {
+    if (!azureOpenai) {
+      throw new Error('Azure OpenAI not configured. Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT');
+    }
+
+    const deployment = options.deployment || process.env.AZURE_OPENAI_DEPLOYMENT || 'o4-mini';
+
+    try {
+      // Use Azure OpenAI SDK pattern
+      const response = await azureOpenai.chat.completions.create({
+        model: deployment, // For Azure OpenAI, model should be the deployment name
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: options.maxTokens || 512,
+        temperature: options.temperature || 0.7,
+        ...options.parameters
+      });
+
+      return response.choices?.[0]?.message?.content ?? response;
+    } catch (error) {
+      console.error('Azure OpenAI API error:', error);
+      throw new Error(`Azure OpenAI request failed: ${error.message}`);
     }
 
   } else if (provider === 'openrouter') {
@@ -213,7 +244,7 @@ export async function queryLLM(prompt, provider = 'huggingface', options = {}) {
     }
   }
 
-  throw new Error(`Unsupported provider: ${provider}. Supported: 'huggingface', 'openai', 'openrouter', 'local'`);
+  throw new Error(`Unsupported provider: ${provider}. Supported: 'huggingface', 'openai', 'azure-openai', 'openrouter', 'local'`);
 }
 
 /**
@@ -224,11 +255,18 @@ export function getServiceStatus() {
   return {
     huggingface: !!process.env.HUGGINGFACE_API_KEY,
     openai: !!process.env.OPENAI_API_KEY,
+    azureOpenai: !!process.env.AZURE_OPENAI_API_KEY,
     openrouter: !!process.env.OPENROUTER_API_KEY,
     local: !!process.env.LOCAL_LLM_ENDPOINT,
     sdks: {
       huggingface: !!hf,
-      openai: !!openai
+      openai: !!openai,
+      azureOpenai: !!azureOpenai
+    },
+    azureConfig: {
+      endpoint: process.env.AZURE_OPENAI_ENDPOINT || 'Not configured',
+      deployment: process.env.AZURE_OPENAI_DEPLOYMENT || 'Not configured',
+      apiVersion: process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview'
     },
     localConfig: {
       endpoint: process.env.LOCAL_LLM_ENDPOINT || 'Not configured',

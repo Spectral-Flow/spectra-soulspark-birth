@@ -102,6 +102,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         healthy: false,
         responseTime: 0
       },
+      azureOpenai: {
+        configured: !!getApiKey('AZURE_OPENAI_API_KEY', false) && !!process.env.AZURE_OPENAI_ENDPOINT,
+        healthy: false,
+        responseTime: 0,
+        endpoint: process.env.AZURE_OPENAI_ENDPOINT || 'Not configured',
+        deployment: process.env.AZURE_OPENAI_DEPLOYMENT || 'Not configured'
+      },
       huggingface: {
         configured: !!getApiKey('HUGGINGFACE_API_KEY', false) || !!getApiKey('HF_TOKEN', false),
         healthy: false,

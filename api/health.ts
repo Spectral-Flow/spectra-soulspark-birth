@@ -2,21 +2,21 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Import utilities with absolute path for better compatibility
 const logger = { 
-  info: (msg, ctx, reqId) => console.log(JSON.stringify({ level: 'info', service: 'health', message: msg, context: ctx, requestId: reqId, timestamp: new Date().toISOString() })),
-  error: (msg, err, ctx, reqId) => console.log(JSON.stringify({ level: 'error', service: 'health', message: msg, error: err?.message, context: ctx, requestId: reqId, timestamp: new Date().toISOString() })),
-  warn: (msg, ctx, reqId) => console.log(JSON.stringify({ level: 'warn', service: 'health', message: msg, context: ctx, requestId: reqId, timestamp: new Date().toISOString() }))
+  info: (msg: string, ctx: unknown, reqId: string) => console.log(JSON.stringify({ level: 'info', service: 'health', message: msg, context: ctx, requestId: reqId, timestamp: new Date().toISOString() })),
+  error: (msg: string, err: Error | undefined, ctx: unknown, reqId: string) => console.log(JSON.stringify({ level: 'error', service: 'health', message: msg, error: err?.message, context: ctx, requestId: reqId, timestamp: new Date().toISOString() })),
+  warn: (msg: string, ctx: unknown, reqId: string) => console.log(JSON.stringify({ level: 'warn', service: 'health', message: msg, context: ctx, requestId: reqId, timestamp: new Date().toISOString() }))
 };
 
 const generateRequestId = () => `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-const setCorsHeaders = (res) => {
+const setCorsHeaders = (res: VercelResponse) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
   res.setHeader('Access-Control-Max-Age', '86400');
 };
 
-const handlePreflight = (req, res) => {
+const handlePreflight = (req: VercelRequest, res: VercelResponse) => {
   if (req.method === 'OPTIONS') {
     setCorsHeaders(res);
     res.status(200).end();
@@ -25,7 +25,7 @@ const handlePreflight = (req, res) => {
   return false;
 };
 
-const sendError = (res, status, error, message, details, requestId) => {
+const sendError = (res: VercelResponse, status: number, error: string, message: string | undefined, details: unknown, requestId: string) => {
   setCorsHeaders(res);
   const errorResponse = {
     error,
@@ -38,26 +38,26 @@ const sendError = (res, status, error, message, details, requestId) => {
   res.status(status).json(errorResponse);
 };
 
-const sendSuccess = (res, data, status = 200, requestId) => {
+const sendSuccess = (res: VercelResponse, data: unknown, status: number = 200, requestId: string) => {
   setCorsHeaders(res);
   logger.info('API Success', { status }, requestId);
   res.status(status).json(data);
 };
 
-const getApiKey = (keyName, required = true) => {
+const getApiKey = (keyName: string, required: boolean = true) => {
   const key = process.env[keyName];
   if (!key && required) {
-    logger.error(`Missing required API key: ${keyName}`, undefined, {}, undefined);
+    logger.error(`Missing required API key: ${keyName}`, undefined, {}, '');
     return null;
   }
   if (key && key.startsWith('mock_') && process.env.NODE_ENV === 'production') {
-    logger.warn(`Mock API key detected in production: ${keyName}`, {}, undefined);
+    logger.warn(`Mock API key detected in production: ${keyName}`, {}, '');
     return null;
   }
   return key || null;
 };
 
-const fetchWithTimeout = async (url, options = {}, timeoutMs = 30000) => {
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs: number = 30000) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
@@ -133,7 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             serviceStatus.elevenlabs.responseTime = Date.now() - start;
             serviceStatus.elevenlabs.healthy = response.ok;
           } catch (error) {
-            logger.warn('ElevenLabs health check failed', { error: error.message }, requestId);
+            logger.warn('ElevenLabs health check failed', { error: error instanceof Error ? error.message : String(error) }, requestId);
           }
         })()
       );
@@ -155,7 +155,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             serviceStatus.openai.responseTime = Date.now() - start;
             serviceStatus.openai.healthy = response.ok;
           } catch (error) {
-            logger.warn('OpenAI health check failed', { error: error.message }, requestId);
+            logger.warn('OpenAI health check failed', { error: error instanceof Error ? error.message : String(error) }, requestId);
           }
         })()
       );
@@ -178,7 +178,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             serviceStatus.huggingface.responseTime = Date.now() - start;
             serviceStatus.huggingface.healthy = response.ok;
           } catch (error) {
-            logger.warn('Hugging Face health check failed', { error: error.message }, requestId);
+            logger.warn('Hugging Face health check failed', { error: error instanceof Error ? error.message : String(error) }, requestId);
           }
         })()
       );

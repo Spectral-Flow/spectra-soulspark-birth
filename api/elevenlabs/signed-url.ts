@@ -143,7 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     logger.error('Signed URL endpoint error', error instanceof Error ? error : new Error(String(error)), {}, requestId);
     
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       return sendError(res, 408, 'Request timeout', 'Signed URL generation took too long', undefined, requestId);
     }
     

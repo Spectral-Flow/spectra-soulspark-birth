@@ -3,11 +3,11 @@
 import { useConversation } from '@elevenlabs/react';
 import { useCallback } from 'react';
 
-interface SignedUrlConversationProps {
+interface WorkingConversationProps {
   agentId?: string;
 }
 
-export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationProps) {
+export function WorkingConversation({ agentId = '' }: WorkingConversationProps) {
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),

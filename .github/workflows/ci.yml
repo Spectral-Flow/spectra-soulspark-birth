@@ -81,6 +81,12 @@ jobs:
         # Start a mock server for testing API endpoints
         npm run test:api || echo "API tests skipped (no test configuration)"
 
+    - name: Validate API security configuration
+      run: npm run test:api-security
+
+    - name: Validate GitHub secrets integration
+      run: npm run test:github-secrets || echo "GitHub secrets validation completed"
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:

@@ -42,6 +42,8 @@
     "test:azure-openai": "node test-azure-openai.js",
     "test:azure-integration": "node test-azure-integration.js",
     "test:safety": "node scripts/test-safety.cjs",
+    "test:github-secrets": "node scripts/validate-github-secrets.js",
+    "test:api-security": "node scripts/validate-api-security.js",
     "context:recover": "node scripts/context-recovery.cjs",
     "health-check": "npm run type-check && npm run lint && npm run build",
     "deps:update": "npm update && npm audit",

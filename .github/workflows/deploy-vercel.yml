@@ -1,0 +1,153 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [ main, Prism ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+        - preview
+        - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+
+    - name: Pull Vercel Environment Information
+      run: vercel pull --yes --environment=${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }}
+
+    - name: Set environment variables in Vercel
+      run: |
+        # Set all required environment variables from GitHub secrets
+        echo "Setting environment variables..."
+        
+        # Backend API keys
+        if [ -n "${{ secrets.ELEVENLABS_API_KEY }}" ]; then
+          vercel env add ELEVENLABS_API_KEY "${{ secrets.ELEVENLABS_API_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+          vercel env add OPENAI_API_KEY "${{ secrets.OPENAI_API_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.HUGGINGFACE_API_KEY }}" ]; then
+          vercel env add HUGGINGFACE_API_KEY "${{ secrets.HUGGINGFACE_API_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.OPENROUTER_API_KEY }}" ]; then
+          vercel env add OPENROUTER_API_KEY "${{ secrets.OPENROUTER_API_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        # Azure OpenAI Configuration
+        if [ -n "${{ secrets.AZURE_OPENAI_API_KEY }}" ]; then
+          vercel env add AZURE_OPENAI_API_KEY "${{ secrets.AZURE_OPENAI_API_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.AZURE_OPENAI_ENDPOINT }}" ]; then
+          vercel env add AZURE_OPENAI_ENDPOINT "${{ secrets.AZURE_OPENAI_ENDPOINT }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        # Local LLM Configuration
+        if [ -n "${{ secrets.LOCAL_LLM_ENDPOINT }}" ]; then
+          vercel env add LOCAL_LLM_ENDPOINT "${{ secrets.LOCAL_LLM_ENDPOINT }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        # Hugging Face Token
+        if [ -n "${{ secrets.HF_TOKEN }}" ]; then
+          vercel env add HF_TOKEN "${{ secrets.HF_TOKEN }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        # JWT Secret
+        if [ -n "${{ secrets.JWT_SECRET }}" ]; then
+          vercel env add JWT_SECRET "${{ secrets.JWT_SECRET }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        # Database Configuration
+        if [ -n "${{ secrets.SUPABASE_URL }}" ]; then
+          vercel env add SUPABASE_URL "${{ secrets.SUPABASE_URL }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.SUPABASE_SERVICE_KEY }}" ]; then
+          vercel env add SUPABASE_SERVICE_KEY "${{ secrets.SUPABASE_SERVICE_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        # Frontend environment variables
+        if [ -n "${{ secrets.VITE_SUPABASE_URL }}" ]; then
+          vercel env add VITE_SUPABASE_URL "${{ secrets.VITE_SUPABASE_URL }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+          vercel env add VITE_SUPABASE_ANON_KEY "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        if [ -n "${{ secrets.VITE_ELEVENLABS_AGENT_ID }}" ]; then
+          vercel env add VITE_ELEVENLABS_AGENT_ID "${{ secrets.VITE_ELEVENLABS_AGENT_ID }}" ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'preview') }} --token=${{ secrets.VERCEL_TOKEN }} || true
+        fi
+        
+        echo "Environment variables have been set in Vercel"
+
+    - name: Build Project Artifacts
+      run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      env:
+        # Set environment variables for build process
+        ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+        AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+        AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+        AZURE_OPENAI_API_VERSION: ${{ secrets.AZURE_OPENAI_API_VERSION }}
+        LOCAL_LLM_ENDPOINT: ${{ secrets.LOCAL_LLM_ENDPOINT }}
+        LOCAL_LLM_MODEL: ${{ secrets.LOCAL_LLM_MODEL }}
+        LOCAL_LLM_API_TYPE: ${{ secrets.LOCAL_LLM_API_TYPE }}
+        LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        VITE_ELEVENLABS_AGENT_ID: ${{ secrets.VITE_ELEVENLABS_AGENT_ID }}
+        VITE_DEBUG: ${{ vars.VITE_DEBUG || 'false' }}
+        VITE_LOG_LEVEL: ${{ vars.VITE_LOG_LEVEL || 'info' }}
+
+    - name: Deploy Project Artifacts to Vercel
+      run: vercel deploy ${{ github.event.inputs.environment == 'production' && '--prod' || '--prebuilt' }} --token=${{ secrets.VERCEL_TOKEN }}
+
+    - name: Comment deployment URL
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const deploymentUrl = process.env.VERCEL_URL || 'https://spectra-soulspark-birth.vercel.app';
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `🚀 **Deployment Ready**: ${deploymentUrl}\n\n✅ **Environment Variables**: Loaded from GitHub Secrets\n🔐 **Security**: API keys are stored securely in Vercel environment`
+          });
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

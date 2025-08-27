@@ -3,11 +3,7 @@
 import { useConversation } from '@elevenlabs/react';
 import { useCallback } from 'react';
 
-interface SignedUrlConversationProps {
-  agentId?: string;
-}
-
-export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationProps) {
+export function Conversation() {
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),
@@ -15,31 +11,22 @@ export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationPro
     onError: (error) => console.error('Error:', error),
   });
 
-  const getSignedUrl = useCallback(async (): Promise<string> => {
-    const response = await fetch("/api/get-signed-url");
-    if (!response.ok) {
-      throw new Error(`Failed to get signed url: ${response.statusText}`);
-    }
-    const { signedUrl } = await response.json();
-    return signedUrl;
-  }, []);
-
   const startConversation = useCallback(async () => {
     try {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const signedUrl = await getSignedUrl();
-
-      // Start the conversation with your signed url
-      await conversation.startSession({
-        signedUrl,
-      });
+      // For this tutorial example, we'll show a placeholder
+      // In a real implementation, you would either:
+      // 1. Use a signed URL for private agents, or
+      // 2. Use a conversation token from your backend
+      console.warn('Tutorial example: Please use the SignedUrl conversation for a working implementation');
+      alert('This is a tutorial code example. For a working implementation, please use the "Signed URL Conversation" demo or configure your backend to provide conversation tokens.');
 
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
-  }, [conversation, getSignedUrl]);
+  }, [conversation]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();

@@ -8,3 +8,5 @@
 export { SimpleConversation } from './SimpleConversation';
 export { SignedUrlConversation } from './SignedUrlConversation';
 export { NextJSTutorial } from './NextJSTutorial';
+export { Conversation as TutorialConversation } from './TutorialConversation';
+export { default as TutorialHome } from './TutorialHome';

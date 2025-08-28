@@ -7,7 +7,7 @@ interface SignedUrlConversationProps {
   agentId?: string;
 }
 
-export function SignedUrlConversation({ agentId = '' }: SignedUrlConversationProps) {
+export function SignedUrlConversation({ agentId: _agentId = '' }: SignedUrlConversationProps) {
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),

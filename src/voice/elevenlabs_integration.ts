@@ -3,7 +3,7 @@
  * Handles ElevenLabs TTS API integration with Spectra voice model
  */
 
-import { logVoice, logError, logger } from '@/lib/logger';
+import { logVoice, logError } from '@/lib/logger';
 
 interface ElevenLabsConfig {
   apiKey: string;

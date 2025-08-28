@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle, Code, ExternalLink, Play, Settings } from 'lucide-react';
-import { SimpleConversation } from './SimpleConversation';
 import { SignedUrlConversation } from './SignedUrlConversation';
 import { Conversation as TutorialConversation } from './TutorialConversation';
 import { WorkingConversation } from './WorkingConversation';

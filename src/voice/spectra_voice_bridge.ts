@@ -29,6 +29,39 @@ interface VoiceBridgeEvents {
   onError?: (error: Error) => void;
 }
 
+// Web Speech API interfaces
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+  message?: string;
+}
+
+interface WebkitSpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  start(): void;
+  stop(): void;
+}
+
 /**
  * Voice Bridge that intelligently routes between different voice services
  * with automatic fallbacks and optimal service selection
@@ -195,18 +228,18 @@ export class SpectraVoiceBridge {
       // This is a simplified implementation that would need enhancement
       // for production use with proper audio processing
       
-      const recognition = new (window as any).webkitSpeechRecognition();
+      const recognition = new (window as unknown as { webkitSpeechRecognition: new () => WebkitSpeechRecognition }).webkitSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         URL.revokeObjectURL(audioUrl);
         resolve(transcript);
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         URL.revokeObjectURL(audioUrl);
         reject(new Error(`Web Speech API error: ${event.error}`));
       };

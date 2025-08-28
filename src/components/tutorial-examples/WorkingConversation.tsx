@@ -7,7 +7,7 @@ interface WorkingConversationProps {
   agentId?: string;
 }
 
-export function WorkingConversation({ agentId = '' }: WorkingConversationProps) {
+export function WorkingConversation({ agentId: _agentId = '' }: WorkingConversationProps) {
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),

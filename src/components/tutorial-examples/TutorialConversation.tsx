@@ -26,7 +26,7 @@ export function Conversation() {
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
-  }, [conversation]);
+  }, []);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();

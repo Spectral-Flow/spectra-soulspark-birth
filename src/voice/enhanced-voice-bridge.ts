@@ -6,7 +6,7 @@
 import { backendApi, isBackendAvailable } from '@/lib/backend-api';
 import { createElevenLabsVoiceFromEnv, ElevenLabsVoiceService } from './elevenlabs_integration';
 import { createOpenAIVoiceFromEnv, OpenAIVoiceService } from './openai_integration';
-import { logVoice, logError } from '@/lib/logger';
+import { logError } from '@/lib/logger';
 
 interface VoiceConfig {
   preferBackend?: boolean;

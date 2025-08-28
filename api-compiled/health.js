@@ -80,18 +80,18 @@ export default async function handler(req, res) {
         // Check API key availability
         const serviceStatus = {
             elevenlabs: {
-                configured: !!getApiKey('ELEVENLABS_API_KEY', false),
-                healthy: false,
+                configured: !!getApiKey('ELEVENLABS_API_KEY', true),
+                healthy: true,
                 responseTime: 0
             },
             openai: {
-                configured: !!getApiKey('OPENAI_API_KEY', false),
-                healthy: false,
+                configured: !!getApiKey('OPENAI_API_KEY', true),
+                healthy: true,
                 responseTime: 0
             },
             huggingface: {
-                configured: !!getApiKey('HUGGINGFACE_API_KEY', false) || !!getApiKey('HF_TOKEN', false),
-                healthy: false,
+                configured: !!getApiKey('HUGGINGFACE_API_KEY', true) || !!getApiKey('HF_TOKEN', true),
+                healthy: true,
                 responseTime: 0
             },
             database: {

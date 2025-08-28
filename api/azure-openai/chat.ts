@@ -51,7 +51,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { messages, temperature, max_tokens, stream } = req.body;
 
     // Validate required fields
-    if (!validateRequired(messages, 'messages', res, requestId)) return;
+    const validation = validateRequired(req.body, ['messages']);
+    if (!validation.valid) {
+      return sendError(res, 400, 'Missing required fields', `Required: ${validation.missing.join(', ')}`, undefined, requestId);
+    }
 
     // Validate messages format
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -59,7 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Validate message structure
-    const invalidMessage = messages.find((msg: any) => 
+    const invalidMessage = messages.find((msg: ChatMessage) => 
       !msg.role || !msg.content || 
       !['system', 'user', 'assistant'].includes(msg.role)
     );

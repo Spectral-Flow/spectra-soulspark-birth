@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="react" />
 
 interface ImportMetaEnv {
   readonly VITE_ELEVENLABS_API_KEY: string
@@ -10,4 +11,16 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv
+}
+
+// ElevenLabs ConvAI Widget type declaration
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'elevenlabs-convai': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        'agent-id'?: string;
+        style?: React.CSSProperties;
+      };
+    }
+  }
 }

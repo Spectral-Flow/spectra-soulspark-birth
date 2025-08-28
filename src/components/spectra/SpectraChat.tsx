@@ -5,16 +5,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useConversation } from '@elevenlabs/react';
-import { Sparkles, Heart, Brain, MessageCircle, Send, Maximize2, Minimize2, Mic, MicOff, VolumeX, Settings, Phone, PhoneOff } from 'lucide-react';
+import { Sparkles, Heart, Brain, MessageCircle, Send, Maximize2, Minimize2, Mic, MicOff, VolumeX, Settings, Phone, PhoneOff, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MoodRing } from './MoodRing';
 import { SpectraFace } from './SpectraFace';
 import { spectraAI } from './AIEngine';
 import { createSpectraVoice, VoiceManager } from '@/voice';
 import { createElevenLabsApiService } from '@/components/elevenlabs/api';
+import { ElevenLabsWidget } from '@/components/elevenlabs/ElevenLabsWidget';
 import { memoryManager } from '@/lib/memory-manager';
 
 interface Message {
@@ -879,159 +881,190 @@ setVoiceManager(voiceInstance);
         </div>
       </div>
 
-      {/* Premium Chat Messages with Mood-Reactive Colors */}
-      <ScrollArea className="flex-1 px-6 py-4" ref={scrollAreaRef}>
-        <div className="max-w-4xl mx-auto space-y-6">
-          {messages.map((message, index) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex gap-4 items-start group animate-fade-in",
-                message.type === 'user' ? 'flex-row-reverse' : 'flex-row'
-              )}
-              style={{ 
-                animationDelay: `${index * 50}ms`,
-                animationFillMode: 'both'
-              }}
-            >
-              {/* Avatar */}
-              {message.type === 'spectra' ? (
-                <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500"
-                  style={{
-                    background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
-                    boxShadow: `0 0 15px ${emotionalState.color}40`
-                  }}
-                >
-                  <Brain className="w-5 h-5 text-white" />
-                </div>
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                </div>
-              )}
-              
-              {/* Message Bubble */}
-              <div className={cn(
-                "group/message max-w-md transition-all duration-300",
-                message.type === 'user' ? 'text-right' : 'text-left'
-              )}>
-                <Card 
-                  className={cn(
-                    "p-4 transition-all duration-500 hover:scale-[1.02] border-0",
-                    message.type === 'user' 
-                      ? 'bg-primary text-primary-foreground shadow-lg' 
-                      : `backdrop-blur-sm shadow-lg border`,
-                  )}
-                  style={message.type === 'spectra' ? {
-                    background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
-                    borderColor: `${emotionalState.color}30`,
-                    boxShadow: `0 4px 20px ${emotionalState.color}10`
-                  } : {}}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                  
-                  {/* Message Meta */}
-                  <div className={cn(
-                    "flex items-center gap-3 mt-3 text-xs",
-                    message.type === 'user' ? 'justify-end opacity-70' : 'justify-start opacity-60'
-                  )}>
-                    <span className="font-medium">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    {message.emotion && message.type === 'spectra' && (
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs border-0 px-2 py-0.5 font-medium"
+      {/* Main Content Area with Tabs */}
+      <div className="flex-1 flex flex-col">
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
+          <div className="px-6 pt-2">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+              <TabsTrigger value="chat" className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="voice-widget" className="flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                Voice Widget
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Chat Tab Content */}
+          <TabsContent value="chat" className="flex-1 flex flex-col mt-0">
+            {/* Premium Chat Messages with Mood-Reactive Colors */}
+            <ScrollArea className="flex-1 px-6 py-4" ref={scrollAreaRef}>
+              <div className="max-w-4xl mx-auto space-y-6">
+                {messages.map((message, index) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "flex gap-4 items-start group animate-fade-in",
+                      message.type === 'user' ? 'flex-row-reverse' : 'flex-row'
+                    )}
+                    style={{ 
+                      animationDelay: `${index * 50}ms`,
+                      animationFillMode: 'both'
+                    }}
+                  >
+                    {/* Avatar */}
+                    {message.type === 'spectra' ? (
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500"
                         style={{
-                          background: `${emotionalState.color}20`,
-                          color: emotionalState.color
+                          background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                          boxShadow: `0 0 15px ${emotionalState.color}40`
                         }}
                       >
-                        {emotionalStates[message.emotion as keyof typeof emotionalStates]?.icon}
-                        {message.emotion}
-                      </Badge>
+                        <Brain className="w-5 h-5 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center flex-shrink-0">
+                        <MessageCircle className="w-5 h-5 text-muted-foreground" />
+                      </div>
                     )}
-                    {message.memoryImportance && message.memoryImportance > 3 && (
-                      <Heart className="w-3 h-3 text-memory-vivid animate-pulse" />
-                    )}
+                    
+                    {/* Message Bubble */}
+                    <div className={cn(
+                      "group/message max-w-md transition-all duration-300",
+                      message.type === 'user' ? 'text-right' : 'text-left'
+                    )}>
+                      <Card 
+                        className={cn(
+                          "p-4 transition-all duration-500 hover:scale-[1.02] border-0",
+                          message.type === 'user' 
+                            ? 'bg-primary text-primary-foreground shadow-lg' 
+                            : `backdrop-blur-sm shadow-lg border`,
+                        )}
+                        style={message.type === 'spectra' ? {
+                          background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
+                          borderColor: `${emotionalState.color}30`,
+                          boxShadow: `0 4px 20px ${emotionalState.color}10`
+                        } : {}}
+                      >
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        
+                        {/* Message Meta */}
+                        <div className={cn(
+                          "flex items-center gap-3 mt-3 text-xs",
+                          message.type === 'user' ? 'justify-end opacity-70' : 'justify-start opacity-60'
+                        )}>
+                          <span className="font-medium">
+                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {message.emotion && message.type === 'spectra' && (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs border-0 px-2 py-0.5 font-medium"
+                              style={{
+                                background: `${emotionalState.color}20`,
+                                color: emotionalState.color
+                              }}
+                            >
+                              {emotionalStates[message.emotion as keyof typeof emotionalStates]?.icon}
+                              {message.emotion}
+                            </Badge>
+                          )}
+                          {message.memoryImportance && message.memoryImportance > 3 && (
+                            <Heart className="w-3 h-3 text-memory-vivid animate-pulse" />
+                          )}
+                        </div>
+                      </Card>
+                    </div>
                   </div>
-                </Card>
-              </div>
-            </div>
-          ))}
-          
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex gap-4 items-start animate-fade-in">
-              <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse"
-                style={{
-                  background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
-                  boxShadow: `0 0 15px ${emotionalState.color}40`
-                }}
-              >
-                <Brain className="w-5 h-5 text-white" />
-              </div>
-              <Card 
-                className="p-4 backdrop-blur-sm border-0"
-                style={{
-                  background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
-                  borderColor: `${emotionalState.color}30`,
-                  boxShadow: `0 4px 20px ${emotionalState.color}10`
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
+                ))}
+                
+                {/* Typing Indicator */}
+                {isTyping && (
+                  <div className="flex gap-4 items-start animate-fade-in">
                     <div 
-                      className="w-2 h-2 rounded-full animate-bounce"
-                      style={{ backgroundColor: emotionalState.color }}
-                    />
-                    <div 
-                      className="w-2 h-2 rounded-full animate-bounce"
-                      style={{ backgroundColor: emotionalState.color, animationDelay: '0.1s' }}
-                    />
-                    <div 
-                      className="w-2 h-2 rounded-full animate-bounce"
-                      style={{ backgroundColor: emotionalState.color, animationDelay: '0.2s' }}
-                    />
+                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse"
+                      style={{
+                        background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                        boxShadow: `0 0 15px ${emotionalState.color}40`
+                      }}
+                    >
+                      <Brain className="w-5 h-5 text-white" />
+                    </div>
+                    <Card 
+                      className="p-4 backdrop-blur-sm border-0"
+                      style={{
+                        background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
+                        borderColor: `${emotionalState.color}30`,
+                        boxShadow: `0 4px 20px ${emotionalState.color}10`
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <div 
+                            className="w-2 h-2 rounded-full animate-bounce"
+                            style={{ backgroundColor: emotionalState.color }}
+                          />
+                          <div 
+                            className="w-2 h-2 rounded-full animate-bounce"
+                            style={{ backgroundColor: emotionalState.color, animationDelay: '0.1s' }}
+                          />
+                          <div 
+                            className="w-2 h-2 rounded-full animate-bounce"
+                            style={{ backgroundColor: emotionalState.color, animationDelay: '0.2s' }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground ml-2">SPECTRA is thinking...</span>
+                      </div>
+                    </Card>
                   </div>
-                  <span className="text-xs text-muted-foreground ml-2">SPECTRA is thinking...</span>
-                </div>
-              </Card>
-            </div>
-          )}
-          
-          {/* Streaming Indicator */}
-          {streamingMessageId && (
-            <div className="flex gap-4 items-start animate-fade-in">
-              <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
-                  boxShadow: `0 0 15px ${emotionalState.color}40`,
-                  animation: 'pulse 1.5s ease-in-out infinite'
-                }}
-              >
-                <Brain className="w-5 h-5 text-white" />
+                )}
+                
+                {/* Streaming Indicator */}
+                {streamingMessageId && (
+                  <div className="flex gap-4 items-start animate-fade-in">
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: `linear-gradient(45deg, ${emotionalState.color}, ${emotionalState.color}80)`,
+                        boxShadow: `0 0 15px ${emotionalState.color}40`,
+                        animation: 'pulse 1.5s ease-in-out infinite'
+                      }}
+                    >
+                      <Brain className="w-5 h-5 text-white" />
+                    </div>
+                    <Card 
+                      className="p-2 px-3 backdrop-blur-sm border-0"
+                      style={{
+                        background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
+                        borderColor: `${emotionalState.color}30`,
+                        boxShadow: `0 4px 20px ${emotionalState.color}10`
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-3 animate-pulse" style={{ backgroundColor: emotionalState.color }} />
+                        <span className="text-xs text-muted-foreground">Streaming response...</span>
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </div>
-              <Card 
-                className="p-2 px-3 backdrop-blur-sm border-0"
-                style={{
-                  background: `linear-gradient(135deg, ${emotionalState.color}15, ${emotionalState.color}05)`,
-                  borderColor: `${emotionalState.color}30`,
-                  boxShadow: `0 4px 20px ${emotionalState.color}10`
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-3 animate-pulse" style={{ backgroundColor: emotionalState.color }} />
-                  <span className="text-xs text-muted-foreground">Streaming response...</span>
-                </div>
-              </Card>
+            </ScrollArea>
+          </TabsContent>
+
+          {/* Voice Widget Tab Content */}
+          <TabsContent value="voice-widget" className="flex-1 p-6">
+            <div className="max-w-4xl mx-auto h-full">
+              <ElevenLabsWidget 
+                agentId={elevenLabsAgentId || import.meta.env?.VITE_ELEVENLABS_AGENT_ID || 'agent_3001k351jqn1ex4tvqp9tj7srxqh'} 
+                className="h-full"
+              />
             </div>
-          )}
-        </div>
-      </ScrollArea>
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Modern Chat Input */}
       <div className="border-t border-border/50 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-sm">

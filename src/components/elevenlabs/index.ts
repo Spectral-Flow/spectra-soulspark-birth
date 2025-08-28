@@ -6,4 +6,5 @@
  */
 
 export { Conversation } from './Conversation';
+export { ElevenLabsWidget } from './ElevenLabsWidget';
 export { ElevenLabsApiService, createElevenLabsApiService } from './api';

@@ -32,7 +32,7 @@ Both components are demonstrated in the `/tutorial` page of the application. You
 | Next.js Tutorial | Vite React Implementation |
 |-----------------|---------------------------|
 | `app/components/conversation.tsx` | `src/components/tutorial-examples/` |
-| `app/api/get-signed-url/route.ts` | `api/elevenlabs/signed-url.ts` |
+| `app/api/get-signed-url/route.ts` | `api/elevenlabs.ts` (operation: signed-url) |
 | `process.env.NEXT_PUBLIC_*` | `import.meta.env.VITE_*` |
 | Next.js API routes | Vercel API functions |
 

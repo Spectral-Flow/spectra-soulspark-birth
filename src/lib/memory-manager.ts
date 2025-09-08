@@ -86,12 +86,15 @@ class MemoryManager {
   // Long-term memory management (persistent, backend storage)
   async addToLongTermMemory(memory: Omit<Memory, 'id' | 'timestamp'>): Promise<Memory | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/memory/add`, {
+      const response = await fetch(`${this.baseUrl}/api/memory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(memory),
+        body: JSON.stringify({
+          operation: 'add',
+          ...memory
+        }),
       });
 
       if (!response.ok) {
@@ -109,10 +112,11 @@ class MemoryManager {
   async getRecentMemories(sessionId?: string, limit: number = 10): Promise<Memory[]> {
     try {
       const params = new URLSearchParams();
+      params.append('operation', 'recent');
       if (sessionId) params.append('sessionId', sessionId);
       params.append('limit', limit.toString());
 
-      const response = await fetch(`${this.baseUrl}/api/memory/recent?${params}`);
+      const response = await fetch(`${this.baseUrl}/api/memory?${params}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -129,12 +133,13 @@ class MemoryManager {
   async getRelevantMemories(query: string, sessionId?: string, limit: number = 5): Promise<Memory[]> {
     try {
       const params = new URLSearchParams();
+      params.append('operation', 'relevant');
       params.append('query', query);
       if (sessionId) params.append('sessionId', sessionId);
       params.append('limit', limit.toString());
       params.append('contextual', 'true'); // Use contextual search
 
-      const response = await fetch(`${this.baseUrl}/api/memory/relevant?${params}`);
+      const response = await fetch(`${this.baseUrl}/api/memory?${params}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

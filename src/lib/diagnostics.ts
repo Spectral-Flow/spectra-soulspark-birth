@@ -266,8 +266,8 @@ export class SpectraDiagnostics {
       // Test individual endpoints
       const endpoints = {
         health: true,
-        elevenlabs: await this.testEndpoint('/api/elevenlabs/voices'),
-        openai: await this.testEndpoint('/api/openai/tts'),
+        elevenlabs: await this.testEndpoint('/api/elevenlabs?operation=voices'),
+        openai: await this.testEndpoint('/api/tts', 'POST', { provider: 'openai', text: 'test' }),
         auth: await this.testEndpoint('/api/auth/user'),
       };
 
@@ -287,12 +287,21 @@ export class SpectraDiagnostics {
     }
   }
 
-  private async testEndpoint(endpoint: string): Promise<boolean> {
+  private async testEndpoint(endpoint: string, method: string = 'GET', body?: any): Promise<boolean> {
     try {
-      const response = await fetch(endpoint, {
-        method: 'GET',
+      const options: RequestInit = {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         timeout: 3000,
-      } as any);
+      } as any;
+
+      if (body && method !== 'GET') {
+        options.body = JSON.stringify(body);
+      }
+
+      const response = await fetch(endpoint, options);
       
       // Consider 4xx as available but misconfigured, 5xx as not available
       return response.status < 500;

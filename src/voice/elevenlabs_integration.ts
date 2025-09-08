@@ -115,7 +115,7 @@ export class ElevenLabsVoiceService {
   async getVoices(): Promise<VoiceData[]> {
     try {
       // Use backend API instead of direct ElevenLabs API call
-      const response = await fetch('/api/elevenlabs/voices', {
+      const response = await fetch('/api/elevenlabs?operation=voices', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -158,6 +158,7 @@ export class ElevenLabsVoiceService {
     };
 
     const requestBody = {
+      operation: 'tts',
       text,
       voiceId: this.spectraVoiceId,
       options: {
@@ -167,7 +168,7 @@ export class ElevenLabsVoiceService {
     };
 
     // Use backend API instead of direct ElevenLabs API call
-    const response = await fetch('/api/elevenlabs/tts', {
+    const response = await fetch('/api/elevenlabs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

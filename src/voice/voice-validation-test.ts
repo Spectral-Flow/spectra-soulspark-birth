@@ -25,7 +25,7 @@ async function testSpectraVoiceSystem() {
   // Test 2: ElevenLabs API Availability
   console.log('\n2. 🎙️ ElevenLabs API Test');
   try {
-    const response = await fetch('/api/elevenlabs/voices');
+    const response = await fetch('/api/elevenlabs?operation=voices');
     if (response.ok) {
       const data = await response.json();
       console.log('   ✅ Voices Available:', data.voices?.length || 0);
@@ -41,10 +41,11 @@ async function testSpectraVoiceSystem() {
   // Test 3: Text-to-Speech Test (Small)
   console.log('\n3. 🔊 Text-to-Speech Test');
   try {
-    const response = await fetch('/api/elevenlabs/tts', {
+    const response = await fetch('/api/elevenlabs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
+        operation: 'tts',
         text: 'Hello! I am SPECTRA, your AI companion.',
         options: { stability: 0.7, similarityBoost: 0.8 }
       })

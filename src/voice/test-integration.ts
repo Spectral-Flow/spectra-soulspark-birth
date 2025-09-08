@@ -40,7 +40,7 @@ async function testSpectraVoiceSystem() {
   console.log('\n2. 🎙️ Testing ElevenLabs API Routes...');
   try {
     // Test voices endpoint
-    const voicesResponse = await fetch('/api/elevenlabs/voices');
+    const voicesResponse = await fetch('/api/elevenlabs?operation=voices');
     if (voicesResponse.ok) {
       const voicesData = await voicesResponse.json();
       console.log(`   ✅ Voices API: ${voicesData.voices?.length || 0} voices available`);
@@ -49,10 +49,10 @@ async function testSpectraVoiceSystem() {
     }
 
     // Test TTS endpoint (small test)
-    const ttsResponse = await fetch('/api/elevenlabs/tts', {
+    const ttsResponse = await fetch('/api/elevenlabs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'Test' })
+      body: JSON.stringify({ operation: 'tts', text: 'Test' })
     });
     
     if (ttsResponse.ok) {

@@ -11,7 +11,7 @@ import type { MCPSelectionCriteria } from '@/lib/mcp';
  */
 export async function demonstrateAutonomousMCP() {
   console.log('🎯 ETERNIS-33 Autonomous MCP Demonstration');
-  console.log('=' * 50);
+  console.log('='.repeat(50));
 
   try {
     // Get the singleton orchestrator instance

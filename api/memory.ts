@@ -23,21 +23,6 @@ interface Memory {
   timestamp: string;
 }
 
-interface MemoryRequest {
-  operation: 'add' | 'recent' | 'relevant';
-  // For add operation
-  sessionId?: string;
-  userMessage?: string;
-  aiResponse?: string;
-  emotion?: string;
-  importance?: number;
-  topics?: string[];
-  embedding?: number[];
-  // For query operations
-  query?: string;
-  limit?: number;
-}
-
 // In-memory fallback storage
 const inMemoryMemories = new Map<string, Memory>();
 
@@ -194,7 +179,7 @@ class MemoryService {
     
     const memory: Memory = {
       id: memoryId,
-      sessionId: data.sessionId,
+      sessionId: data.sessionId ?? undefined,
       userMessage: data.userMessage!,
       aiResponse: data.aiResponse!,
       emotion: data.emotion || 'neutral',

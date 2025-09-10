@@ -96,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 // OpenAI handler
-async function handleOpenAI(req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
+async function handleOpenAI(_req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
   const apiKey = getApiKey('OPENAI_API_KEY');
   if (!apiKey) {
     return sendError(res, 500, 'OpenAI API key not configured', 'Server configuration error', undefined, requestId);
@@ -176,7 +176,7 @@ async function handleOpenAI(req: VercelRequest, res: VercelResponse, params: any
 }
 
 // Azure OpenAI handler
-async function handleAzureOpenAI(req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
+async function handleAzureOpenAI(_req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
   const apiKey = getApiKey('AZURE_OPENAI_API_KEY');
   const endpoint = params.endpoint || process.env.AZURE_OPENAI_ENDPOINT;
   const deployment = params.deployment || process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4';
@@ -239,7 +239,7 @@ async function handleAzureOpenAI(req: VercelRequest, res: VercelResponse, params
 }
 
 // OpenRouter handler
-async function handleOpenRouter(req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
+async function handleOpenRouter(_req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
   const apiKey = getApiKey('OPENROUTER_API_KEY');
   if (!apiKey) {
     return sendError(res, 500, 'OpenRouter API key not configured', 'Server configuration error', undefined, requestId);
@@ -288,7 +288,7 @@ async function handleOpenRouter(req: VercelRequest, res: VercelResponse, params:
 }
 
 // Hugging Face handler
-async function handleHuggingFace(req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
+async function handleHuggingFace(_req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
   const apiKey = getApiKey('HUGGINGFACE_API_KEY');
   if (!apiKey) {
     return sendError(res, 500, 'Hugging Face API key not configured', 'Server configuration error', undefined, requestId);
@@ -305,7 +305,7 @@ async function handleHuggingFace(req: VercelRequest, res: VercelResponse, params
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        inputs: messages.map(m => m.content).join('\n'),
+        inputs: messages.map((m: { content: string }) => m.content).join('\n'),
         parameters: {
           temperature,
           max_new_tokens: max_tokens

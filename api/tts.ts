@@ -2,6 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createLogger } from './utils/logger';
 import { 
   handlePreflight, 
+  sendSuccess, 
   sendError,
   generateRequestId,
   getApiKey,
@@ -94,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 // OpenAI TTS handler
-async function handleOpenAITTS(_req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
+async function handleOpenAITTS(req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
   const apiKey = getApiKey('OPENAI_API_KEY');
   if (!apiKey) {
     return sendError(res, 500, 'OpenAI API key not configured', 'TTS service temporarily unavailable', undefined, requestId);
@@ -185,7 +186,7 @@ async function handleOpenAITTS(_req: VercelRequest, res: VercelResponse, params:
 }
 
 // ElevenLabs TTS handler
-async function handleElevenLabsTTS(_req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
+async function handleElevenLabsTTS(req: VercelRequest, res: VercelResponse, params: any, requestId: string) {
   const apiKey = getApiKey('ELEVENLABS_API_KEY');
   if (!apiKey) {
     return sendError(res, 500, 'ElevenLabs API key not configured', 'Service temporarily unavailable', undefined, requestId);

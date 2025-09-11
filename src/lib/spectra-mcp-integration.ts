@@ -158,10 +158,8 @@ export class SpectraMCPIntegration {
       emotion: result === 'success' ? 'satisfied' : 'concerned',
       importance: performance?.userSatisfaction || (result === 'success' ? 0.8 : 0.6),
       topics: ['mcp', 'automation', operation.split(' ')[0]],
-{
-  "sessionId": "mcp-operations",
-  "timestamp": new Date().toISOString()
-}
+      timestamp: new Date().toISOString(),
+      sessionId: 'mcp-operations'
     };
 
     await this.memoryManager.processConversationExchange(

@@ -13,14 +13,29 @@ const logger = createLogger('unified-memory');
 
 interface Memory {
   id: string;
-  sessionId: string | undefined;
+  sessionId?: string;
   userMessage: string;
   aiResponse: string;
   emotion: string;
   importance: number;
-  topics: string[] | undefined;
-  embedding: number[] | undefined;
+  topics?: string[];
+  embedding?: number[];
   timestamp: string;
+}
+
+interface MemoryRequest {
+  operation: 'add' | 'recent' | 'relevant';
+  // For add operation
+  sessionId?: string;
+  userMessage?: string;
+  aiResponse?: string;
+  emotion?: string;
+  importance?: number;
+  topics?: string[];
+  embedding?: number[];
+  // For query operations
+  query?: string;
+  limit?: number;
 }
 
 // In-memory fallback storage
@@ -179,13 +194,13 @@ class MemoryService {
     
     const memory: Memory = {
       id: memoryId,
-      sessionId: data.sessionId ?? undefined,
+      sessionId: data.sessionId,
       userMessage: data.userMessage!,
       aiResponse: data.aiResponse!,
       emotion: data.emotion || 'neutral',
       importance: data.importance || 5,
-      topics: data.topics ?? undefined,
-      embedding: data.embedding ?? undefined,
+      topics: data.topics || [],
+      embedding: data.embedding,
       timestamp
     };
 
@@ -298,13 +313,13 @@ class MemoryService {
   private mapDbToMemory(dbRow: any): Memory {
     return {
       id: dbRow.memory_id,
-      sessionId: dbRow.session_id ?? undefined,
+      sessionId: dbRow.session_id,
       userMessage: dbRow.user_message,
       aiResponse: dbRow.ai_response,
       emotion: dbRow.emotion,
       importance: dbRow.importance,
-      topics: dbRow.topics ?? undefined,
-      embedding: dbRow.embedding ?? undefined,
+      topics: dbRow.topics || [],
+      embedding: dbRow.embedding,
       timestamp: dbRow.created_at
     };
   }

@@ -16,18 +16,6 @@ import {
 
 const logger = createLogger('unified-elevenlabs');
 
-interface ElevenLabsRequest {
-  operation: 'tts' | 'voices' | 'signed-url';
-  // TTS specific
-  text?: string;
-  voiceId?: string;
-  options?: any;
-  // Signed URL specific
-  agentId?: string;
-  userId?: string;
-  metadata?: any;
-}
-
 // Cache voices for 1 hour to reduce API calls
 let voicesCache: { data: unknown; timestamp: number } | null = null;
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour

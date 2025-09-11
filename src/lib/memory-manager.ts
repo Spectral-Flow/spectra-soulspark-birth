@@ -5,13 +5,13 @@
 
 export interface Memory {
   id: string;
-  sessionId?: string;
+  sessionId: string | undefined;
   userMessage: string;
   aiResponse: string;
   emotion: string;
   importance: number;
-  topics?: string[];
-  embedding?: number[];
+  topics: string[] | undefined;
+  embedding: number[] | undefined;
   timestamp: string;
 }
 
@@ -246,12 +246,13 @@ class MemoryManager {
 
     const memory: Memory = {
       id: `memory_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      sessionId,
+      sessionId: sessionId ?? undefined,
       userMessage,
       aiResponse,
       emotion,
       importance,
-      topics,
+      topics: topics ?? undefined,
+      embedding: undefined,
       timestamp: new Date().toISOString()
     };
 
@@ -263,12 +264,13 @@ class MemoryManager {
     // Store in long-term memory if importance threshold is met
     if (importance >= 0.4) {
       await this.addToLongTermMemory({
-        sessionId,
+        sessionId: sessionId ?? undefined,
         userMessage,
         aiResponse,
         emotion,
         importance,
-        topics
+        topics: topics ?? undefined,
+        embedding: undefined
       });
     }
   }
@@ -492,7 +494,8 @@ class MemoryManager {
               aiResponse: memory.aiResponse,
               emotion: memory.emotion,
               importance: memory.importance,
-              topics: memory.topics
+              topics: memory.topics,
+              embedding: memory.embedding
             });
             imported++;
           } else {

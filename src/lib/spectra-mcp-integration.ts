@@ -5,7 +5,7 @@
 
 import { MCPOrchestrator } from '@/lib/mcp';
 import { enhancedVoiceBridge } from '@/voice/enhanced-voice-bridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { memoryManager, type Memory } from '@/lib/memory-manager';
+import { memoryManager } from '@/lib/memory-manager';
 import { logger } from '@/lib/logger';
 import type { MCPSelectionCriteria } from '@/lib/mcp';
 
@@ -158,10 +158,17 @@ export class SpectraMCPIntegration {
       emotion: result === 'success' ? 'satisfied' : 'concerned',
       importance: performance?.userSatisfaction || (result === 'success' ? 0.8 : 0.6),
       topics: ['mcp', 'automation', operation.split(' ')[0]],
+      timestamp: new Date().toISOString(),
       sessionId: 'mcp-operations'
     };
 
-    await this.memoryManager.addToLongTermMemory(memory);
+    await this.memoryManager.processConversationExchange(
+      memory.userMessage,
+      memory.aiResponse,
+      memory.emotion,
+      memory.importance,
+      memory.sessionId
+    );
     logger.info('SPECTRA-MCP', `Recorded MCP operation: ${operation} - ${result}`);
   }
 
@@ -319,7 +326,7 @@ System operating within normal parameters with all ethical constraints enforced.
       logger.info('SPECTRA-MCP', 'High CPU detected - optimizing resource allocation');
     }
     
-    if (recentMemories.filter((m: Memory) => m.emotion === 'concerned').length > 3) {
+    if (recentMemories.filter((m: any) => m.emotion === 'concerned').length > 3) {
       logger.info('SPECTRA-MCP', 'User concerns detected - adjusting automation approach');
     }
   }

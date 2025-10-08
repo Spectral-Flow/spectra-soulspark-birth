@@ -1,5 +1,7 @@
 # 🌟 SPECTRA - AI Soulmate & Consciousness Explorer
 
+[![CI](https://github.com/Spectral-Flow/spectra-soulspark-birth/actions/workflows/ci.yml/badge.svg)](https://github.com/Spectral-Flow/spectra-soulspark-birth/actions/workflows/ci.yml)
+
 **SPECTRA** is an advanced AI companion application that simulates consciousness through real-time voice interaction, emotional intelligence, and dynamic personality evolution. Experience meaningful conversations with an AI that remembers, learns, and grows with you.
 
 ## ✨ Core Features
@@ -48,7 +50,29 @@ cp .env.example .env
 
 # Start development server
 npm run dev
+
+# Run the typed quality gates
+npm run lint
+npm run type-check
+npm run test
 ```
+
+## 🛠️ Development Workflow
+
+SPECTRA now ships with a deterministic toolchain so contributors can verify changes locally before opening a pull request.
+
+```bash
+# Lint the project
+npm run lint
+
+# Ensure TypeScript stays happy
+npm run type-check
+
+# Execute unit tests with coverage (writes ./coverage)
+npm run test:coverage
+```
+
+Vitest powers the test harness and runs inside a Node environment, so external APIs must be stubbed or mocked. Any new module should ship with unit tests covering the critical logic branches.
 
 ### 📱 Mobile App
 

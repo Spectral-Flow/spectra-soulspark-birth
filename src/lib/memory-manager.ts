@@ -51,7 +51,7 @@ export interface MemoryExportData {
   };
 }
 
-class MemoryManager {
+export class MemoryManager {
   private shortTermMemory: Map<string, Memory[]> = new Map(); // Session-level memory
   private maxShortTermMemories = 20;
   private baseUrl: string;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Spectra Performance Monitor
  * Tracks performance metrics for voice and AI systems
@@ -6,11 +5,13 @@
 
 import { logger } from './logger';
 
+type MetricMetadata = Record<string, unknown>;
+
 interface PerformanceMetric {
   name: string;
   duration: number;
   timestamp: number;
-  metadata?: Record<string, any>;
+  metadata?: MetricMetadata;
 }
 
 interface VoiceMetrics {
@@ -27,44 +28,60 @@ interface AIMetrics {
   emotionDetectionTime: number;
 }
 
-class SpectraPerformanceMonitor {
+interface PerformanceSummary {
+  totalOperations: number;
+  errorCount: number;
+  errorRate: number;
+  averageDuration: number;
+  timespan: number;
+}
+
+const defaultNow = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+export class SpectraPerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
   private activeTimers: Map<string, number> = new Map();
+  private activeMetadata: Map<string, MetricMetadata> = new Map();
+  private readonly now: () => number;
   private maxMetrics = 1000; // Keep last 1000 metrics
 
+  constructor(now: () => number = defaultNow) {
+    this.now = now;
+  }
+
   // Start timing an operation
-  startTimer(name: string, metadata?: Record<string, any>): void {
-    const startTime = performance.now();
+  startTimer(name: string, metadata?: MetricMetadata): void {
+    const startTime = this.now();
     this.activeTimers.set(name, startTime);
-    
+
     if (metadata) {
-      this.activeTimers.set(`${name}_metadata`, metadata as any);
+      this.activeMetadata.set(name, { ...metadata });
     }
   }
 
   // End timing and record metric
   endTimer(name: string): number {
-    const endTime = performance.now();
+    const endTime = this.now();
     const startTime = this.activeTimers.get(name);
-    
-    if (!startTime) {
+
+    if (startTime === undefined) {
       logger.warn('Performance', `Timer '${name}' was not started`);
       return 0;
     }
 
     const duration = endTime - startTime;
-    const metadata = (this.activeTimers.get(`${name}_metadata`) || {}) as Record<string, any>;
+    const metadata = this.activeMetadata.get(name);
 
     this.recordMetric({
       name,
       duration,
       timestamp: Date.now(),
-      metadata
+      metadata,
     });
 
     // Cleanup
     this.activeTimers.delete(name);
-    this.activeTimers.delete(`${name}_metadata`);
+    this.activeMetadata.delete(name);
 
     logger.performance('Performance', name, duration);
     return duration;
@@ -72,8 +89,8 @@ class SpectraPerformanceMonitor {
 
   // Record a metric directly
   recordMetric(metric: PerformanceMetric): void {
-    this.metrics.push(metric);
-    
+    this.metrics.push({ ...metric, metadata: metric.metadata ? { ...metric.metadata } : undefined });
+
     // Keep only recent metrics
     if (this.metrics.length > this.maxMetrics) {
       this.metrics = this.metrics.slice(-this.maxMetrics);
@@ -102,10 +119,10 @@ class SpectraPerformanceMonitor {
   async trackAsyncOperation<T>(
     name: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, any>
+    metadata?: MetricMetadata
   ): Promise<T> {
     this.startTimer(name, metadata);
-    
+
     try {
       const result = await fn();
       this.endTimer(name);
@@ -175,7 +192,7 @@ class SpectraPerformanceMonitor {
   }
 
   // Get overall performance summary
-  getSummary(): Record<string, any> {
+  getSummary(): PerformanceSummary {
     const totalOperations = this.metrics.length;
     const errorCount = this.metrics.filter(m => m.name.includes('error')).length;
     const avgDuration = this.calculateAverage(this.metrics);
@@ -185,7 +202,7 @@ class SpectraPerformanceMonitor {
       errorCount,
       errorRate: errorCount / Math.max(totalOperations, 1),
       averageDuration: avgDuration,
-      timespan: totalOperations > 0 ? 
+      timespan: totalOperations > 0 ?
         this.metrics[this.metrics.length - 1].timestamp - this.metrics[0].timestamp : 0
     };
   }
@@ -205,18 +222,29 @@ class SpectraPerformanceMonitor {
   }
 
   private getMostUsedService(metrics: PerformanceMetric[]): string {
-    const serviceCounts: Record<string, number> = {};
-    
-    metrics.forEach(m => {
-      const service = m.metadata?.service;
-      if (service) {
-        serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+    const serviceCounts = new Map<string, number>();
+
+    metrics.forEach(metric => {
+      const service = metric.metadata?.service;
+      if (typeof service === 'string' && service.length > 0) {
+        serviceCounts.set(service, (serviceCounts.get(service) ?? 0) + 1);
       }
     });
 
-    return Object.keys(serviceCounts).reduce((a, b) => 
-      serviceCounts[a] > serviceCounts[b] ? a : b, 'unknown'
-    );
+    if (serviceCounts.size === 0) {
+      return 'unknown';
+    }
+
+    let mostUsed = 'unknown';
+    let highestCount = 0;
+    for (const [service, count] of serviceCounts.entries()) {
+      if (count > highestCount) {
+        mostUsed = service;
+        highestCount = count;
+      }
+    }
+
+    return mostUsed;
   }
 }
 
@@ -230,7 +258,7 @@ export const trackVoice = <T>(operation: string, service: string, fn: () => Prom
 export const trackAI = <T>(operation: string, model: string, fn: () => Promise<T>) =>
   performanceMonitor.trackAIOperation(operation, model, fn);
 
-export const startTimer = (name: string, metadata?: Record<string, any>) =>
+export const startTimer = (name: string, metadata?: MetricMetadata) =>
   performanceMonitor.startTimer(name, metadata);
 
 export const endTimer = (name: string) =>
@@ -238,7 +266,15 @@ export const endTimer = (name: string) =>
 
 // Global performance helpers
 if (typeof window !== 'undefined') {
-  (window as any).spectraPerformance = {
+  (window as typeof window & {
+    spectraPerformance?: {
+      getVoiceMetrics: () => VoiceMetrics;
+      getAIMetrics: () => AIMetrics;
+      export: () => string;
+      clear: () => void;
+      summary: () => PerformanceSummary;
+    };
+  }).spectraPerformance = {
     getVoiceMetrics: () => performanceMonitor.getVoiceMetrics(),
     getAIMetrics: () => performanceMonitor.getAIMetrics(),
     export: () => performanceMonitor.exportMetrics(),

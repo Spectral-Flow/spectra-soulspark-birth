@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { configDefaults } from "vitest/config";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -76,5 +77,18 @@ export default defineConfig(({ mode }) => ({
   esbuild: {
     target: 'es2022', // Updated to ES2022
     logOverride: { 'this-is-undefined-in-esm': 'silent' },
+  },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: [...configDefaults.exclude, 'android/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: 'coverage',
+    },
+    typecheck: {
+      tsconfig: './tsconfig.app.json',
+    },
   },
 }));

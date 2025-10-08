@@ -6,6 +6,7 @@
 import { MCPOrchestrator } from '@/lib/mcp';
 import { enhancedVoiceBridge } from '@/voice/enhanced-voice-bridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { memoryManager } from '@/lib/memory-manager';
+import type { Memory } from '@/lib/memory-manager';
 import { logger } from '@/lib/logger';
 import type { MCPSelectionCriteria } from '@/lib/mcp';
 
@@ -326,7 +327,7 @@ System operating within normal parameters with all ethical constraints enforced.
       logger.info('SPECTRA-MCP', 'High CPU detected - optimizing resource allocation');
     }
     
-    if (recentMemories.filter((m: any) => m.emotion === 'concerned').length > 3) {
+    if (recentMemories.filter((memory: Memory) => memory.emotion === 'concerned').length > 3) {
       logger.info('SPECTRA-MCP', 'User concerns detected - adjusting automation approach');
     }
   }
